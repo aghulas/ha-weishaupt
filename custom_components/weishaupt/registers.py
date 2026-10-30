@@ -69,11 +69,29 @@ FS_SETTINGS = [
             min_ref="supply_min"),
     Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, "ff",
             max_ref="supply_max"),
+    # FS 132
+    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
     DateSetting("holiday_to", ("1e01", "1f01", "2001"), "Congés : fin", "ff"),
 ]
+@dataclass(frozen=True)
+class Choice:
+    """A setting with a few named values."""
+
+    key: str
+    register: str
+    name: str
+    options: dict[int, str]
+    source: str | None
+
+
+# FS 142: written and read back on FS1 (30/10/2026), 1 moved the room setpoint of a circuit on holiday from 4 to 14 °C
+FS_CHOICES = [
+    Choice("holiday_level", "3d01", "Congés : niveau de température", {0: "hors-gel", 1: "réduit"}, "ff"),
+]
+
 KA_SETTINGS = [
     # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
     Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff"),
@@ -132,9 +150,13 @@ def dates_of(device: Device) -> list[DateSetting]:
     return [] if device.key == "ka" else FS_DATES
 
 
+def choices_of(device: Device) -> list[Choice]:
+    return [] if device.key == "ka" else FS_CHOICES
+
+
 def registers_of(device: Device) -> list[str]:
     """Every register to poll on a device."""
-    regs = [s.register for s in settings_of(device)]
+    regs = [s.register for s in settings_of(device)] + [c.register for c in choices_of(device)]
     for d in dates_of(device):
         regs.extend(d.registers)
     return regs

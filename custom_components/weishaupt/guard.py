@@ -84,3 +84,24 @@ class WriteGuard:
         self._last_by_register[register_id] = now
         if source == "ff":
             self._own_ff_writes.append(now)
+
+    def check_broadcast(self) -> None:
+        """Guard for the clock broadcast (fe 0700): enabled, not too soon, within the hourly rate limit.
+
+        No bounds or ff check: it is a broadcast from ebusd's own address, not a register write."""
+        if not self.enabled:
+            raise WriteRefused("écritures désactivées dans les options de l'intégration")
+        now = self._clock()
+        while self._writes and now - self._writes[0] > 3600:
+            self._writes.popleft()
+        if len(self._writes) >= MAX_PER_HOUR:
+            raise WriteRefused(f"plus de {MAX_PER_HOUR} écritures dans l'heure")
+        last = self._last_by_register.get("broadcast:clock")
+        if last is not None and now - last < MIN_INTERVAL:
+            raise WriteRefused(f"horloge déjà diffusée il y a moins de {MIN_INTERVAL:.0f} s")
+
+    def record_broadcast(self) -> None:
+        """To call right before sending a clock broadcast the guard accepted."""
+        now = self._clock()
+        self._writes.append(now)
+        self._last_by_register["broadcast:clock"] = now

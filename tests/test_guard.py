@@ -68,3 +68,25 @@ def test_own_ff_writes_do_not_block():
     own = clock.t
     clock.t += 30
     g.check("fs1:0800", 14, 5, 20, "ff", ServiceToolState(own + 1))
+
+
+def test_broadcast_guard_disabled():
+    g, _ = guard(enabled=False)
+    with pytest.raises(WriteRefused):
+        g.check_broadcast()
+
+
+def test_broadcast_guard_rate_and_interval():
+    g, clock = guard()
+    g.check_broadcast()
+    g.record_broadcast()
+    with pytest.raises(WriteRefused):  # less than MIN_INTERVAL since the last clock broadcast
+        g.check_broadcast()
+    clock.t += 11
+    g.check_broadcast()
+    g.record_broadcast()
+    for i in range(MAX_PER_HOUR):
+        g.record(f"r{i}", None)
+    clock.t += 11
+    with pytest.raises(WriteRefused):  # hourly cap shared with register writes
+        g.check_broadcast()

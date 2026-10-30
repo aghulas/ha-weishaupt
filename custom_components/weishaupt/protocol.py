@@ -9,6 +9,7 @@ Measured on the école Sainte-Marie bus (30/10/2026): a read answers 2 bytes per
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass
 
 MAX_READ_REGISTERS = 4
@@ -40,6 +41,41 @@ def write_command(zz: str, register: str, raw: bytes, source: str | None = None)
     payload = bytes.fromhex(register) + raw
     prefix = f"-s {source} " if source else ""
     return f"hex {prefix}{zz}5023{len(payload) + 1:02x}{crc_weishaupt(payload):02x}{payload.hex()}"
+
+
+DATETIME_BROADCAST = "0700"  # standard eBUS date/time broadcast, which the clock master f1 takes over
+_BROADCAST_OUTSIDE = re.compile(rf"f1fe{DATETIME_BROADCAST}[0-9a-f]{{2}}([0-9a-f]{{4}})", re.IGNORECASE)
+
+
+def _bcd(value: int) -> str:
+    """Two BCD digits of 0..99 as the ebusd hex byte (the decimal digits read straight as the byte, e.g. 30 -> 0x30)."""
+    if not 0 <= value <= 99:
+        raise ValueError(f"valeur BCD hors de 0..99 : {value}")
+    return f"{value:02d}"
+
+
+def datetime_broadcast_command(second: int, minute: int, hour: int, day: int, month: int, weekday: int, year: int,
+                               outside_raw: bytes) -> str:
+    """ebusd hex command broadcasting the standard date/time telegram (`fe 0700`), which sets the clock master f1.
+
+    Time and date are BCD, weekday 1 = Monday .. 7 = Sunday, year its last two digits. `outside_raw` is the 2-byte
+    outside-temperature field copied from f1's last broadcast (f1 overwrites it from its own sensor within a minute).
+    Sent as a broadcast from ebusd's own address, without `-s ff`. Validated on the école Sainte-Marie bus
+    (30/10/2026: `fe070009000d00591730100526` sent at 17:59:00 reset the whole installation to 30/10/2026 17:59)."""
+    if len(outside_raw) != 2:
+        raise ValueError("la température extérieure fait 2 octets")
+    if not 1 <= weekday <= 7:
+        raise ValueError("jour de semaine 1..7 (1 = lundi)")
+    data = (outside_raw.hex() + _bcd(second) + _bcd(minute) + _bcd(hour)
+            + _bcd(day) + _bcd(month) + _bcd(weekday) + _bcd(year))
+    payload = bytes.fromhex(data)
+    return f"hex fe{DATETIME_BROADCAST}{len(payload):02x}{data}"
+
+
+def parse_last_outside_raw(grab_output: str) -> bytes | None:
+    """Outside-temperature 2 bytes of f1's last date/time broadcast in `ebusctl grab result all` output (None if absent)."""
+    matches = _BROADCAST_OUTSIDE.findall(grab_output)
+    return bytes.fromhex(matches[-1]) if matches else None
 
 
 def parse_read_answer(answer: str, registers: list[str]) -> dict[str, bytes | None]:
@@ -160,3 +196,16 @@ class EbusdClient:
         answer = await self.command(write_command(zz, register, raw, source))
         if answer != "00":
             raise EbusdError(f"write {zz} {register}: answer {answer!r}")
+
+    async def last_outside_raw(self) -> bytes | None:
+        """Outside-temperature bytes of f1's last date/time broadcast, from ebusd's grab buffer (None if not captured)."""
+        try:
+            return parse_last_outside_raw(await self.command("grab result all"))
+        except EbusdError:
+            return None
+
+    async def broadcast_datetime(self, command: str) -> None:
+        """ÉCRITURE (diffusion): send a prebuilt `fe 0700` telegram; ebusd answers "done broadcast"."""
+        answer = await self.command(command)
+        if "done" not in answer:
+            raise EbusdError(f"broadcast {command}: answer {answer!r}")

@@ -47,6 +47,16 @@
           "description": "ex. 06:30-18:00, 19:00-21:00 ; « - » pour aucun."
         }
       }
+    },
+    "set_clock": {
+      "name": "Régler l'horloge",
+      "description": "Diffuse l'heure de Home Assistant aux régulateurs (trame fe 0700, qui règle l'horloge f1). Ne touche aucun paramètre de chauffe.",
+      "fields": {
+        "align": {
+          "name": "Caler sur la minute",
+          "description": "Attend le début de la minute suivante pour une horloge juste à la seconde près (envoi immédiat si désactivé)."
+        }
+      }
     }
   }
 }

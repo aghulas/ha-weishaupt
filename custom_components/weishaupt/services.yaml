@@ -16,3 +16,10 @@ set_time_program:
       example: "06:30-18:00"
       selector:
         text:
+set_clock:
+  fields:
+    align:
+      required: false
+      default: true
+      selector:
+        boolean:

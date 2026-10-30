@@ -1,6 +1,6 @@
 import pytest
 
-from weishaupt_core.guard import MAX_PER_HOUR, ServiceToolState, WriteGuard, WriteRefused
+from weishaupt_core.guard import LOG_FRESH_MAX, MAX_PER_HOUR, ServiceToolState, WriteGuard, WriteRefused
 
 
 class Clock:
@@ -46,19 +46,26 @@ def test_rate_limits():
 
 
 def test_ff_needs_a_readable_log():
-    g, _ = guard()
+    g, clock = guard()
     with pytest.raises(WriteRefused):
         g.check("fs1:0500", 21, 10, 26, "ff")
     with pytest.raises(WriteRefused):
         g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(error="no such file"))
-    g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(None))
+    g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(None, newest=clock.t))
+
+
+def test_ff_refused_when_log_stale():
+    g, clock = guard()
+    with pytest.raises(WriteRefused):  # newest telegram too old: the add-on stopped logging, detector is blind
+        g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(None, newest=clock.t - LOG_FRESH_MAX - 10))
+    g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(None, newest=clock.t))  # fresh log, no recent ff
 
 
 def test_ff_refused_while_service_tool_active():
     g, clock = guard()
     with pytest.raises(WriteRefused):
-        g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(clock.t - 60))
-    g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(clock.t - 601))
+        g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(clock.t - 60, newest=clock.t))
+    g.check("fs1:0500", 21, 10, 26, "ff", ServiceToolState(clock.t - 601, newest=clock.t))
     g.check("fs1:0500", 21, 10, 26, None, ServiceToolState(clock.t - 60))  # 31 is not concerned
 
 
@@ -67,7 +74,7 @@ def test_own_ff_writes_do_not_block():
     g.record("fs1:0500", "ff")
     own = clock.t
     clock.t += 30
-    g.check("fs1:0800", 14, 5, 20, "ff", ServiceToolState(own + 1))
+    g.check("fs1:0800", 14, 5, 20, "ff", ServiceToolState(own + 1, newest=clock.t))
 
 
 def test_broadcast_guard_disabled():

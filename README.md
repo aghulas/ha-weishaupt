@@ -42,3 +42,7 @@ python3 -m pytest tests
 ```
 
 Les tests couvrent le protocole (trames comparées à celles du bus réel) et la garde, sans Home Assistant.
+
+## Licence
+
+Apache License 2.0, voir [LICENSE](LICENSE).

@@ -1,0 +1,18 @@
+set_time_program:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          integration: weishaupt
+          domain: sensor
+    day:
+      required: true
+      selector:
+        select:
+          options: [lundi, mardi, mercredi, jeudi, vendredi, samedi, dimanche]
+    slots:
+      required: true
+      example: "06:30-18:00"
+      selector:
+        text:

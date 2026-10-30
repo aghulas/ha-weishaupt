@@ -4,18 +4,48 @@
       "user": {
         "title": "ebusd",
         "description": "ebusd started with --enablehex, reachable over TCP.",
-        "data": {"host": "Host", "port": "Port"}
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        }
       }
     },
-    "error": {"cannot_connect": "ebusd does not answer, or does not accept hex commands (--enablehex)."},
-    "abort": {"already_configured": "This ebusd is already configured."}
+    "error": {
+      "cannot_connect": "ebusd does not answer, or does not accept hex commands (--enablehex)."
+    },
+    "abort": {
+      "already_configured": "This ebusd is already configured."
+    }
   },
   "options": {
     "step": {
       "init": {
         "title": "Weishaupt",
         "description": "Writes go to the boiler regulators. Writes from the service tool address ff are refused while WCM-Diagnose may be connected, which is read from the ebusd telegram log.",
-        "data": {"telegram_db": "ebusd telegram log (SQLite)", "writes_enabled": "Enable writes"}
+        "data": {
+          "telegram_db": "ebusd telegram log (SQLite)",
+          "writes_enabled": "Enable writes"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_time_program": {
+      "name": "Set a time program day",
+      "description": "Writes the slots of one day (up to 3, quarters of an hour), unused slots are cleared.",
+      "fields": {
+        "entity_id": {
+          "name": "Time program",
+          "description": "Sensor of the time program."
+        },
+        "day": {
+          "name": "Day",
+          "description": "Day of the week."
+        },
+        "slots": {
+          "name": "Slots",
+          "description": "e.g. 06:30-18:00, 19:00-21:00 ; '-' for none."
+        }
       }
     }
   }

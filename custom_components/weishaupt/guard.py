@@ -6,7 +6,10 @@ Rules:
 - at most one write per register every MIN_INTERVAL seconds and MAX_PER_HOUR writes in all per hour;
 - a write from the service tool address ff is refused when WCM-Diagnose may be connected: a telegram from ff was
   logged during the last SERVICE_TOOL_QUIET seconds, outside of our own writes, or the telegram log cannot be read.
-  Two masters with the same address would collide on the bus.
+  Two masters with the same address would collide on the bus;
+- a write from ff is also refused when the telegram log is not live, i.e. its newest telegram (any source) is older
+  than LOG_FRESH_MAX seconds. The bus is chatty (a telegram every fraction of a second), so a stale newest means the
+  add-on has stopped logging and the ff detector is blind — fail safe rather than write blind.
 """
 from __future__ import annotations
 
@@ -20,24 +23,32 @@ MIN_INTERVAL = 10.0
 MAX_PER_HOUR = 30
 SERVICE_TOOL_QUIET = 600.0
 OWN_WRITE_MARGIN = 5.0
+LOG_FRESH_MAX = 120.0
 
 
 class WriteRefused(Exception):
     """The guard refused the write; the message says why (shown to the user)."""
 
 
-def last_service_tool_telegram(db_path: str) -> float | None:
-    """Time (s since epoch) of the last telegram from ff in the ebusd telegram log of the add-on, None if none."""
+def read_service_tool_state(db_path: str) -> "ServiceToolState":
+    """Read the add-on telegram log: time of the last ff telegram, and of the newest telegram of any source.
+
+    `last_seen` detects WCM-Diagnose (address ff); `newest` tells whether the log is still being written. Our own
+    ff writes are logged without their source byte (status 'invalid', qq NULL), so they never count as ff here."""
     with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5) as db:
-        row = db.execute("SELECT MAX(ts) FROM telegram WHERE qq = 255").fetchone()
-    return row[0] / 1e9 if row and row[0] else None
+        last_ff = db.execute("SELECT MAX(ts) FROM telegram WHERE qq = 255").fetchone()[0]
+        newest = db.execute("SELECT MAX(ts) FROM telegram").fetchone()[0]
+    return ServiceToolState(last_seen=last_ff / 1e9 if last_ff else None,
+                            newest=newest / 1e9 if newest else None)
 
 
 @dataclass(frozen=True)
 class ServiceToolState:
-    """What the telegram log says about ff: time of its last telegram (None = never), or why it could not be read."""
+    """What the telegram log says: time of the last ff telegram, time of the newest telegram (log liveness), or why
+    it could not be read."""
 
     last_seen: float | None = None
+    newest: float | None = None
     error: str | None = None
 
 
@@ -70,6 +81,8 @@ class WriteGuard:
         if state is None or state.error is not None:
             reason = state.error if state else "non consulté"
             raise WriteRefused(f"journal des trames illisible ({reason}) : écriture depuis ff refusée")
+        if state.newest is None or now - state.newest > LOG_FRESH_MAX:
+            raise WriteRefused("journal des trames non alimenté (pas de trame récente) : écriture depuis ff refusée")
         seen = state.last_seen
         if seen is None or now - seen > SERVICE_TOOL_QUIET:
             return

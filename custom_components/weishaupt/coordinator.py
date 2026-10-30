@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from functools import partial
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -13,7 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
-from .guard import ServiceToolState, WriteGuard, WriteRefused, last_service_tool_telegram
+from .guard import ServiceToolState, WriteGuard, WriteRefused, read_service_tool_state
 from .protocol import EbusdClient, EbusdError, datetime_broadcast_command
 from .registers import DEVICES, Device, program_registers, registers_of
 
@@ -56,8 +55,7 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         service_tool = None
         if source == "ff":
             try:
-                service_tool = ServiceToolState(await self.hass.async_add_executor_job(
-                    partial(last_service_tool_telegram, self._db_path)))
+                service_tool = await self.hass.async_add_executor_job(read_service_tool_state, self._db_path)
             except Exception as err:  # noqa: BLE001 - any failure: the guard refuses the write
                 service_tool = ServiceToolState(error=str(err))
         try:

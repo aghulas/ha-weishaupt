@@ -72,6 +72,51 @@ TEMP10 = Codec(10)  # °C or K with one decimal
 UNIT = Codec(1, signed=False)  # percent, day, month, year (low byte)
 
 
+UNUSED_SLOT = b"\x80\x80"
+
+
+def decode_slot(raw: bytes) -> tuple[int, int] | None:
+    """Time program slot: byte 0 = end, byte 1 = start, in quarters of an hour; 0x80 0x80 = unused.
+
+    Returns (start, end) in minutes since midnight."""
+    if raw == UNUSED_SLOT:
+        return None
+    return raw[1] * 15, raw[0] * 15
+
+
+def encode_slot(slot: tuple[int, int] | None) -> bytes:
+    if slot is None:
+        return UNUSED_SLOT
+    start, end = slot
+    if not (0 <= start < end <= 24 * 60 and start % 15 == 0 and end % 15 == 0):
+        raise ValueError(f"invalid slot {slot}: quarters of an hour, start before end")
+    return bytes([end // 15, start // 15])
+
+
+def format_slots(slots: list[tuple[int, int] | None]) -> str:
+    used = [s for s in slots if s]
+    return ", ".join(f"{a // 60:02d}:{a % 60:02d}-{b // 60:02d}:{b % 60:02d}" for a, b in used) or "-"
+
+
+def parse_slots(text: str) -> list[tuple[int, int]]:
+    """'06:30-18:00, 19:00-21:00' -> [(390, 1080), (1140, 1260)]; '' or '-' = no slot; up to 3, ascending."""
+    slots = []
+    for part in text.replace(";", ",").split(","):
+        part = part.strip()
+        if not part or part == "-":
+            continue
+        a, b = (x.strip() for x in part.split("-"))
+        to_min = lambda t: int(t.split(":")[0]) * 60 + int(t.split(":")[1])  # noqa: E731
+        slots.append((to_min(a), to_min(b)))
+    if len(slots) > 3:
+        raise ValueError("3 slots per day at most")
+    for i, slot in enumerate(slots):
+        encode_slot(slot)
+        if i and slot[0] < slots[i - 1][1]:
+            raise ValueError("slots must be ascending and not overlap")
+    return slots
+
+
 class EbusdError(Exception):
     """ebusd refused the command or the device did not answer as expected."""
 

@@ -48,3 +48,19 @@ def test_effective_bounds_follow_linked_settings():
     raw["0800"] = bytes.fromhex("aa00")  # reduced 17.0
     assert effective_bounds(by_key["room_normal"], FS_SETTINGS, raw) == (17.0, 35)
     assert effective_bounds(by_key["supply_min"], FS_SETTINGS, {}) == (8, 82)
+
+
+def test_time_program_slots():
+    from weishaupt_core.protocol import decode_slot, encode_slot, format_slots, parse_slots
+    from weishaupt_core.registers import PROGRAMS
+    assert decode_slot(bytes.fromhex("481a")) == (390, 1080)  # 06:30-18:00, read on FS1
+    assert decode_slot(bytes.fromhex("8080")) is None
+    assert encode_slot((390, 1095)) == bytes.fromhex("491a")  # end 18:15, written and read back on FS1
+    assert format_slots([(390, 1080), None, None]) == "06:30-18:00"
+    assert parse_slots("06:30-18:00, 19:00-21:00") == [(390, 1080), (1140, 1260)]
+    assert parse_slots("-") == []
+    for bad in ("18:00-06:30", "06:10-18:00", "06:00-12:00, 11:00-13:00", "1:00-2:00,3:00-4:00,5:00-6:00,7:00-8:00"):
+        with pytest.raises(ValueError):
+            parse_slots(bad)
+    heating_1 = PROGRAMS[0]
+    assert heating_1.register(1, 1) == "1014" and heating_1.register(3, 1) == "3014" and heating_1.register(7, 3) == "7214"

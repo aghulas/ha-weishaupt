@@ -4,18 +4,48 @@
       "user": {
         "title": "ebusd",
         "description": "ebusd lancé avec --enablehex, joignable en TCP.",
-        "data": {"host": "Hôte", "port": "Port"}
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        }
       }
     },
-    "error": {"cannot_connect": "ebusd ne répond pas, ou n'accepte pas les commandes hex (--enablehex)."},
-    "abort": {"already_configured": "Cet ebusd est déjà configuré."}
+    "error": {
+      "cannot_connect": "ebusd ne répond pas, ou n'accepte pas les commandes hex (--enablehex)."
+    },
+    "abort": {
+      "already_configured": "Cet ebusd est déjà configuré."
+    }
   },
   "options": {
     "step": {
       "init": {
         "title": "Weishaupt",
         "description": "Les écritures vont aux régulateurs des chaudières. Les écritures depuis l'adresse de l'outil de service ff sont refusées tant que WCM-Diagnose peut être connecté, ce qui se lit dans le journal des trames d'ebusd.",
-        "data": {"telegram_db": "Journal des trames ebusd (SQLite)", "writes_enabled": "Activer les écritures"}
+        "data": {
+          "telegram_db": "Journal des trames ebusd (SQLite)",
+          "writes_enabled": "Activer les écritures"
+        }
+      }
+    }
+  },
+  "services": {
+    "set_time_program": {
+      "name": "Régler un jour de programme horaire",
+      "description": "Écrit les créneaux d'un jour (3 au plus, au quart d'heure) ; les créneaux non utilisés sont effacés.",
+      "fields": {
+        "entity_id": {
+          "name": "Programme horaire",
+          "description": "Capteur du programme horaire."
+        },
+        "day": {
+          "name": "Jour",
+          "description": "Jour de la semaine."
+        },
+        "slots": {
+          "name": "Créneaux",
+          "description": "ex. 06:30-18:00, 19:00-21:00 ; « - » pour aucun."
+        }
       }
     }
   }

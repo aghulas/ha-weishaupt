@@ -95,6 +95,35 @@ def effective_bounds(setting: Setting, settings: list[Setting], raw: dict[str, b
     return low, high
 
 
+@dataclass(frozen=True)
+class Program:
+    """A time program: 7 days x 3 slots, register (day << 4 | slot - 1, program code)."""
+
+    key: str
+    code: str
+    name: str
+
+    def register(self, day: int, slot: int) -> str:
+        """day 1 = Monday ... 7 = Sunday, slot 1-3."""
+        return f"{day << 4 | (slot - 1):02x}{self.code}"
+
+
+DAYS = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+PROGRAMS = [
+    Program("heating_1", "14", "Programme chauffage 1"),
+    Program("heating_2", "15", "Programme chauffage 2"),
+    Program("heating_3", "16", "Programme chauffage 3"),
+    Program("dhw", "17", "Programme eau chaude"),
+    Program("circulation", "1a", "Programme circulation"),
+]
+# a slot of FS1 (heating 1, Monday, slot 1) was written and read back from ebusd's own address (30/10/2026)
+PROGRAM_SOURCE = None
+
+
+def program_registers() -> list[str]:
+    return [p.register(d, s) for p in PROGRAMS for d in range(1, 8) for s in range(1, 4)]
+
+
 def settings_of(device: Device) -> list[Setting]:
     return KA_SETTINGS if device.key == "ka" else FS_SETTINGS
 

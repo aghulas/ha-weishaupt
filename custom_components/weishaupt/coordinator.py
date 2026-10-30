@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from functools import partial
 
 from homeassistant.config_entries import ConfigEntry
@@ -12,9 +13,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
 from .guard import ServiceToolState, WriteGuard, WriteRefused, last_service_tool_telegram
 from .protocol import EbusdClient, EbusdError
-from .registers import DEVICES, Device, registers_of
+from .registers import DEVICES, Device, program_registers, registers_of
 
 _LOGGER = logging.getLogger(__name__)
+PROGRAM_INTERVAL = 3600.0  # time programs change rarely: read them once an hour
 
 type WeishauptConfigEntry = ConfigEntry[WeishauptCoordinator]
 
@@ -27,14 +29,22 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         self.client = client
         self._db_path = entry.options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)
         self.guard = WriteGuard(entry.options.get(CONF_WRITES_ENABLED, False))
+        self._programs_read = 0.0
 
     async def _async_update_data(self) -> dict[str, dict[str, bytes | None]]:
+        read_programs = time.monotonic() - self._programs_read > PROGRAM_INTERVAL or not self.data
         data = {}
         try:
             for device in DEVICES:
-                data[device.key] = await self.client.read_registers(device.zz, registers_of(device))
+                values = dict((self.data or {}).get(device.key, {}))
+                values.update(await self.client.read_registers(device.zz, registers_of(device)))
+                if read_programs:
+                    values.update(await self.client.read_registers(device.zz, program_registers()))
+                data[device.key] = values
         except (OSError, TimeoutError, EbusdError) as err:
             raise UpdateFailed(f"lecture ebusd : {err}") from err
+        if read_programs:
+            self._programs_read = time.monotonic()
         return data
 
     async def async_write(self, device: Device, register: str, raw: bytes, value: float,

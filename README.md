@@ -12,7 +12,7 @@ chaudières publiés par ebusd en MQTT restent tels quels ; cette intégration a
 
 ## Entités
 
-Par régulateur (KA, FS1, FS2, FS3) : les réglages en entités `number`, les dates de congés des FS en entités `date`,
+Par régulateur (KA, FS1, FS2, FS3) : les réglages en entités `number`, les dates de congés des FS en entités `date` et leur niveau de température (hors-gel ou réduit) en entité `select`,
 les programmes horaires (chauffage 1 à 3, eau chaude, circulation) en capteurs (état = créneaux du jour, un attribut
 par jour, relus toutes les heures). Le service `weishaupt.set_time_program` réécrit les créneaux d'un jour
 (ex. `06:30-18:00, 19:00-21:00`, au quart d'heure, 3 au plus), créneau par créneau, sans réécrire ceux qui ne changent

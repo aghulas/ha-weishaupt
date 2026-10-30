@@ -13,7 +13,7 @@ from .coordinator import WeishauptConfigEntry, WeishauptCoordinator
 from .protocol import EbusdClient, encode_slot, parse_slots
 from .registers import DAYS, DEVICES, PROGRAM_SOURCE, PROGRAMS
 
-PLATFORMS = [Platform.DATE, Platform.NUMBER, Platform.SENSOR]
+PLATFORMS = [Platform.DATE, Platform.NUMBER, Platform.SELECT, Platform.SENSOR]
 SET_TIME_PROGRAM_SCHEMA = vol.Schema({
     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required("day"): vol.In(DAYS),

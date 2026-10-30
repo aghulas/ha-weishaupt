@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ebusd",
+        "description": "ebusd started with --enablehex, reachable over TCP.",
+        "data": {"host": "Host", "port": "Port"}
+      }
+    },
+    "error": {"cannot_connect": "ebusd does not answer, or does not accept hex commands (--enablehex)."},
+    "abort": {"already_configured": "This ebusd is already configured."}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Weishaupt",
+        "description": "Writes go to the boiler regulators. Writes from the service tool address ff are refused while WCM-Diagnose may be connected, which is read from the ebusd telegram log.",
+        "data": {"telegram_db": "ebusd telegram log (SQLite)", "writes_enabled": "Enable writes"}
+      }
+    }
+  }
+}

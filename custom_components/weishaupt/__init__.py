@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -19,6 +20,9 @@ SET_TIME_PROGRAM_SCHEMA = vol.Schema({
     vol.Required("day"): vol.In(DAYS),
     vol.Required("slots"): cv.string,
 })
+SET_CLOCK_SCHEMA = vol.Schema({
+    vol.Optional("align", default=True): cv.boolean,
+})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
@@ -30,7 +34,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     if not hass.services.has_service(DOMAIN, "set_time_program"):
         hass.services.async_register(DOMAIN, "set_time_program", _time_program_handler(hass), SET_TIME_PROGRAM_SCHEMA)
+    if not hass.services.has_service(DOMAIN, "set_clock"):
+        hass.services.async_register(DOMAIN, "set_clock", _set_clock_handler(hass), SET_CLOCK_SCHEMA)
     return True
+
+
+def _set_clock_handler(hass: HomeAssistant):
+    async def set_clock(call: ServiceCall) -> None:
+        """ÉCRITURE (diffusion): set the regulators' clock from Home Assistant's time (`fe 0700` broadcast)."""
+        entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.state is ConfigEntryState.LOADED]
+        if len(entries) != 1:
+            raise ServiceValidationError("une seule intégration Weishaupt doit être chargée")
+        coordinator: WeishauptCoordinator = entries[0].runtime_data
+        await coordinator.async_set_clock(align=call.data["align"])
+
+    return set_clock
 
 
 def _time_program_handler(hass: HomeAssistant):

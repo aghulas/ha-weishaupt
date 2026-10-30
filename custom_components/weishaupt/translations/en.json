@@ -47,6 +47,16 @@
           "description": "e.g. 06:30-18:00, 19:00-21:00 ; '-' for none."
         }
       }
+    },
+    "set_clock": {
+      "name": "Set the clock",
+      "description": "Broadcasts Home Assistant's time to the regulators (fe 0700 telegram, which sets the f1 clock). Touches no heating setting.",
+      "fields": {
+        "align": {
+          "name": "Align to the minute",
+          "description": "Wait for the top of the next minute for a clock accurate to about a second (send immediately if off)."
+        }
+      }
     }
   }
 }

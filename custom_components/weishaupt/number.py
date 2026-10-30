@@ -8,7 +8,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import WeishauptConfigEntry, WeishauptCoordinator
 from .entity import WeishauptEntity
-from .registers import DEVICES, Device, Setting, settings_of
+from .registers import DEVICES, Device, Setting, effective_bounds, settings_of
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
@@ -25,14 +25,24 @@ class WeishauptNumber(WeishauptEntity, NumberEntity):
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, setting: Setting) -> None:
         super().__init__(coordinator, device, setting.key, setting.name)
         self.setting = setting
-        self._attr_native_min_value = setting.minimum
-        self._attr_native_max_value = setting.maximum
         self._attr_native_step = setting.step
         self._attr_native_unit_of_measurement = setting.unit
 
     @property
     def available(self) -> bool:
         return super().available and self.raw(self.setting.register) is not None
+
+    @property
+    def native_min_value(self) -> float:
+        return self._bounds()[0]
+
+    @property
+    def native_max_value(self) -> float:
+        return self._bounds()[1]
+
+    def _bounds(self) -> tuple[float, float]:
+        raw = (self.coordinator.data or {}).get(self.device.key, {})
+        return effective_bounds(self.setting, settings_of(self.device), raw)
 
     @property
     def native_value(self) -> float | None:
@@ -42,5 +52,5 @@ class WeishauptNumber(WeishauptEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """ÉCRITURE: through the guard of the coordinator."""
         s = self.setting
-        await self.coordinator.async_write(self.device, s.register, s.codec.encode(value), value,
-                                           s.minimum, s.maximum, s.source)
+        low, high = self._bounds()
+        await self.coordinator.async_write(self.device, s.register, s.codec.encode(value), value, low, high, s.source)

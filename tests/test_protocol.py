@@ -37,3 +37,14 @@ def test_codecs():
     assert TEMP10.encode(74.5) == bytes.fromhex("e902")
     assert TEMP10.decode(bytes.fromhex("18fc")) == -100.0
     assert UNIT.encode(26) == bytes.fromhex("1a00")
+
+
+def test_effective_bounds_follow_linked_settings():
+    from weishaupt_core.registers import FS_SETTINGS, effective_bounds
+    by_key = {s.key: s for s in FS_SETTINGS}
+    raw = {"0500": bytes.fromhex("d200"), "0800": bytes.fromhex("8c00")}  # 21.0 / 14.0
+    assert effective_bounds(by_key["room_reduced"], FS_SETTINGS, raw) == (10, 21.0)
+    assert effective_bounds(by_key["room_normal"], FS_SETTINGS, raw) == (16, 35)
+    raw["0800"] = bytes.fromhex("aa00")  # reduced 17.0
+    assert effective_bounds(by_key["room_normal"], FS_SETTINGS, raw) == (17.0, 35)
+    assert effective_bounds(by_key["supply_min"], FS_SETTINGS, {}) == (8, 82)

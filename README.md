@@ -20,7 +20,7 @@ Seuls les registres dont l'écriture a été essayée sur le bus de l'école Sai
 
 Désactivées par défaut (options de l'intégration). Chaque écriture passe par `guard.py` :
 
-- bornes par registre (provisoires, à valider avec les notices et les valeurs de mise en service) ;
+- bornes par registre, tirées des notices WCM-FS 2.0 (83277701) et WCM-KA 3.0 (83258401), resserrées par les réglages liés (réduite ≤ normale, départ mini ≤ maxi, modulation mini ≤ maxi) ;
 - au plus une écriture par registre toutes les 10 s et 30 écritures par heure ;
 - un registre par trame `5023`, relu après l'écriture ; une valeur non retenue est signalée comme une erreur ;
 - la plupart des réglages ne sont acceptés que depuis l'adresse de l'outil de service `ff` (les autres adresses sont

@@ -2,8 +2,12 @@
 
 Only registers whose write was tested on the école Sainte-Marie bus (30/10/2026) are listed. `source` is the address
 the regulator accepts writes from: "ff" (address of the WCM-Diagnose service tool) for the settings, None (ebusd's own
-address, 31) for registers the devices write to each other. Bounds are provisional: to be checked against the
-Weishaupt manuals and the commissioning values before the writes are enabled.
+address, 31) for registers the devices write to each other.
+
+Bounds are the setting ranges of the Weishaupt manuals: WCM-FS 2.0 (83277701, 2012-04, parameter table p.21 and
+§4.7) and WCM-KA 3.0 (83258401, 2013-04, p.50-63). The manuals give no step; 0.5 K and 1 % are the steps of their
+display examples. `min_ref`/`max_ref` name a setting of the same device whose current value also bounds this one,
+as the manuals describe (e.g. reduced room setpoint <= normal room setpoint).
 """
 from __future__ import annotations
 
@@ -30,6 +34,8 @@ class Setting:
     maximum: float
     step: float
     source: str | None
+    min_ref: str | None = None
+    max_ref: str | None = None
 
 
 @dataclass(frozen=True)
@@ -50,24 +56,43 @@ DEVICES = [
 ]
 
 FS_SETTINGS = [
-    Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 10, 26, 0.5, "ff"),
-    Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 5, 20, 0.5, "ff"),
-    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 2, 10, 0.5, "ff"),
+    # FS 112, 113, 118, 117 (range of the "Universal" circuit type), 119
+    Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 16, 35, 0.5, "ff",
+            min_ref="room_reduced"),
+    Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 10, 21.5, 0.5, "ff",
+            max_ref="room_normal"),
+    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff"),
     Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff"),
-    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 10, 25, 0.5, "ff"),
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 30, 80, 0.5, "ff"),
-    Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 5, 40, 0.5, "ff"),
+    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff"),
+    # circuit flow limits, KA 342/341 (not in the FS manual): max up to 82 °C for the "Universal" type
+    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
+            min_ref="supply_min"),
+    Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, "ff",
+            max_ref="supply_max"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
     DateSetting("holiday_to", ("1e01", "1f01", "2001"), "Congés : fin", "ff"),
 ]
 KA_SETTINGS = [
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 50, 85, 0.5, "ff"),
-    Setting("modulation_max", "eafd", "Modulation maxi", UNIT, "%", 50, 100, 1, "ff"),
-    Setting("modulation_min", "ebfd", "Modulation mini", UNIT, "%", 20, 50, 1, "ff"),
+    # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
+    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff"),
+    Setting("modulation_max", "eafd", "Modulation maxi", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min"),
+    Setting("modulation_min", "ebfd", "Modulation mini", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max"),
     Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff"),
 ]
+
+
+def effective_bounds(setting: Setting, settings: list[Setting], raw: dict[str, bytes | None]) -> tuple[float, float]:
+    """Bounds of a setting, narrowed by the current value of the settings it refers to (when known)."""
+    by_key = {s.key: s for s in settings}
+    low, high = setting.minimum, setting.maximum
+    for ref, is_min in ((setting.min_ref, True), (setting.max_ref, False)):
+        if ref is None or raw.get(by_key[ref].register) is None:
+            continue
+        value = by_key[ref].codec.decode(raw[by_key[ref].register])
+        low, high = (max(low, value), high) if is_min else (low, min(high, value))
+    return low, high
 
 
 def settings_of(device: Device) -> list[Setting]:

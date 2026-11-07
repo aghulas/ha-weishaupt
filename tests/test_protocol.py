@@ -1,7 +1,8 @@
 """Frames checked against telegrams answered on the école Sainte-Marie bus (30/10/2026)."""
 import pytest
 
-from weishaupt_core.protocol import TEMP10, UNIT, EbusdError, crc_weishaupt, parse_read_answer, read_command, write_command
+from weishaupt_core.protocol import (TEMP10, UNIT, EbusdError, crc_weishaupt, parse_read_answer, read_command,
+                                      write_command, write_definition_command)
 
 
 def test_crc_of_live_read():
@@ -22,6 +23,14 @@ def test_write_command_matches_accepted_writes():
     assert write_command("35", "0500", bytes.fromhex("d700"), "ff") == "hex -s ff 35502305d80500d700"
     assert write_command("35", "1b01", bytes.fromhex("1e00"), "ff") == "hex -s ff 35502305181b011e00"
     assert write_command("35", "1014", bytes.fromhex("491a")).startswith("hex 3550230")
+
+
+def test_write_definition_command():
+    # write through the ebusd message definition (ebusd computes the runtime CRC and enforces the range)
+    assert write_definition_command("fs1", "RoomNormalTemp", 22.0, "ff") == "write -s ff -c fs1 RoomNormalTemp 22"
+    assert write_definition_command("fs1", "RoomNormalTemp", 21.5, "ff") == "write -s ff -c fs1 RoomNormalTemp 21.5"
+    assert write_definition_command("ka", "ModulationMax", 50, "ff") == "write -s ff -c ka ModulationMax 50"
+    assert write_definition_command("em1", "RoomNormalTemp", 22.0) == "write -c em1 RoomNormalTemp 22"
 
 
 def test_parse_read_answer():

@@ -36,6 +36,7 @@ class Setting:
     source: str | None
     min_ref: str | None = None
     max_ref: str | None = None
+    message: str | None = None  # ebusd message name (write via definition instead of raw hex); None -> hex
 
 
 @dataclass(frozen=True)
@@ -58,19 +59,23 @@ DEVICES = [
 FS_SETTINGS = [
     # FS 112, 113, 118, 117 (range of the "Universal" circuit type), 119
     Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 16, 35, 0.5, "ff",
-            min_ref="room_reduced"),
+            min_ref="room_reduced", message="RoomNormalTemp"),
     Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 10, 21.5, 0.5, "ff",
-            max_ref="room_normal"),
-    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff"),
-    Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff"),
-    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff"),
+            max_ref="room_normal", message="RoomSetbackTemp"),
+    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff",
+            message="RoomFrostProtectionTemp"),
+    Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff",
+            message="GradientCurve"),
+    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff",
+            message="SummerWinterChangeOverTemp"),
     # circuit flow limits, KA 342/341 (not in the FS manual): max up to 82 °C for the "Universal" type
     Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
-            min_ref="supply_min"),
+            min_ref="supply_min", message="SupplyMaxTemp"),
     Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, "ff",
-            max_ref="supply_max"),
+            max_ref="supply_max", message="SupplyMinTemp"),
     # FS 132
-    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff"),
+    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
+            message="DHWSetpoint"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
@@ -94,10 +99,14 @@ FS_CHOICES = [
 
 KA_SETTINGS = [
     # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff"),
-    Setting("modulation_max", "eafd", "Modulation maxi", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min"),
-    Setting("modulation_min", "ebfd", "Modulation mini", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max"),
-    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff"),
+    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
+            message="SupplyMaxTemp"),
+    Setting("modulation_max", "eafd", "Modulation maxi", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min",
+            message="ModulationMax"),
+    Setting("modulation_min", "ebfd", "Modulation mini", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max",
+            message="ModulationMin"),
+    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
+            message="DHWSetpoint"),
 ]
 
 

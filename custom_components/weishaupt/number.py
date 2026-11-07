@@ -53,4 +53,5 @@ class WeishauptNumber(WeishauptEntity, NumberEntity):
         """ÉCRITURE: through the guard of the coordinator."""
         s = self.setting
         low, high = self._bounds()
-        await self.coordinator.async_write(self.device, s.register, s.codec.encode(value), value, low, high, s.source)
+        await self.coordinator.async_write(self.device, s.register, s.codec.encode(value), value, low, high, s.source,
+                                           message=s.message)

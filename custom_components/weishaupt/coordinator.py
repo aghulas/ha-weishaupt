@@ -49,8 +49,12 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         return data
 
     async def async_write(self, device: Device, register: str, raw: bytes, value: float,
-                          minimum: float, maximum: float, source: str | None) -> None:
-        """ÉCRITURE: guarded write of one register, read back; raises HomeAssistantError if refused or not taken."""
+                          minimum: float, maximum: float, source: str | None, message: str | None = None) -> None:
+        """ÉCRITURE: guarded write of one register, read back; raises HomeAssistantError if refused or not taken.
+
+        With `message` (ebusd message name) the write goes through the definition (ebusd computes the runtime CRC and
+        enforces the range); without it, the raw `5023` hex frame is sent. Either way the register is read back in hex
+        and compared, so the verification is unchanged."""
         register_id = f"{device.key}:{register}"
         service_tool = None
         if source == "ff":
@@ -66,7 +70,10 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         self.guard.record(register_id, source)
         before = (self.data or {}).get(device.key, {}).get(register)
         try:
-            await self.client.write_register(device.zz, register, raw, source)
+            if message:
+                await self.client.write_definition(device.key, message, value, source)
+            else:
+                await self.client.write_register(device.zz, register, raw, source)
             after = (await self.client.read_registers(device.zz, [register]))[register]
         except (OSError, TimeoutError, EbusdError) as err:
             _LOGGER.error("ÉCRITURE en échec %s = %s depuis %s : %s", register_id, value, source or "31", err)

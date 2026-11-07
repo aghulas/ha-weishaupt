@@ -43,6 +43,14 @@ def write_command(zz: str, register: str, raw: bytes, source: str | None = None)
     return f"hex {prefix}{zz}5023{len(payload) + 1:02x}{crc_weishaupt(payload):02x}{payload.hex()}"
 
 
+def write_definition_command(circuit: str, message: str, value: float, source: str | None = None) -> str:
+    """ebusd write through a message definition instead of a raw `hex` frame: ebusd computes the Weishaupt runtime
+    CRC (config marked [WCRC], ebusd #167) and enforces the definition's value range before sending. `value` is the
+    decoded value (°C, %, ...); `source` overrides the sender address (the regulators accept settings from "ff")."""
+    prefix = f"-s {source} " if source else ""
+    return f"write {prefix}-c {circuit} {message} {value:g}"
+
+
 DATETIME_BROADCAST = "0700"  # standard eBUS date/time broadcast, which the clock master f1 takes over
 _BROADCAST_OUTSIDE = re.compile(rf"f1fe{DATETIME_BROADCAST}[0-9a-f]{{2}}([0-9a-f]{{4}})", re.IGNORECASE)
 
@@ -196,6 +204,14 @@ class EbusdClient:
         answer = await self.command(write_command(zz, register, raw, source))
         if answer != "00":
             raise EbusdError(f"write {zz} {register}: answer {answer!r}")
+
+    async def write_definition(self, circuit: str, message: str, value: float, source: str | None = None) -> None:
+        """ÉCRITURE via définition: ebusd computes the runtime CRC and checks the range; answers "done" on success.
+
+        An out-of-range value or an unknown message makes `command` raise EbusdError (ebusd answers `ERR: ...`)."""
+        answer = await self.command(write_definition_command(circuit, message, value, source))
+        if "done" not in answer:
+            raise EbusdError(f"write -c {circuit} {message} {value:g}: answer {answer!r}")
 
     async def last_outside_raw(self) -> bytes | None:
         """Outside-temperature bytes of f1's last date/time broadcast, from ebusd's grab buffer (None if not captured)."""

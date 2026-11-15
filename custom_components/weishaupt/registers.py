@@ -1,8 +1,14 @@
 """Regulators and registers exposed by the integration.
 
-Only registers whose write was tested on the test installation bus (30/10/2026) are listed. `source` is the address
-the regulator accepts writes from: "ff" (address of the WCM-Diagnose service tool) for the settings, None (ebusd's own
-address, 31) for registers the devices write to each other.
+Only registers whose WRITE was tested on the test installation bus (30/10/2026) are listed as writable
+(Setting/Choice/DateSetting). `source` is the address the regulator accepts writes from: "ff" (address of the
+WCM-Diagnose service tool) for the settings, None (ebusd's own address, 31) for registers the devices write to each
+other.
+
+Regulation parameters whose write is not yet bus-validated are exposed READ-ONLY first (READ_PARAMS, below), so their
+value is visible while the write rule (source ff/31), the WCM-manual bounds and, for modes, the value table are being
+checked register by register on the bus (étape C of the chantier). A read param becomes a Setting/Choice once its
+write is validated.
 
 Bounds are the setting ranges of the Weishaupt manuals: WCM-FS 2.0 (83277701, 2012-04, parameter table p.21 and
 §4.7) and WCM-KA 3.0 (83258401, 2013-04, p.50-63). The manuals give no step; 0.5 K and 1 % are the steps of their
@@ -97,6 +103,40 @@ FS_CHOICES = [
     Choice("holiday_level", "3d01", "Congés : niveau de température", {0: "hors-gel", 1: "réduit"}, "ff"),
 ]
 
+
+@dataclass(frozen=True)
+class ReadParam:
+    """A regulation register exposed READ-ONLY, ahead of its write validation on the bus (étape C).
+
+    `codec` decodes the raw 2 bytes for display only; `options` maps the raw integer of a mode register to a label
+    (display only, no write). No bounds here: the writable entity (Setting/Choice, with the WCM-manual range) is
+    added once the write of this register is tested on the bus. `register` = "RRBB"; `codec`/template from
+    regulator.active.inc (ebusd-configuration-weishaupt)."""
+
+    key: str
+    register: str
+    name: str
+    codec: Codec
+    unit: str | None = None
+    options: dict[int, str] | None = None
+
+
+# Lot 1 (étape B, 15/11/2026) — anticipation / régulation fine, en LECTURE SEULE. Codecs d'après les gabarits ebusd
+# (regulator.active.inc) ; les modes (_16_CVariation, _16_HCType) sont affichés en valeur brute tant que leur table
+# n'est pas confirmée. L'écriture (bornes des notices WCM, source ff/31) s'ajoute registre par registre après
+# validation bus (étape C).
+FS_READ_PARAMS = [
+    ReadParam("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min"),        # _16_Minutes (353)
+    ReadParam("adaption_mode", "1501", "Adaptation", UNIT, options={0: "off", 1: "on"}),           # _16_OnOff (507)
+    ReadParam("room_factor_curve", "0f01", "Facteur d'influence pièce (P)", UNIT),                 # _16_RoomFactor (508)
+    ReadParam("room_factor_i", "7109", "Facteur d'influence pièce (I)", UNIT),                     # UIN
+    ReadParam("regulation_p", "9f02", "Régulateur P", UNIT),                                       # UIN (539)
+    ReadParam("regulation_i", "9e02", "Régulateur I", UNIT),                                       # UIN (540)
+    ReadParam("control_variation_mode", "4101", "Variation de régulation", UNIT),                  # _16_CVariation (318)
+    ReadParam("boiler_mc_boost_temp", "1101", "Boost MC chaudière", TEMP10, "°C"),                 # _16_TempK10 (424)
+    ReadParam("hc_type_mode", "7309", "Type de circuit", UNIT),                                    # _16_HCType (316)
+]
+
 KA_SETTINGS = [
     # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
     Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
@@ -163,9 +203,15 @@ def choices_of(device: Device) -> list[Choice]:
     return [] if device.key == "ka" else FS_CHOICES
 
 
+def read_params_of(device: Device) -> list[ReadParam]:
+    """Read-only regulation params polled on a device (FS circuits for now; KA/EM come with their validation)."""
+    return [] if device.key == "ka" else FS_READ_PARAMS
+
+
 def registers_of(device: Device) -> list[str]:
     """Every register to poll on a device."""
-    regs = [s.register for s in settings_of(device)] + [c.register for c in choices_of(device)]
+    regs = ([s.register for s in settings_of(device)] + [c.register for c in choices_of(device)]
+            + [p.register for p in read_params_of(device)])
     for d in dates_of(device):
         regs.extend(d.registers)
     return regs

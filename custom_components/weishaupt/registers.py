@@ -28,6 +28,8 @@ from dataclasses import dataclass
 
 from .protocol import TEMP10, UNIT, Codec
 
+TEMP1 = Codec(1)  # _16_Temp1 : entier signé 16 bits, facteur 1 (ex. Tps cascade en heures)
+
 
 @dataclass(frozen=True)
 class Device:
@@ -186,6 +188,11 @@ KA_SETTINGS = [
             message="DHWSwitchDiff"),                                              # -10..-1 K, défaut -3
     Setting("legionella_circ_time", "b109", "Anti-légionelle : durée circulation ECS", UNIT, "s", 180, 1200, 60, "ff",
             message="LegionellaCirculationTime"),                                 # 3:00..20:00 min (en s)
+    # Cascade (15/11) — validés bus depuis ff. Tps cascade = intervalle de permutation (h) ; blocage = anti-court-cycle.
+    Setting("cascade_change_time", "ecfd", "Cascade : temps de permutation", TEMP1, "h", 0, 250, 1, "ff",
+            message="ChangeOverTime"),                                            # « Tps cascade », 50 h ; plage provisoire
+    Setting("cascade_blocking_time", "2500", "Cascade : temps de blocage", UNIT, "min", 0, 30, 1, "ff",
+            message="BlockingTime"),                                              # anti-court-cycle, 1 min ; plage provisoire
 ]
 
 # Lot 2 ECS — modes anti-légionelle (WCM-KA §6.7.36/6.7.39) ; validés bus en no-op depuis ff (jour/état inchangés).
@@ -194,6 +201,10 @@ KA_CHOICES = [
            {0: "Arrêt", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi",
             7: "Dimanche"}, "ff"),
     Choice("circ_with_legionella", "f313", "Anti-légionelle : circulation ECS", {0: "Arrêt", 1: "Marche"}, "ff"),
+    # Cascade — ordre d'enclenchement des chaudières (WCM-KA §6.7.16, « Ordre casc 1/2 »). 0=A, 1=B, 240=mise à
+    # l'arrêt. Validés bus en no-op depuis ff. ⚠️ changer l'ordre = reconfiguration (à faire chaudières à l'arrêt).
+    Choice("boiler_seq_1", "cafd", "Cascade : ordre d'enclenchement #1", {0: "A", 1: "B", 240: "— (arrêt)"}, "ff"),
+    Choice("boiler_seq_2", "cbfd", "Cascade : ordre d'enclenchement #2", {0: "A", 1: "B", 240: "— (arrêt)"}, "ff"),
 ]
 
 # Circuits des modules d'extension EM (em1, em2, em3). Mêmes codes de registre que les FS

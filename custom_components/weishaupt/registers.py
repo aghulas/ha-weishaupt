@@ -94,6 +94,9 @@ FS_SETTINGS = [
             message="RoomFactorCurve"),                                            # P508, défaut 5
     Setting("boiler_mc_boost", "1101", "Surélévation t° circuit mélangé (boost)", TEMP10, "K", 0, 20, 0.5, "ff",
             message="BoilerMCBoostTemp"),                                          # P424, défaut 2,0 K
+    # Validé écrivable sur le bus le 15/11 (3->4->3 depuis ff). Absent des notices -> borne max PROVISOIRE (sweep à faire).
+    Setting("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min", 0, 60, 1, "ff",
+            message="SwitchOnRuntime"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
@@ -148,7 +151,6 @@ class ReadParam:
 # Restent en LECTURE SEULE : non documentés dans les notices WCM (bornes à sonder sur le bus avant écriture, étape C).
 # Les 7 autres paramètres du Lot 1 sont promus en écrivables (FS_SETTINGS/KA_SETTINGS/FS_CHOICES ci-dessus).
 FS_READ_PARAMS = [
-    ReadParam("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min"),  # P353 absent des notices
     ReadParam("room_factor_i", "7109", "Facteur d'influence pièce (I)", UNIT),               # P509 absent (FS 2.0 = P seul)
 ]
 

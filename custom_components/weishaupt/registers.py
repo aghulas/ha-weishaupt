@@ -97,6 +97,9 @@ FS_SETTINGS = [
     # Validé écrivable sur le bus le 15/11 (3->4->3 depuis ff). Absent des notices -> borne max PROVISOIRE (sweep à faire).
     Setting("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min", 0, 60, 1, "ff",
             message="SwitchOnRuntime"),
+    # Lot 2 (15/11) — limite hors-gel (WCM-FS §6.5.28 : Arrêt + -20..0 °C) ; validée bus 0,0->-0,5->0,0 depuis ff.
+    Setting("frost_protection_limit", "be02", "Température limite hors-gel", TEMP10, "°C", -20, 0, 0.5, "ff",
+            message="FrostProtectionLimitTemp"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
@@ -169,6 +172,19 @@ KA_SETTINGS = [
             message="RegulationP"),                                                # P539, défaut 100
     Setting("regulation_i", "9e02", "Régulateur I (cascade)", UNIT, None, 10, 200, 1, "ff",
             message="RegulationI"),                                                # P540, défaut 100
+    # Lot 2 ECS (15/11, WCM-KA §6.7.34/6.7.37) — validés bus depuis ff ; DHWMaxLoad écarté (pas de def d'écriture).
+    Setting("legionella_setup_temp", "8705", "Anti-légionelle : consigne ECS", TEMP10, "°C", 40, 80, 0.5, "ff",
+            message="LegionellaSetupTemp"),                                        # défaut 60 °C
+    Setting("dhw_load_time", "8001", "Temps de charge maxi ECS", UNIT, "min", 0, 180, 10, "ff",
+            message="DHWLoadTime"),                                                # 0 = Arrêt ; 10..180
+]
+
+# Lot 2 ECS — modes anti-légionelle (WCM-KA §6.7.36/6.7.39) ; validés bus en no-op depuis ff (jour/état inchangés).
+KA_CHOICES = [
+    Choice("dhw_legionella_day", "0101", "Anti-légionelle : jour",
+           {0: "Arrêt", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi",
+            7: "Dimanche"}, "ff"),
+    Choice("circ_with_legionella", "f313", "Anti-légionelle : circulation ECS", {0: "Arrêt", 1: "Marche"}, "ff"),
 ]
 
 
@@ -222,7 +238,7 @@ def dates_of(device: Device) -> list[DateSetting]:
 
 
 def choices_of(device: Device) -> list[Choice]:
-    return [] if device.key == "ka" else FS_CHOICES
+    return KA_CHOICES if device.key == "ka" else FS_CHOICES
 
 
 def read_params_of(device: Device) -> list[ReadParam]:

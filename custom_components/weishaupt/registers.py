@@ -94,8 +94,8 @@ FS_SETTINGS = [
             message="RoomFactorCurve"),                                            # P508, défaut 5
     Setting("boiler_mc_boost", "1101", "Surélévation t° circuit mélangé (boost)", TEMP10, "K", 0, 20, 0.5, "ff",
             message="BoilerMCBoostTemp"),                                          # P424, défaut 2,0 K
-    # Validé écrivable sur le bus le 15/11 (3->4->3 depuis ff). Absent des notices -> borne max PROVISOIRE (sweep à faire).
-    Setting("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min", 0, 60, 1, "ff",
+    # Validé écrivable sur le bus le 15/11. Max établi par sweep bus (10 retenu, 20 rejeté) -> 0..10 min.
+    Setting("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min", 0, 10, 1, "ff",
             message="SwitchOnRuntime"),
     # Lot 2 (15/11) — limite hors-gel (WCM-FS §6.5.28 : Arrêt + -20..0 °C) ; validée bus 0,0->-0,5->0,0 depuis ff.
     Setting("frost_protection_limit", "be02", "Température limite hors-gel", TEMP10, "°C", -20, 0, 0.5, "ff",
@@ -177,6 +177,11 @@ KA_SETTINGS = [
             message="LegionellaSetupTemp"),                                        # défaut 60 °C
     Setting("dhw_load_time", "8001", "Temps de charge maxi ECS", UNIT, "min", 0, 180, 10, "ff",
             message="DHWLoadTime"),                                                # 0 = Arrêt ; 10..180
+    # Lot 2b (15/11) — validés bus depuis ff (WCM-KA §6.7.32 / §6.7.40).
+    Setting("dhw_switch_diff", "4001", "Différentiel de commutation ECS", TEMP10, "K", -10, -1, 0.5, "ff",
+            message="DHWSwitchDiff"),                                              # -10..-1 K, défaut -3
+    Setting("legionella_circ_time", "b109", "Anti-légionelle : durée circulation ECS", UNIT, "s", 180, 1200, 60, "ff",
+            message="LegionellaCirculationTime"),                                 # 3:00..20:00 min (en s)
 ]
 
 # Lot 2 ECS — modes anti-légionelle (WCM-KA §6.7.36/6.7.39) ; validés bus en no-op depuis ff (jour/état inchangés).

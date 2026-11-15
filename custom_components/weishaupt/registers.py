@@ -10,6 +10,13 @@ value is visible while the write rule (source ff/31), the WCM-manual bounds and,
 checked register by register on the bus (étape C of the chantier). A read param becomes a Setting/Choice once its
 write is validated.
 
+Chantier Lot 1 (15/11/2026): a batch of regulation settings/choices is added with bounds from the WCM manuals
+(WCM-FS 83277504, WCM-KA 83258404) and mode value tables from the ebusd templates (_16_CVariation, _16_HCType),
+AHEAD of their per-register bus validation. Their `source` is "ff" by hypothesis (FS/KA settings). These writes stay
+blocked by the integration's global write switch (CONF_WRITES_ENABLED) until each register is validated on the bus
+(read / +1 step from ff / read back / restore) and writes are enabled. SwitchOnRuntime (anticipation) and RoomFactorI
+are NOT in the manuals -> they stay read-only until their bounds are probed on the bus.
+
 Bounds are the setting ranges of the Weishaupt manuals: WCM-FS 2.0 (83277701, 2012-04, parameter table p.21 and
 §4.7) and WCM-KA 3.0 (83258401, 2013-04, p.50-63). The manuals give no step; 0.5 K and 1 % are the steps of their
 display examples. `min_ref`/`max_ref` name a setting of the same device whose current value also bounds this one,
@@ -82,6 +89,11 @@ FS_SETTINGS = [
     # FS 132
     Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
             message="DHWSetpoint"),
+    # Lot 1 (régulation fine) — bornes WCM-FS / codecs ebusd ; source ff par hypothèse, EN ATTENTE DE VALIDATION BUS
+    Setting("room_factor_curve", "0f01", "Facteur d'influence pièce (P)", UNIT, None, 1, 20, 1, "ff",
+            message="RoomFactorCurve"),                                            # P508, défaut 5
+    Setting("boiler_mc_boost", "1101", "Surélévation t° circuit mélangé (boost)", TEMP10, "K", 0, 20, 0.5, "ff",
+            message="BoilerMCBoostTemp"),                                          # P424, défaut 2,0 K
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
@@ -101,6 +113,14 @@ class Choice:
 # FS 142: written and read back on FS1 (30/10/2026), 1 moved the room setpoint of a circuit on holiday from 4 to 14 °C
 FS_CHOICES = [
     Choice("holiday_level", "3d01", "Congés : niveau de température", {0: "hors-gel", 1: "réduit"}, "ff"),
+    # Lot 1 — modes de régulation ; tables de valeurs = gabarits ebusd _16_OnOff/_16_CVariation/_16_HCType.
+    # EN ATTENTE DE VALIDATION BUS (source ff). ⚠️ hc_type est STRUCTUREL : changer le type reconfigure le circuit.
+    Choice("adaption", "1501", "Adaptation", {0: "Arrêt", 1: "Marche"}, "ff"),
+    Choice("control_variation", "4101", "Variante de régulation",
+           {0: "Constant", 1: "Extérieur", 2: "Extérieur + ambiance", 3: "Ambiance"}, "ff"),
+    Choice("hc_type", "7309", "Type de circuit de chauffage",
+           {0: "Plancher", 1: "Plancher 2", 2: "Radiateur 60°", 3: "Radiateur 75°", 4: "Convecteur",
+            5: "Universel"}, "ff"),
 ]
 
 
@@ -125,16 +145,11 @@ class ReadParam:
 # (regulator.active.inc) ; les modes (_16_CVariation, _16_HCType) sont affichés en valeur brute tant que leur table
 # n'est pas confirmée. L'écriture (bornes des notices WCM, source ff/31) s'ajoute registre par registre après
 # validation bus (étape C).
+# Restent en LECTURE SEULE : non documentés dans les notices WCM (bornes à sonder sur le bus avant écriture, étape C).
+# Les 7 autres paramètres du Lot 1 sont promus en écrivables (FS_SETTINGS/KA_SETTINGS/FS_CHOICES ci-dessus).
 FS_READ_PARAMS = [
-    ReadParam("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min"),        # _16_Minutes (353)
-    ReadParam("adaption_mode", "1501", "Adaptation", UNIT, options={0: "off", 1: "on"}),           # _16_OnOff (507)
-    ReadParam("room_factor_curve", "0f01", "Facteur d'influence pièce (P)", UNIT),                 # _16_RoomFactor (508)
-    ReadParam("room_factor_i", "7109", "Facteur d'influence pièce (I)", UNIT),                     # UIN
-    ReadParam("regulation_p", "9f02", "Régulateur P", UNIT),                                       # UIN (539)
-    ReadParam("regulation_i", "9e02", "Régulateur I", UNIT),                                       # UIN (540)
-    ReadParam("control_variation_mode", "4101", "Variation de régulation", UNIT),                  # _16_CVariation (318)
-    ReadParam("boiler_mc_boost_temp", "1101", "Boost MC chaudière", TEMP10, "°C"),                 # _16_TempK10 (424)
-    ReadParam("hc_type_mode", "7309", "Type de circuit", UNIT),                                    # _16_HCType (316)
+    ReadParam("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min"),  # P353 absent des notices
+    ReadParam("room_factor_i", "7109", "Facteur d'influence pièce (I)", UNIT),               # P509 absent (FS 2.0 = P seul)
 ]
 
 KA_SETTINGS = [
@@ -147,6 +162,11 @@ KA_SETTINGS = [
             message="ModulationMin"),
     Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
             message="DHWSetpoint"),
+    # Lot 1 — régulateur de puissance de la cascade (WCM-KA) ; source ff par hypothèse, EN ATTENTE DE VALIDATION BUS
+    Setting("regulation_p", "9f02", "Régulateur P (cascade)", UNIT, None, 10, 300, 1, "ff",
+            message="RegulationP"),                                                # P539, défaut 100
+    Setting("regulation_i", "9e02", "Régulateur I (cascade)", UNIT, None, 10, 200, 1, "ff",
+            message="RegulationI"),                                                # P540, défaut 100
 ]
 
 

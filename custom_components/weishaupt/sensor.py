@@ -12,14 +12,14 @@ from homeassistant.util import dt as dt_util
 from .coordinator import WeishauptConfigEntry, WeishauptCoordinator
 from .entity import WeishauptEntity
 from .protocol import decode_slot, format_slots
-from .registers import DAYS, DEVICES, PROGRAMS, Device, Program, ReadParam, read_params_of
+from .registers import DAYS, DEVICES, PROGRAMS, Device, Program, ReadParam, polls_programs, read_params_of
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
                             async_add_entities: AddConfigEntryEntitiesCallback) -> None:
     coordinator = entry.runtime_data
     entities: list[WeishauptEntity] = [WeishauptProgram(coordinator, device, program)
-                                       for device in DEVICES for program in PROGRAMS]
+                                       for device in DEVICES if polls_programs(device) for program in PROGRAMS]
     entities += [WeishauptReadParam(coordinator, device, param)
                  for device in DEVICES for param in read_params_of(device)]
     async_add_entities(entities)

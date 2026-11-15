@@ -14,7 +14,7 @@ from homeassistant.util import dt as dt_util
 from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
 from .guard import ServiceToolState, WriteGuard, WriteRefused, read_service_tool_state
 from .protocol import EbusdClient, EbusdError, datetime_broadcast_command
-from .registers import DEVICES, Device, program_registers, registers_of
+from .registers import DEVICES, Device, polls_programs, program_registers, registers_of
 
 _LOGGER = logging.getLogger(__name__)
 PROGRAM_INTERVAL = 3600.0  # time programs change rarely: read them once an hour
@@ -39,7 +39,7 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
             for device in DEVICES:
                 values = dict((self.data or {}).get(device.key, {}))
                 values.update(await self.client.read_registers(device.zz, registers_of(device)))
-                if read_programs:
+                if read_programs and polls_programs(device):
                     values.update(await self.client.read_registers(device.zz, program_registers()))
                 data[device.key] = values
         except (OSError, TimeoutError, EbusdError) as err:

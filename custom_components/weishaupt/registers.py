@@ -67,6 +67,10 @@ DEVICES = [
     Device("fs1", "35", "Commande FS1"),
     Device("fs2", "75", "Commande FS2"),
     Device("fs3", "f5", "Commande FS3"),
+    # Modules d'extension : circuits pilotés par un appel chaudière externe (relais sur l'entrée H1).
+    Device("em1", "50", "Extension EM1"),
+    Device("em2", "51", "Extension EM2"),
+    Device("em3", "52", "Extension EM3"),
 ]
 
 FS_SETTINGS = [
@@ -192,6 +196,30 @@ KA_CHOICES = [
     Choice("circ_with_legionella", "f313", "Anti-légionelle : circulation ECS", {0: "Arrêt", 1: "Marche"}, "ff"),
 ]
 
+# Circuits des modules d'extension EM (em1, em2, em3). Mêmes codes de registre que les FS
+# (défs ebusd partagées) ; source validée sur le bus em2 (15/11) : consignes/pente/été-hiver/hors-gel depuis ff,
+# départs maxi/mini depuis 31 (None). Pilotés par un appel chaudière externe (relais sur l'entrée H1).
+EM_SETTINGS = [
+    Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 16, 35, 0.5, "ff",
+            min_ref="room_reduced", message="RoomNormalTemp"),
+    Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 10, 21.5, 0.5, "ff",
+            max_ref="room_normal", message="RoomSetbackTemp"),
+    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff",
+            message="RoomFrostProtectionTemp"),
+    Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff",
+            message="GradientCurve"),
+    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff",
+            message="SummerWinterChangeOverTemp"),
+    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, None,
+            min_ref="supply_min", message="SupplyMaxTemp"),     # source 31
+    Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, None,
+            max_ref="supply_max", message="SupplyMinTemp"),     # source 31
+]
+# Appel chaudière (relais externe) en lecture : H1Status (290a), valeur dans l'octet bas.
+EM_READ_PARAMS = [
+    ReadParam("h1_demand", "290a", "Appel chaudière (relais H1)", UNIT, options={0: "Repos", 1: "Appel"}),
+]
+
 
 def effective_bounds(setting: Setting, settings: list[Setting], raw: dict[str, bytes | None]) -> tuple[float, float]:
     """Bounds of a setting, narrowed by the current value of the settings it refers to (when known)."""
@@ -234,20 +262,39 @@ def program_registers() -> list[str]:
     return [p.register(d, s) for p in PROGRAMS for d in range(1, 8) for s in range(1, 4)]
 
 
+def _is_em(device: Device) -> bool:
+    return device.key.startswith("em")
+
+
+def polls_programs(device: Device) -> bool:
+    """Les EM n'ont pas de programme horaire propre (ils suivent l'appel chaudière) : ne pas les interroger."""
+    return not _is_em(device)
+
+
 def settings_of(device: Device) -> list[Setting]:
-    return KA_SETTINGS if device.key == "ka" else FS_SETTINGS
+    if device.key == "ka":
+        return KA_SETTINGS
+    if _is_em(device):
+        return EM_SETTINGS
+    return FS_SETTINGS
 
 
 def dates_of(device: Device) -> list[DateSetting]:
-    return [] if device.key == "ka" else FS_DATES
+    return [] if (device.key == "ka" or _is_em(device)) else FS_DATES
 
 
 def choices_of(device: Device) -> list[Choice]:
-    return KA_CHOICES if device.key == "ka" else FS_CHOICES
+    if device.key == "ka":
+        return KA_CHOICES
+    if _is_em(device):
+        return []
+    return FS_CHOICES
 
 
 def read_params_of(device: Device) -> list[ReadParam]:
-    """Read-only regulation params polled on a device (FS circuits for now; KA/EM come with their validation)."""
+    """Read-only params polled on a device."""
+    if _is_em(device):
+        return EM_READ_PARAMS
     return [] if device.key == "ka" else FS_READ_PARAMS
 
 

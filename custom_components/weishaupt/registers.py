@@ -193,6 +193,12 @@ KA_SETTINGS = [
             message="ChangeOverTime"),                                            # « Tps cascade », 50 h ; plage provisoire
     Setting("cascade_blocking_time", "2500", "Cascade : temps de blocage", UNIT, "min", 0, 30, 1, "ff",
             message="BlockingTime"),                                              # anti-court-cycle, 1 min ; plage provisoire
+    # Découplage hydraulique / tampon (15/11, après correction du codec ebusd ×10). Validés écrivables depuis ff.
+    # DeCoupleMax écarté (non écrivable sur le bus). Bornes provisoires (notice sans plage nette).
+    Setting("decouple_min", "e7fd", "Découplage : température mini", TEMP10, "°C", 0, 50, 0.5, "ff",
+            message="DeCoupleMin"),                                               # 8,0 °C
+    Setting("calorifier_switch_diff", "e2fd", "Tampon : différentiel de commutation", TEMP10, "K", 1, 20, 0.5, "ff",
+            message="CalorfierSwitchDifference"),                                 # 2,0 K
 ]
 
 # Lot 2 ECS — modes anti-légionelle (WCM-KA §6.7.36/6.7.39) ; validés bus en no-op depuis ff (jour/état inchangés).

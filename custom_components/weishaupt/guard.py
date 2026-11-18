@@ -3,7 +3,10 @@
 Rules:
 - writes are refused unless enabled in the integration options;
 - the value must be within the bounds of the register;
-- at most one write per register every MIN_INTERVAL seconds and MAX_PER_HOUR writes in all per hour;
+- at most one write per register every MIN_INTERVAL seconds, and at most `max_per_hour` writes in all per hour
+  (clock broadcasts included): the integration option `max_writes_per_hour`, MAX_PER_HOUR by default, accepted
+  within MAX_PER_HOUR_RANGE. The limit spares the memory of the devices; a high value is for a supervised test
+  campaign;
 - a write from the service tool address ff is refused when WCM-Diagnose may be connected: a telegram from ff was
   logged during the last SERVICE_TOOL_QUIET seconds, outside of our own writes, or the telegram log cannot be read.
   Two masters with the same address would collide on the bus;
@@ -13,14 +16,20 @@ Rules:
 """
 from __future__ import annotations
 
+import logging
 import sqlite3
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+
+from .const import CONF_MAX_WRITES_PER_HOUR, CONF_WRITES_ENABLED
+
+_LOGGER = logging.getLogger(__name__)
 
 MIN_INTERVAL = 10.0
 MAX_PER_HOUR = 30
+MAX_PER_HOUR_RANGE = (1, 200)
 SERVICE_TOOL_QUIET = 600.0
 OWN_WRITE_MARGIN = 5.0
 LOG_FRESH_MAX = 120.0
@@ -71,9 +80,37 @@ class ServiceToolState:
     error: str | None = None
 
 
+def hourly_limit(value: object) -> int:
+    """The hourly write limit from the option value: MAX_PER_HOUR when unset, a valid integer as is.
+
+    Raises ValueError for anything else (not an integer, or outside MAX_PER_HOUR_RANGE)."""
+    if value is None:
+        return MAX_PER_HOUR
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value != int(value):
+        raise ValueError(f"not an integer: {value!r}")
+    low, high = MAX_PER_HOUR_RANGE
+    if not low <= int(value) <= high:
+        raise ValueError(f"{value} is outside [{low}, {high}]")
+    return int(value)
+
+
+def guard_from_options(options: Mapping[str, object], clock: Callable[[], float] = time.time) -> "WriteGuard":
+    """The guard of a config entry: writes enabled or not, and the hourly limit, from the integration options.
+
+    An invalid stored limit (only possible by editing the stored entry) falls back to MAX_PER_HOUR, the safe side."""
+    try:
+        limit = hourly_limit(options.get(CONF_MAX_WRITES_PER_HOUR))
+    except ValueError as err:
+        _LOGGER.warning("Option %s ignored (%s): %s writes per hour", CONF_MAX_WRITES_PER_HOUR, err, MAX_PER_HOUR)
+        limit = MAX_PER_HOUR
+    return WriteGuard(options.get(CONF_WRITES_ENABLED, False), clock=clock, max_per_hour=limit)
+
+
 class WriteGuard:
-    def __init__(self, enabled: bool, clock: Callable[[], float] = time.time) -> None:
+    def __init__(self, enabled: bool, clock: Callable[[], float] = time.time,
+                 max_per_hour: int = MAX_PER_HOUR) -> None:
         self.enabled = enabled
+        self.max_per_hour = hourly_limit(max_per_hour)
         self._clock = clock
         self._writes: deque[float] = deque()
         self._last_by_register: dict[str, float] = {}
@@ -88,8 +125,8 @@ class WriteGuard:
         now = self._clock()
         while self._writes and now - self._writes[0] > 3600:
             self._writes.popleft()
-        if len(self._writes) >= MAX_PER_HOUR:
-            raise WriteRefused("hourly_limit", limit=MAX_PER_HOUR)
+        if len(self._writes) >= self.max_per_hour:
+            raise WriteRefused("hourly_limit", limit=self.max_per_hour)
         last = self._last_by_register.get(register_id)
         if last is not None and now - last < MIN_INTERVAL:
             raise WriteRefused("register_interval", seconds=f"{MIN_INTERVAL:.0f}")
@@ -126,8 +163,8 @@ class WriteGuard:
         now = self._clock()
         while self._writes and now - self._writes[0] > 3600:
             self._writes.popleft()
-        if len(self._writes) >= MAX_PER_HOUR:
-            raise WriteRefused("hourly_limit", limit=MAX_PER_HOUR)
+        if len(self._writes) >= self.max_per_hour:
+            raise WriteRefused("hourly_limit", limit=self.max_per_hour)
         last = self._last_by_register.get("broadcast:clock")
         if last is not None and now - last < MIN_INTERVAL:
             raise WriteRefused("clock_interval", seconds=f"{MIN_INTERVAL:.0f}")

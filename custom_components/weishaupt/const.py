@@ -5,6 +5,7 @@ DOMAIN = "weishaupt"
 
 CONF_TELEGRAM_DB = "telegram_db"
 CONF_WRITES_ENABLED = "writes_enabled"
+CONF_MAX_WRITES_PER_HOUR = "max_writes_per_hour"
 
 DEFAULT_PORT = 8888
 DEFAULT_TELEGRAM_DB = "/share/ebusd/telegrams.db"

@@ -1,4 +1,4 @@
-"""Configuration: ebusd address; options: telegram log and writes (disabled by default)."""
+"""Configuration: ebusd address; options: telegram log, writes (disabled by default) and the hourly write limit."""
 from __future__ import annotations
 
 from typing import Any
@@ -9,7 +9,9 @@ from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResu
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import callback
 
-from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_PORT, DEFAULT_TELEGRAM_DB, DOMAIN
+from .const import (CONF_MAX_WRITES_PER_HOUR, CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_PORT, DEFAULT_TELEGRAM_DB,
+                    DOMAIN)
+from .guard import MAX_PER_HOUR, MAX_PER_HOUR_RANGE
 from .protocol import EbusdClient, EbusdError, read_command
 
 
@@ -47,5 +49,7 @@ class WeishauptOptionsFlow(OptionsFlow):
         schema = vol.Schema({
             vol.Required(CONF_TELEGRAM_DB, default=options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)): str,
             vol.Required(CONF_WRITES_ENABLED, default=options.get(CONF_WRITES_ENABLED, False)): bool,
+            vol.Required(CONF_MAX_WRITES_PER_HOUR, default=options.get(CONF_MAX_WRITES_PER_HOUR, MAX_PER_HOUR)):
+                vol.All(vol.Coerce(int), vol.Range(min=MAX_PER_HOUR_RANGE[0], max=MAX_PER_HOUR_RANGE[1])),
         })
         return self.async_show_form(step_id="init", data_schema=schema)

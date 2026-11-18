@@ -11,8 +11,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
-from .guard import ServiceToolState, WriteGuard, WriteRefused, read_service_tool_state
+from .const import CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
+from .guard import ServiceToolState, WriteRefused, guard_from_options, read_service_tool_state
 from .protocol import EbusdClient, EbusdError, datetime_broadcast_command
 from .registers import DEVICES, Device, polls_programs, program_registers, registers_of
 
@@ -35,7 +35,7 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         super().__init__(hass, _LOGGER, config_entry=entry, name=DOMAIN, update_interval=SCAN_INTERVAL)
         self.client = client
         self._db_path = entry.options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)
-        self.guard = WriteGuard(entry.options.get(CONF_WRITES_ENABLED, False))
+        self.guard = guard_from_options(entry.options)  # a reload (options changed) builds a new guard
         self._programs_read = 0.0
 
     async def _async_update_data(self) -> dict[str, dict[str, bytes | None]]:

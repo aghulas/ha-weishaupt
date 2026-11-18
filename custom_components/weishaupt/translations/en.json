@@ -24,7 +24,11 @@
         "description": "Writes go to the boiler regulators. Writes from the service tool address ff are refused while WCM-Diagnose may be connected, which is read from the ebusd telegram log.",
         "data": {
           "telegram_db": "ebusd telegram log (SQLite)",
-          "writes_enabled": "Enable writes"
+          "writes_enabled": "Enable writes",
+          "max_writes_per_hour": "Maximum writes per hour"
+        },
+        "data_description": {
+          "max_writes_per_hour": "Writes accepted within any sliding hour, clock broadcasts included (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
         }
       }
     }

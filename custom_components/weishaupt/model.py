@@ -49,10 +49,24 @@ class Field:
     value_labels: dict[str, dict[str, str]] | None = None  # raw value -> label per language
     skip: bool = False
     guard: bool = False
+    minimum: float | None = None
+    maximum: float | None = None
+    step: float | None = None
 
     @property
     def shown(self) -> bool:
         return not self.skip and not self.guard
+
+
+@dataclass(frozen=True)
+class WriteConditions:
+    """`write` of a message in the metadata: present only when a lot proves the write."""
+
+    source: str  # "ff" or "31"
+    runtime_checksum: bool
+    risk: str  # "comfort" or "regulation"
+    proof: str
+    open: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -73,8 +87,12 @@ class Message:
     group: str | None = None
     position: dict[str, int] | None = None
     same_as: str | None = None
-    writable: bool = False
+    write: WriteConditions | None = None
     renamed_from: str | None = None  # key of the message in the releases before the rename
+
+    @property
+    def writable(self) -> bool:
+        return self.write is not None
 
     @property
     def guard(self) -> Field | None:
@@ -263,12 +281,17 @@ class Model:
 def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
-              f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")))
+              f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
+              f.get("min"), f.get("max"), f.get("step"))
         for index, f in enumerate(data["fields"]))
+    write = data.get("write")
+    conditions = None if write is None else WriteConditions(
+        write["source"], bool(write.get("runtime_checksum")), write["risk"], write.get("proof", ""),
+        tuple(write.get("open", ())))
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
-                   "write" in data, data.get("renamed_from"))
+                   conditions, data.get("renamed_from"))
 
 
 def _base_type(name: str) -> str:

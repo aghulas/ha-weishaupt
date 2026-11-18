@@ -1,6 +1,13 @@
 import pytest
 
-from weishaupt_core.guard import LOG_FRESH_MAX, MAX_PER_HOUR, ServiceToolState, WriteGuard, WriteRefused
+from weishaupt_core.guard import (
+    LOG_FRESH_MAX,
+    MAX_PER_HOUR,
+    ServiceToolState,
+    WriteGuard,
+    WriteRefused,
+    read_service_tool_state,
+)
 
 
 class Clock:
@@ -77,23 +84,17 @@ def test_own_ff_writes_do_not_block():
     g.check("fs1:0800", 14, 5, 20, "ff", ServiceToolState(own + 1, newest=clock.t))
 
 
-def test_broadcast_guard_disabled():
-    g, _ = guard(enabled=False)
-    with pytest.raises(WriteRefused):
-        g.check_broadcast()
+def test_nan_is_out_of_bounds():
+    g, _ = guard()
+    with pytest.raises(WriteRefused) as err:
+        g.check("fs1:0500", float("nan"), 10, 26, None)
+    assert err.value.code == "out_of_bounds"
 
 
-def test_broadcast_guard_rate_and_interval():
-    g, clock = guard()
-    g.check_broadcast()
-    g.record_broadcast()
-    with pytest.raises(WriteRefused):  # less than MIN_INTERVAL since the last clock broadcast
-        g.check_broadcast()
-    clock.t += 11
-    g.check_broadcast()
-    g.record_broadcast()
-    for i in range(MAX_PER_HOUR):
-        g.record(f"r{i}", None)
-    clock.t += 11
-    with pytest.raises(WriteRefused):  # hourly cap shared with register writes
-        g.check_broadcast()
+def test_unreadable_log_file(tmp_path):
+    state = read_service_tool_state(str(tmp_path / "missing.db"))
+    assert state.error is not None
+    g, _ = guard()
+    with pytest.raises(WriteRefused) as err:
+        g.check("15:2500", 2, 0, 30, "ff", state)
+    assert err.value.code == "log_unreadable"

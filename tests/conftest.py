@@ -2,7 +2,7 @@
 
 Run the suite with `scripts/test.sh`, which creates the environment of `requirements_test.txt`.
 
-The modules without Home Assistant dependency (`ebusd`, `model`, `guard`) are loaded on their own as
+The modules without Home Assistant dependency (`ebusd`, `model`, `guard`, `writes`) are loaded on their own as
 `weishaupt_core.*`. With a bare pytest (no Home Assistant test plugin) the tests of `test_ha_*.py` are not
 collected and the asynchronous tests are skipped with a message, instead of failing.
 """
@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 sys.modules.setdefault("weishaupt_core", types.ModuleType("weishaupt_core")).__path__ = [str(SRC)]
-for name in ("ebusd", "model", "guard"):
+for name in ("ebusd", "model", "guard", "writes"):
     spec = importlib.util.spec_from_file_location(f"weishaupt_core.{name}", SRC / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module

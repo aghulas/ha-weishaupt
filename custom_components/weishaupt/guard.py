@@ -1,21 +1,23 @@
-"""Write guard, independent of the caller: every write goes through WriteGuard.check() before it is sent.
+"""Write guard, independent of Home Assistant: every write goes through WriteGuard.check() before it is sent.
 
-Not used by this version: the integration is read-only and nothing imports this module. It is kept, with its
-tests, for the version that will write settings.
-
-Rules:
-- writes are refused unless enabled in the integration options;
-- the value must be within the bounds of the register;
+Carried over from version 0.1, where it was proven in service. Rules:
+- writes are refused unless enabled (integration options and the write switch);
+- the value must lie within the bounds of the setting, narrowed by the linked settings;
 - at most one write per register every MIN_INTERVAL seconds and MAX_PER_HOUR writes in all per hour;
-- a write from the service tool address ff is refused when WCM-Diagnose may be connected: a telegram from ff was
-  logged during the last SERVICE_TOOL_QUIET seconds, outside of our own writes, or the telegram log cannot be read.
-  Two masters with the same address would collide on the bus;
-- a write from ff is also refused when the telegram log is not live, i.e. its newest telegram (any source) is older
-  than LOG_FRESH_MAX seconds. The bus is chatty (a telegram every fraction of a second), so a stale newest means the
-  add-on has stopped logging and the ff detector is blind — fail safe rather than write blind.
+- a write from the address of the vendor service tool (ff) is refused when the tool may be connected: a telegram
+  from ff was logged during the last SERVICE_TOOL_QUIET seconds, outside of our own writes, or the telegram log
+  cannot be read. Two masters with the same address would collide on the bus;
+- a write from ff is also refused when the telegram log is not live, i.e. its newest telegram (any source) is
+  older than LOG_FRESH_MAX seconds. The bus is chatty (a telegram every fraction of a second), so a stale newest
+  means the log is no longer written and the ff detector is blind: fail safe rather than write blind.
+
+The telegram log is the SQLite file the ebusd add-on of the test installation keeps (table `telegram`, columns `ts`
+in nanoseconds and `qq`). Our own writes from ff are logged without their source byte (qq NULL), so they never
+count as ff; OWN_WRITE_MARGIN covers a log that would store it.
 """
 from __future__ import annotations
 
+import math
 import sqlite3
 import time
 from collections import deque
@@ -33,13 +35,21 @@ LOG_FRESH_MAX = 120.0
 # (`exceptions` in the translations); the English text here is what the logs and the tests see.
 REASONS = {
     "writes_disabled": "writes are disabled (integration options or write switch)",
+    "not_writable": "{setting} is not writable: {reason}",
+    "capability_absent": "ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused",
+    "capability_unknown": "whether ebusd computes the run-time checksum is not known ({reason}): writes refused",
+    "source_not_own": "{setting} is proven written from address 31 only, and ebusd's own address is {own}",
+    "off_step": "{value} is not on a step of {step} from {minimum}",
     "out_of_bounds": "{value} is outside the bounds [{minimum}, {maximum}]",
+    "linked_unknown": "{other} could not be read: write refused",
     "hourly_limit": "more than {limit} writes within the hour",
     "register_interval": "this register was written less than {seconds} s ago",
-    "clock_interval": "the clock was broadcast less than {seconds} s ago",
     "log_unreadable": "the telegram log cannot be read ({reason}): write from ff refused",
     "log_stale": "the telegram log is not being fed (no recent telegram): write from ff refused",
-    "service_tool_active": "WCM-Diagnose seems to be connected (recent telegram from ff): write from ff refused",
+    "service_tool_active": "the vendor service tool seems to be connected (recent telegram from ff): write from "
+                           "ff refused",
+    "read_failed": "{setting} could not be read before the write ({reason}): write refused",
+    "unavailable": "ebusd cannot be reached: write refused",
 }
 
 
@@ -53,13 +63,15 @@ class WriteRefused(Exception):
 
 
 def read_service_tool_state(db_path: str) -> "ServiceToolState":
-    """Read the add-on telegram log: time of the last ff telegram, and of the newest telegram of any source.
+    """Read the telegram log: time of the last ff telegram, and of the newest telegram of any source.
 
-    `last_seen` detects WCM-Diagnose (address ff); `newest` tells whether the log is still being written. Our own
-    ff writes are logged without their source byte (status 'invalid', qq NULL), so they never count as ff here."""
-    with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5) as db:
-        last_ff = db.execute("SELECT MAX(ts) FROM telegram WHERE qq = 255").fetchone()[0]
-        newest = db.execute("SELECT MAX(ts) FROM telegram").fetchone()[0]
+    `last_seen` detects the vendor service tool (address ff); `newest` tells whether the log is still written."""
+    try:
+        with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5) as db:
+            last_ff = db.execute("SELECT MAX(ts) FROM telegram WHERE qq = 255").fetchone()[0]
+            newest = db.execute("SELECT MAX(ts) FROM telegram").fetchone()[0]
+    except sqlite3.Error as err:
+        return ServiceToolState(error=str(err))
     return ServiceToolState(last_seen=last_ff / 1e9 if last_ff else None,
                             newest=newest / 1e9 if newest else None)
 
@@ -86,7 +98,7 @@ class WriteGuard:
               service_tool: ServiceToolState | None = None) -> None:
         if not self.enabled:
             raise WriteRefused("writes_disabled")
-        if not minimum <= value <= maximum:
+        if math.isnan(value) or not minimum <= value <= maximum:
             raise WriteRefused("out_of_bounds", value=value, minimum=minimum, maximum=maximum)
         now = self._clock()
         while self._writes and now - self._writes[0] > 3600:
@@ -120,23 +132,6 @@ class WriteGuard:
         if source == "ff":
             self._own_ff_writes.append(now)
 
-    def check_broadcast(self) -> None:
-        """Guard for the clock broadcast (fe 0700): enabled, not too soon, within the hourly rate limit.
-
-        No bounds or ff check: it is a broadcast from ebusd's own address, not a register write."""
-        if not self.enabled:
-            raise WriteRefused("writes_disabled")
+    def writes_last_hour(self) -> int:
         now = self._clock()
-        while self._writes and now - self._writes[0] > 3600:
-            self._writes.popleft()
-        if len(self._writes) >= MAX_PER_HOUR:
-            raise WriteRefused("hourly_limit", limit=MAX_PER_HOUR)
-        last = self._last_by_register.get("broadcast:clock")
-        if last is not None and now - last < MIN_INTERVAL:
-            raise WriteRefused("clock_interval", seconds=f"{MIN_INTERVAL:.0f}")
-
-    def record_broadcast(self) -> None:
-        """To call right before sending a clock broadcast the guard accepted."""
-        now = self._clock()
-        self._writes.append(now)
-        self._last_by_register["broadcast:clock"] = now
+        return sum(1 for when in self._writes if now - when <= 3600)

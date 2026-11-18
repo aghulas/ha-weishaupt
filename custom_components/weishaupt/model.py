@@ -18,9 +18,10 @@ from typing import Any
 
 SCHEMA = 1
 METADATA_FILE = Path(__file__).parent / "metadata.json"
-# Definitions releases this version of the integration accepts: 0.4.2 has the same CSV as 0.4.3 (0.4.3 added the
-# metadata file), and a later 0.4.x only adds messages. A change of the second number renames, removes or retypes.
-ACCEPTED_DEFINITIONS = ">=0.4.2, <0.5"
+# Definitions releases this version of the integration accepts. The second number of a definitions version changes
+# when a message or a field is renamed, removed or retyped; the third only adds. 0.5.0 renamed a message of the
+# system manager, so 0.4.x and 0.5.x do not expose the same names, and a later 0.5.x only adds messages.
+ACCEPTED_DEFINITIONS = ">=0.5.0, <0.6"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "
@@ -33,12 +34,6 @@ def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", words.lower()).strip("_")
 
 
-def humanize(text: str) -> str:
-    """`BurnerInOperation` -> `Burner in operation`: the only label a value-list entry has for now."""
-    words = slug(text).replace("_", " ")
-    return words[:1].upper() + words[1:]
-
-
 @dataclass(frozen=True)
 class Field:
     name: str
@@ -49,6 +44,7 @@ class Field:
     unit: str | None = None
     divisor: int | None = None
     values: dict[str, str] | None = None
+    value_labels: dict[str, dict[str, str]] | None = None  # raw value -> label per language
     skip: bool = False
     guard: bool = False
 
@@ -76,6 +72,7 @@ class Message:
     position: dict[str, int] | None = None
     same_as: str | None = None
     writable: bool = False
+    renamed_from: str | None = None  # key of the message in the releases before the rename
 
     @property
     def guard(self) -> Field | None:
@@ -141,6 +138,17 @@ class ValueEntity:
         if self.field.values is None or self.platform != "sensor":
             return None
         return {name: slug(name) for name in self.field.values.values()}
+
+    def option_labels(self, language: str) -> dict[str, str]:
+        """State key -> label of the value-list entry, for the translations."""
+        values, labels = self.field.values or {}, self.field.value_labels or {}
+        return {slug(name): labels[raw][language] for raw, name in values.items()}
+
+    @property
+    def former_key(self) -> str | None:
+        """Key the entity had before its message was renamed, None when it was not."""
+        former = self.message.renamed_from
+        return f"{former}/{self.field.name}" if former else None
 
     @property
     def diagnostic(self) -> bool:
@@ -253,12 +261,12 @@ class Model:
 def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
-              f.get("divisor"), f.get("values"), bool(f.get("skip")), bool(f.get("guard")))
+              f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")))
         for index, f in enumerate(data["fields"]))
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
-                   "write" in data)
+                   "write" in data, data.get("renamed_from"))
 
 
 def _base_type(name: str) -> str:

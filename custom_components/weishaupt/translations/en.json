@@ -515,16 +515,16 @@
       "manager_dhwexceeded": {
         "name": "Hot water exceed temperature"
       },
-      "manager_dhwloadtime": {
-        "name": "Maximum hot water loading time"
-      },
-      "manager_dhwoperationmode": {
-        "name": "Hot water operating mode",
+      "manager_dhwloadingpriority": {
+        "name": "Hot water loading priority",
         "state": {
           "priority": "Priority",
           "sliding": "Sliding",
           "parallel": "Parallel"
         }
+      },
+      "manager_dhwloadtime": {
+        "name": "Maximum hot water loading time"
       },
       "manager_dhwsetpoint": {
         "name": "Hot water setpoint"

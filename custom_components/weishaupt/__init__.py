@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr, issue_registry as ir
+from homeassistant.helpers import device_registry as dr, entity_registry as er, issue_registry as ir
 
 from .const import DOCUMENTATION_URL, DOMAIN
 from .ebusd import EbusdClient, EbusdError
@@ -36,10 +36,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
         config_entry_id=entry.entry_id, identifiers={hub_identifier(hub)}, name="ebusd", manufacturer="ebusd",
         sw_version=hub.info.version, entry_type=dr.DeviceEntryType.SERVICE).id
     _update_issues(hass, entry, hub)
+    _follow_renames(hass, entry, hub)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
+
+
+def _follow_renames(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
+    """A definitions release renamed a message: its entity keeps its registry entry (entity id, history,
+    settings of the user) and gets the unique id built from the new name."""
+    registry = er.async_get(hass)
+    for description in hub.model.value_entities:
+        if description.former_key is None:
+            continue
+        old, new = (f"{entry.entry_id}_{key}" for key in (description.former_key, description.key))
+        entity_id = registry.async_get_entity_id(description.platform, DOMAIN, old)
+        if entity_id is not None and registry.async_get_entity_id(description.platform, DOMAIN, new) is None:
+            registry.async_update_entity(entity_id, new_unique_id=new)
 
 
 def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:

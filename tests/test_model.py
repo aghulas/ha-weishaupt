@@ -24,7 +24,7 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.4.3"
+    assert model.version == "0.5.0"
     assert len(model.messages) == 528
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
@@ -42,11 +42,11 @@ def test_missing_and_different_definitions_are_found(model, fake):
     fake.edit_message("bc1/ReturnTemp", ",SIN,10,", ",SIN,,")
     fake.edit_message("bc1/Counters", "burnerstarts", "starts")
     fake.edit_message("fs1/RoomTemp", "°C", "K")
-    fake.edit_message("ka/DHWOperationMode", "2=Parallel", "2=Other")
+    fake.edit_message("ka/DHWLoadingPriority", "2=Parallel", "2=Other")
     loaded = {circuit: parse_definitions(text) for circuit, text in fake.definitions.items()}
     found = {m.key: (m.reason, m.detail) for m in model.compare(set(loaded), loaded)}
     assert sorted(found) == ["bc1/Counters", "bc1/ReturnTemp", "bc1/SupplyTemp", "fs1/RoomTemp",
-                             "ka/BlockingTime", "ka/DHWOperationMode"]
+                             "ka/BlockingTime", "ka/DHWLoadingPriority"]
     assert found["ka/BlockingTime"] == ("missing", "")
     assert found["bc1/SupplyTemp"] == ("differs", "value: type UIN, expected SIN")
     assert "divisor" in found["bc1/ReturnTemp"][1] and "unit" in found["fs1/RoomTemp"][1]
@@ -126,14 +126,49 @@ def test_translations_cover_every_entity(model):
     assert keys(english) == keys(french)
 
 
-def test_fixtures_of_the_release_decode_as_recorded(model, golden):
-    """The 17 readings of the fixtures asset: the bytes of the evidence, decoded by the real ebusd, give the
-    value the evidence record states."""
-    readings = json.loads((DATA / "fixtures.json").read_text())["readings"]
-    assert len(readings) == 17
+def test_value_list_labels_come_from_the_metadata(model):
+    phase = next(e for e in model.value_entities if e.key == "ka/Boiler1Status/operatingphase")
+    assert phase.option_labels("en")["burner_in_operation"] == "Burner in operation"
+    assert phase.option_labels("fr")["burner_in_operation"] == "Brûleur en service"
+    french = json.loads((ROOT / "custom_components/weishaupt/translations/fr.json").read_text())
+    priority = french["entity"]["sensor"]["manager_dhwloadingpriority"]
+    assert priority["name"] == "Priorité de la charge ECS"
+    assert priority["state"] == {"priority": "Priorité", "sliding": "Mobile", "parallel": "Parallèle"}
+
+
+def test_renamed_message(model):
+    renamed = [e for e in model.value_entities if e.former_key]
+    assert [(e.key, e.former_key) for e in renamed] == [
+        ("ka/DHWLoadingPriority/value", "ka/DHWOperationMode/value")]
+    assert "ka/DHWOperationMode" not in model.messages
+
+
+def test_fixtures_of_the_release(model, golden):
+    """The fixtures file (schema 2): 566 telegrams captured on a bus, all 528 messages. Each has as many values
+    as the metadata has fields, the values the evidence states, and the answer the simulated ebusd replays for a
+    message is the text of one of its captured telegrams, as the real ebusd gave it again when recorded."""
+    fixtures = json.loads((DATA / "fixtures.json").read_text())
+    assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
+    readings = fixtures["readings"]
+    assert len(readings) == 566 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
+    texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"
         message = model.messages[key]
-        values = golden["reads"][key].split(";")
+        values = reading["text"].split(";")
+        assert len(values) == len(message.fields), key
+        texts.setdefault(key, set()).add(reading["text"])
         for name, expected in reading["expect"].items():
-            assert float(values[message.field(name).index]) == float(expected), key
+            text = values[message.field(name).index]
+            if expected is None:
+                assert text == "-", key
+            elif isinstance(expected, (int, float)):
+                assert abs(float(text) - expected) < 0.05, key  # the record's precision
+            else:
+                assert text == expected, key
+        if reading.get("case") == "first-byte-not-zero":
+            assert values[message.guard.index] != "0"
+    assert set(golden["reads"]) == set(model.messages)
+    for key, text in golden["reads"].items():
+        assert text in texts[key], key
+    assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp"]

@@ -419,16 +419,16 @@
       "manager_boiler1status_operatingphase": {
         "name": "État de la chaudière 1 – Phase de fonctionnement",
         "state": {
-          "burner_off": "Burner off",
-          "standby_check_fan": "Standby check fan",
-          "prepurge_speed_achieved": "Prepurge speed achieved",
-          "prepurge": "Prepurge",
-          "ignition_speed_achieved": "Ignition speed achieved",
-          "ignition": "Ignition",
-          "burner_in_operation": "Burner in operation",
-          "gas_valve_check": "Gas valve check",
-          "post_purge": "Post purge",
-          "forced_venting": "Forced venting"
+          "burner_off": "Brûleur arrêté",
+          "standby_check_fan": "Contrôle du ventilateur à l'arrêt",
+          "prepurge_speed_achieved": "Atteindre vitesse de préventilation",
+          "prepurge": "Préventilation",
+          "ignition_speed_achieved": "Atteindre vitesse d'allumage",
+          "ignition": "Allumage",
+          "burner_in_operation": "Brûleur en service",
+          "gas_valve_check": "Contrôle vannes gaz",
+          "post_purge": "Post-ventilation",
+          "forced_venting": "Ventilation forcée"
         }
       },
       "manager_boiler1status_outsidetemp": {
@@ -467,16 +467,16 @@
       "manager_boiler2status_operatingphase": {
         "name": "État de la chaudière 2 – Phase de fonctionnement",
         "state": {
-          "burner_off": "Burner off",
-          "standby_check_fan": "Standby check fan",
-          "prepurge_speed_achieved": "Prepurge speed achieved",
-          "prepurge": "Prepurge",
-          "ignition_speed_achieved": "Ignition speed achieved",
-          "ignition": "Ignition",
-          "burner_in_operation": "Burner in operation",
-          "gas_valve_check": "Gas valve check",
-          "post_purge": "Post purge",
-          "forced_venting": "Forced venting"
+          "burner_off": "Brûleur arrêté",
+          "standby_check_fan": "Contrôle du ventilateur à l'arrêt",
+          "prepurge_speed_achieved": "Atteindre vitesse de préventilation",
+          "prepurge": "Préventilation",
+          "ignition_speed_achieved": "Atteindre vitesse d'allumage",
+          "ignition": "Allumage",
+          "burner_in_operation": "Brûleur en service",
+          "gas_valve_check": "Contrôle vannes gaz",
+          "post_purge": "Post-ventilation",
+          "forced_venting": "Ventilation forcée"
         }
       },
       "manager_boiler2status_outsidetemp": {
@@ -515,16 +515,16 @@
       "manager_dhwexceeded": {
         "name": "Surélévation de température ECS"
       },
+      "manager_dhwloadingpriority": {
+        "name": "Priorité de la charge ECS",
+        "state": {
+          "priority": "Priorité",
+          "sliding": "Mobile",
+          "parallel": "Parallèle"
+        }
+      },
       "manager_dhwloadtime": {
         "name": "Temps de charge maximal ECS"
-      },
-      "manager_dhwoperationmode": {
-        "name": "Mode de fonctionnement ECS",
-        "state": {
-          "priority": "Priority",
-          "sliding": "Sliding",
-          "parallel": "Parallel"
-        }
       },
       "manager_dhwsetpoint": {
         "name": "Consigne de température ECS"
@@ -559,18 +559,18 @@
       "manager_errormonth": {
         "name": "Mois du défaut",
         "state": {
-          "january": "January",
-          "february": "February",
-          "march": "March",
-          "april": "April",
-          "may": "May",
-          "june": "June",
-          "july": "July",
-          "august": "August",
-          "september": "September",
-          "october": "October",
-          "november": "November",
-          "december": "December"
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
         }
       },
       "manager_errorstatus": {
@@ -657,18 +657,18 @@
       "manager_systemmonth": {
         "name": "Mois",
         "state": {
-          "january": "January",
-          "february": "February",
-          "march": "March",
-          "april": "April",
-          "may": "May",
-          "june": "June",
-          "july": "July",
-          "august": "August",
-          "september": "September",
-          "october": "October",
-          "november": "November",
-          "december": "December"
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
         }
       },
       "manager_systemsecond": {
@@ -677,13 +677,13 @@
       "manager_systemweekday": {
         "name": "Jour de la semaine",
         "state": {
-          "monday": "Monday",
-          "tuesday": "Tuesday",
-          "wednesday": "Wednesday",
-          "thursday": "Thursday",
-          "friday": "Friday",
-          "saturday": "Saturday",
-          "sunday": "Sunday"
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
         }
       },
       "manager_systemyear": {
@@ -985,16 +985,16 @@
       "system_kastatus_operatingphase": {
         "name": "Phase de fonctionnement",
         "state": {
-          "burner_off": "Burner off",
-          "standby_check_fan": "Standby check fan",
-          "prepurge_speed_achieved": "Prepurge speed achieved",
-          "prepurge": "Prepurge",
-          "ignition_speed_achieved": "Ignition speed achieved",
-          "ignition": "Ignition",
-          "burner_in_operation": "Burner in operation",
-          "gas_valve_check": "Gas valve check",
-          "post_purge": "Post purge",
-          "forced_venting": "Forced venting"
+          "burner_off": "Brûleur arrêté",
+          "standby_check_fan": "Contrôle du ventilateur à l'arrêt",
+          "prepurge_speed_achieved": "Atteindre vitesse de préventilation",
+          "prepurge": "Préventilation",
+          "ignition_speed_achieved": "Atteindre vitesse d'allumage",
+          "ignition": "Allumage",
+          "burner_in_operation": "Brûleur en service",
+          "gas_valve_check": "Contrôle vannes gaz",
+          "post_purge": "Post-ventilation",
+          "forced_venting": "Ventilation forcée"
         }
       },
       "system_kastatus_outsidetemp": {

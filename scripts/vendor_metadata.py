@@ -4,7 +4,7 @@
 The integration ships a verbatim copy of `weishaupt-metadata-<version>.json` (nothing is downloaded at run time)
 and translation files generated from it. A new release of the definitions needs this script, not hand edits:
 
-    scripts/vendor_metadata.py --release-dir /path/with/the/release/files --version 0.4.3
+    scripts/vendor_metadata.py --release-dir /path/with/the/release/files --version 0.5.0
     scripts/vendor_metadata.py            # only regenerate translations/*.json from the vendored copy
     scripts/vendor_metadata.py --check    # fail when translations/*.json are not what would be generated
 
@@ -67,8 +67,7 @@ def translations(model_module, language: str) -> dict:
     for description in model.value_entities:
         item = {"name": description.name[language]}
         if description.options:
-            # value-list entries have no label in the metadata yet: the ebusd name, split into words
-            item["state"] = {key: model_module.humanize(name) for name, key in description.options.items()}
+            item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
     for description in model.group_entities:
         item = {"name": description.name[language]}

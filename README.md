@@ -9,7 +9,7 @@ Not affiliated with Weishaupt or with the ebusd project.
 
 **Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
 read requests. With writes enabled in its options, it can change **the settings a release of the
-definitions proves writable** — 22 with definitions 0.5.2 — and nothing else, through a write
+definitions proves writable** — 66 with definitions 0.5.4 — and nothing else, through a write
 guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
@@ -35,7 +35,7 @@ To **write** settings, in addition:
 - an ebusd build that computes the **run-time checksum** of the Weishaupt register writes
   (john30/ebusd#1825, not merged yet): the build of `aghulas/ebusd`. The integration checks it
   itself, without sending anything to the bus, and refuses every write on another build;
-- for the settings written from the address of the vendor service tool (`ff`, 20 of the 22), the
+- for the settings written from the address of the vendor service tool (`ff`, 62 of the 66), the
   **telegram log** the ebusd add-on keeps (an SQLite file), readable by Home Assistant: a write
   from `ff` is refused while the service tool may be connected, and whenever the log cannot be read
   or is not fed.
@@ -44,12 +44,12 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.3 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
+| 0.3 | 0.5.4 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.5.2.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.5.4.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -58,12 +58,15 @@ that file:
   entity**, and one repair issue names the messages and the release expected. Load a release of
   the accepted range in ebusd, then reload the integration.
 
-Why 0.5.2 and later 0.5.x: the second number of a definitions version changes when a message is
+Why 0.5.3 and later 0.5.x: the second number of a definitions version changes when a message is
 renamed, removed or retyped, the third when messages are only added. 0.5.0 renamed one message of
 the system manager (`DHWOperationMode` became `DHWLoadingPriority`) and made a message of the
 heating modules decodable, so definitions 0.4.x are not accepted. 0.5.1 and 0.5.2 added messages
-(settings of the system manager and of a room unit); with 0.5.0 or 0.5.1 in ebusd those messages
-are missing and the comparison names them in a repair issue, the other entities work. An entity
+(settings of the system manager and of a room unit), 0.5.3 five more reads; with an older 0.5.x in
+ebusd those messages are missing and the comparison names them in a repair issue, the other
+entities work. 0.5.4 differs from 0.5.3 only by the write definitions of the two flow limits of the
+system manager's own circuit: with 0.5.3 in ebusd everything is read, and those two settings stay
+read-only (64 writable instead of 66). An entity
 created under a former message name keeps its entity id and history when the name changes: the
 metadata says which name it had.
 
@@ -171,15 +174,33 @@ What is writable is decided by the definitions, not by the integration: a settin
 entity only when the metadata of the release gives it **write conditions** (a lot of the
 definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
 definition as the release has it. Structural settings (circuit type, control variant, boiler
-sequence…) never have write conditions. With definitions 0.5.2:
+sequence…) never have write conditions. With definitions 0.5.4, 66 settings:
 
-| Device | Settings | Class |
-|---|---|---|
-| System manager | cascade blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier switching differential, hot-water switching differential, maximum hot-water loading time, legionella setpoint, legionella circulation time | regulation |
-| Heating module 2 | normal and setback room temperature | **comfort** |
-| Heating module 2 | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature | regulation |
-| Heating module 3 | heating curve gradient | regulation |
-| Room unit 1 | optimised switch-on lead time, frost protection limit, boiler boost offset, frost protection room temperature | regulation |
+| Device | Settings | Source | Class |
+|---|---|---|---|
+| System manager (`ka`, 12) | blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier and hot-water switching differentials, maximum hot-water loading time, legionella setpoint and circulation time, maximum flow temperature, hot-water setpoint | `ff` | regulation |
+| System manager, own circuit (`em1`, 7) | normal and setback room temperature, frost protection room temperature, heating curve gradient, summer / winter changeover, minimum and maximum flow temperature | `ff` | regulation |
+| Heating module 2 (`em2`, 7) | normal and setback room temperature | `ff` | **comfort** |
+| Heating module 2 | frost protection room temperature, heating curve gradient, summer / winter changeover | `ff` | regulation |
+| Heating module 2 | maximum and minimum flow temperature | `31` | regulation |
+| Heating module 3 (`em3`, 7) | the same five settings | `ff` | regulation |
+| Heating module 3 | maximum and minimum flow temperature | `31` | regulation |
+| Room units 1, 2, 3 (`fs1`–`fs3`, 11 each) | normal and setback room temperature, frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, hot-water setpoint, optimised switch-on lead time, frost protection limit, boiler boost offset | `ff` | regulation |
+
+The source is the one the metadata gives each setting: the address the device takes the value from
+(`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
+source, a device acknowledges and keeps its value — the flow limits of the system manager's own
+circuit are taken from `ff` only, those of the heating modules from `31`.
+
+The system manager's own circuit reads three registers of the system manager: the integration
+shows each register once. The maximum flow temperature, writable on both, has one number (through
+`ka`); the normal and setback room temperatures, proven written through `em1` only, have a number
+that writes through `em1`. So 65 number entities for 66 settings.
+
+Twelve settings have no range in the definitions (setback room temperature and heating curve of
+every heating circuit and room unit): the integration uses the bounds of the evidence record of
+the definitions (10.0–21.5 °C and 2.5–40.0, step 0.5), as `bounds_from: evidence` in their
+attributes.
 
 **Risk classes** (from the metadata):
 
@@ -194,8 +215,8 @@ sequence…) never have write conditions. With definitions 0.5.2:
 **Each write**, in this order, stops at the first refusal and tells you why:
 
 1. write switch on; the setting writable; ebusd known to compute the run-time checksum; ebusd
-   reachable; for the two flow limits of the heating module, which are proven written from
-   ebusd's own address `31` only, ebusd's address is `31`; the value in the range and on a step;
+   reachable; for the settings proven written from ebusd's own address `31` (the flow limits of the
+   heating modules), ebusd's address is `31`; the value in the range and on a step;
 2. the setting read from the device, and the setting it is linked to: setback room temperature at
    or below the normal one, minimum flow temperature at or below the maximum;
 3. for a write from `ff`, the telegram log: no telegram from `ff` that is not ours in the last 10
@@ -233,11 +254,15 @@ file to attach to a report about another boiler model or software version.
 0.1 read and wrote registers with raw telegrams from its own table. 0.2 and 0.3 are a different
 integration under the same name:
 
-- **Only the proven settings can be written** (22 with definitions 0.5.2, against 71 numeric
-  settings, choices, holiday dates, weekly programs and the clock in 0.1). The `select` and `date`
-  entities and the actions `weishaupt.set_time_program` and `weishaupt.set_clock` are gone;
-  automations that call them, or that set a number of 0.1 that has no proof yet, stop working. If
-  you rely on them, stay on 0.1 until the definitions prove them.
+- **Only the proven settings can be written**: with definitions 0.5.4, the 66 numeric settings of
+  0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too). The
+  choices (legionella day, circulation with legionella, boiler sequence, holiday level, adaption,
+  control variation, circuit type), the holiday dates, the weekly programs and the clock are not
+  proven yet: the `select` and `date` entities and the actions `weishaupt.set_time_program` and
+  `weishaupt.set_clock` are gone, and automations that call them stop working. If you rely on
+  them, stay on 0.1 until the definitions prove them.
+- Regulation settings need a confirmation in *Repairs* for every change: an automation that sets
+  one of them in 0.1 cannot do so any more. The hourly write limit is 30, not an option.
 - Writes are off after the update, even if they were on in 0.1: enable them again in the options.
 - **ebusd must load a definitions release.** 0.1 worked with any configuration and `--enablehex`;
   0.3 needs the release and no longer needs `--enablehex`; writes still need the fork's ebusd and
@@ -287,10 +312,10 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
   fails if ebusd answers anything else than the fixtures say.
 - The integration runs inside a Home Assistant test instance against a **simulated ebusd**
   (`tests/fake_ebusd.py`), a TCP server that replays those answers. It makes up no value.
-- **Writes.** The telegram built for each of the 22 settings equals, byte for byte, the 24 write
-  telegrams captured on the bus (fixtures of the release) and the 22 changes of the telegram log of
-  the installation (`tests/test_writes.py`). The recording also holds the answers of a real ebusd,
-  the fork's build and a stock 26.1, to 96 write commands (the checksum probes, each captured
+- **Writes.** The telegram built for each of the 66 settings equals, byte for byte, the 112 write
+  telegrams captured on the bus (changes and restores, fixtures of the release), from the source
+  the capture and the metadata give (`tests/test_writes.py`). The recording also holds the answers
+  of a real ebusd, the fork's build and a stock 26.1, to 448 write commands (the checksum probes, each captured
   write, the same with a wrong checksum), recorded without a bus; the simulated ebusd matches
   writes as ebusd does and gives each of these answers. Inside Home Assistant
   (`tests/test_ha_writes.py`): entities, the comfort path, the confirmation of a regulation
@@ -308,7 +333,7 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
 
 **On a real bus.** The integration ran for twelve minutes, read-only, from a throwaway Home
 Assistant test instance against the ebusd of the installation the definitions were established on
-(definitions 0.5.2, ebusd 26.1 also serving its own polling and MQTT): the nine devices found by
+(definitions 0.5.2 at the time, ebusd 26.1 also serving its own polling and MQTT): the nine devices found by
 the scan, no definitions mismatch, the first fill in about two minutes (61 messages), then about
 eight requests a minute, never two closer than 2 s, of which a third were answered from the cache
 of ebusd. No bus error, no lost signal, no reconnection of ebusd; the values equal those ebusd
@@ -320,7 +345,8 @@ the boilers are only sent then), and the values of an installation other than th
 ## History
 
 - 0.3 (pre-release): writes of the settings the definitions prove, behind the guard of 0.1, risk
-  classes and a check of the run-time checksum of ebusd.
+  classes and a check of the run-time checksum of ebusd. 0.3.0b1 on definitions 0.5.2 (22
+  settings, not published), 0.3.0b2 on definitions 0.5.4 (66 settings).
 - 0.2 (pre-release): read-only integration built from the metadata of the definitions.
 - 0.1.0 (2026-10-30) and `main` until 2026-11-18: settings of the WCM controllers read and written
   as raw telegrams from a register table, write guard, time programs, clock.

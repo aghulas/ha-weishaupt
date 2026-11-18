@@ -1,0 +1,191 @@
+{
+ "schema": 1,
+ "definitions": {
+  "version": "0.4.3"
+ },
+ "readings": [
+  {
+   "circuit": "ka",
+   "message": "BlockingTime",
+   "read": "4c 25 00",
+   "answer": "01 00",
+   "write": "28 25 00 01 00",
+   "expect": {
+    "value": 1
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "ChangeOverTime",
+   "read": "3d ec fd",
+   "answer": "32 00",
+   "write": "d4 ec fd 32 00",
+   "expect": {
+    "value": 50
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "DeCoupleMinTemp",
+   "answer": "50 00",
+   "write": "70 e7 fd 50 00",
+   "expect": {
+    "value": 8.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "CalorifierSwitchDiff",
+   "read": "f1 e2 fd",
+   "answer": "14 00",
+   "write": "0c e2 fd 14 00",
+   "expect": {
+    "value": 2.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWSwitchDiff",
+   "answer": "ce ff",
+   "write": "bf 40 01 ce ff",
+   "expect": {
+    "value": -5.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWLoadTime",
+   "read": "f1 80 01",
+   "answer": "00 00",
+   "write": "90 80 01 00 00",
+   "expect": {
+    "value": 0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "LegionellaSetpoint",
+   "read": "3d 87 05",
+   "answer": "58 02",
+   "write": "72 87 05 58 02",
+   "expect": {
+    "value": 60.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "ka",
+   "message": "LegionellaCirculationTime",
+   "read": "29 b1 09",
+   "answer": "58 02",
+   "write": "46 b1 09 58 02",
+   "expect": {
+    "value": 600
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "RoomNormalTemp",
+   "answer": "d7 00",
+   "write": "d8 05 00 d7 00",
+   "expect": {
+    "value": 21.5
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "RoomSetbackTemp",
+   "read": "58 08 00",
+   "answer": "d7 00",
+   "write": "b0 08 00 d7 00",
+   "expect": {
+    "value": 21.5
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "RoomFrostProtectionTemp",
+   "read": "96 14 0a",
+   "answer": "64 00",
+   "write": "7c 14 0a 64 00",
+   "expect": {
+    "value": 10.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "GradientCurve",
+   "read": "cd 0e 01",
+   "answer": "64 00",
+   "write": "a4 0e 01 64 00",
+   "expect": {
+    "value": 10.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "SummerWinterChangeOverTemp",
+   "answer": "c8 00",
+   "write": "dc 16 01 c8 00",
+   "expect": {
+    "value": 20.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "SupplyMaxTemp",
+   "read": "64 28 00",
+   "answer": "ee 02",
+   "write": "66 28 00 ee 02",
+   "expect": {
+    "value": 75.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "em2",
+   "message": "SupplyMinTemp",
+   "read": "81 2b 01",
+   "answer": "50 00",
+   "write": "70 2b 01 50 00",
+   "expect": {
+    "value": 8.0
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SwitchOnRuntime",
+   "read": "b1 10 01",
+   "answer": "03 00",
+   "write": "d8 10 01 03 00",
+   "expect": {
+    "value": 3
+   },
+   "evidence": "settings-writes"
+  },
+  {
+   "circuit": "fs1",
+   "message": "FrostProtectionLimitTemp",
+   "read": "b2 be 02",
+   "answer": "00 00",
+   "write": "a4 be 02 00 00",
+   "expect": {
+    "value": 0.0
+   },
+   "evidence": "settings-writes"
+  }
+ ]
+}

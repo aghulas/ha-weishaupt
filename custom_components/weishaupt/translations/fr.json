@@ -3,15 +3,31 @@
     "step": {
       "user": {
         "title": "ebusd",
-        "description": "ebusd lancé avec --enablehex, joignable en TCP.",
+        "description": "Adresse de l'ebusd relié à l'installation de chauffage. ebusd doit avoir chargé une version des définitions Weishaupt. Rien n'est écrit vers l'installation de chauffage.",
         "data": {
           "host": "Hôte",
           "port": "Port"
+        },
+        "data_description": {
+          "host": "Nom d'hôte ou adresse IP d'ebusd.",
+          "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
+        }
+      },
+      "reconfigure": {
+        "title": "ebusd",
+        "description": "Nouvelle adresse du même ebusd.",
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "Nom d'hôte ou adresse IP d'ebusd.",
+          "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
         }
       }
     },
     "error": {
-      "cannot_connect": "ebusd ne répond pas, ou n'accepte pas les commandes hex (--enablehex)."
+      "cannot_connect": "Aucun ebusd ne répond à cette adresse."
     },
     "abort": {
       "already_configured": "Cet ebusd est déjà configuré."
@@ -20,187 +36,721 @@
   "options": {
     "step": {
       "init": {
-        "title": "Weishaupt",
-        "description": "Les écritures vont aux régulateurs des chaudières. Les écritures depuis l'adresse de l'outil de service ff sont refusées tant que WCM-Diagnose peut être connecté, ce qui se lit dans le journal des trames d'ebusd.",
+        "title": "Charge sur le bus",
         "data": {
-          "telegram_db": "Journal des trames ebusd (SQLite)",
-          "writes_enabled": "Activer les écritures"
+          "request_gap": "Délai entre deux requêtes",
+          "cyclic_interval": "Intervalle des valeurs instantanées"
+        },
+        "data_description": {
+          "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
+          "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent."
         }
       }
+    }
+  },
+  "issues": {
+    "definitions_mismatch": {
+      "title": "Les définitions chargées par ebusd ne sont pas celles que cette intégration attend",
+      "description": "{count} messages des définitions Weishaupt {version} sont absents d'ebusd ({missing}) ou définis autrement ({different}) : {messages}.\n\nCes valeurs ne sont pas affichées. Chargez dans ebusd une version des définitions dans la plage {accepted} (avec `--scanconfig`), puis rechargez l'intégration."
+    },
+    "no_devices": {
+      "title": "Aucun appareil Weishaupt trouvé sur le bus",
+      "description": "ebusd répond, mais aucune des adresses décrites par les définitions Weishaupt n'est sur son bus. Autres adresses vues : {addresses}.\n\nVérifiez qu'ebusd a un signal et a scanné le bus, puis rechargez l'intégration."
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "ebusd ne peut pas être interrogé : {error}"
     }
   },
   "device": {
-    "ka": {
-      "name": "Cascade KA"
+    "boiler1": {
+      "name": "Chaudière 1"
     },
-    "fs": {
-      "name": "Commande FS{number}"
+    "boiler2": {
+      "name": "Chaudière 2"
     },
-    "em": {
-      "name": "Extension EM{number}"
+    "manager": {
+      "name": "Manager de cascade"
     },
-    "write_guard": {
-      "name": "Weishaupt — garde-fou"
+    "module2": {
+      "name": "Module d'extension 2"
+    },
+    "module3": {
+      "name": "Module d'extension 3"
+    },
+    "room1": {
+      "name": "Commande à distance 1"
+    },
+    "room2": {
+      "name": "Commande à distance 2"
+    },
+    "room3": {
+      "name": "Commande à distance 3"
+    },
+    "system": {
+      "name": "Installation"
     }
   },
   "entity": {
-    "number": {
-      "room_normal": {
-        "name": "Consigne ambiance normale"
+    "binary_sensor": {
+      "manager_boiler1status_burnerstatus": {
+        "name": "État de la chaudière 1 – Brûleur"
       },
-      "room_reduced": {
-        "name": "Consigne ambiance réduite"
+      "manager_boiler1status_circpump": {
+        "name": "État de la chaudière 1 – Pompe de circulation ECS"
       },
-      "room_frost": {
-        "name": "Consigne hors-gel"
+      "manager_boiler1status_dhwpump": {
+        "name": "État de la chaudière 1 – Pompe ECS"
       },
-      "gradient": {
-        "name": "Pente de la courbe de chauffe"
+      "manager_boiler1status_error": {
+        "name": "État de la chaudière 1 – Défaut"
       },
-      "summer_winter": {
-        "name": "Seuil été/hiver"
+      "manager_boiler1status_fan": {
+        "name": "État de la chaudière 1 – Ventilateur"
       },
-      "supply_max": {
-        "name": "Température de départ maxi"
+      "manager_boiler1status_flame": {
+        "name": "État de la chaudière 1 – Flamme"
       },
-      "supply_min": {
-        "name": "Température de départ mini"
+      "manager_boiler1status_gasvalve1": {
+        "name": "État de la chaudière 1 – Vanne gaz 1"
       },
-      "dhw_setpoint": {
-        "name": "Consigne eau chaude"
+      "manager_boiler1status_gasvalve2": {
+        "name": "État de la chaudière 1 – Vanne gaz 2"
       },
-      "room_factor_curve": {
-        "name": "Facteur d'influence pièce (P)"
+      "manager_boiler1status_manualstartup": {
+        "name": "État de la chaudière 1 – Réglage manuel de la puissance"
       },
-      "boiler_mc_boost": {
-        "name": "Surélévation t° circuit mélangé (boost)"
+      "manager_boiler1status_pump": {
+        "name": "État de la chaudière 1 – Circulateur"
       },
-      "switch_on_runtime": {
-        "name": "Délai de relance (anticipation)"
+      "manager_boiler1status_service": {
+        "name": "État de la chaudière 1 – Entretien"
       },
-      "frost_protection_limit": {
-        "name": "Température limite hors-gel"
+      "manager_boiler2status_burnerstatus": {
+        "name": "État de la chaudière 2 – Brûleur"
       },
-      "modulation_max": {
-        "name": "Modulation maxi"
+      "manager_boiler2status_circpump": {
+        "name": "État de la chaudière 2 – Pompe de circulation ECS"
       },
-      "modulation_min": {
-        "name": "Modulation mini"
+      "manager_boiler2status_dhwpump": {
+        "name": "État de la chaudière 2 – Pompe ECS"
       },
-      "regulation_p": {
-        "name": "Régulateur P (cascade)"
+      "manager_boiler2status_error": {
+        "name": "État de la chaudière 2 – Défaut"
       },
-      "regulation_i": {
-        "name": "Régulateur I (cascade)"
+      "manager_boiler2status_fan": {
+        "name": "État de la chaudière 2 – Ventilateur"
       },
-      "legionella_setup_temp": {
-        "name": "Anti-légionelle : consigne ECS"
+      "manager_boiler2status_flame": {
+        "name": "État de la chaudière 2 – Flamme"
       },
-      "dhw_load_time": {
-        "name": "Temps de charge maxi ECS"
+      "manager_boiler2status_gasvalve1": {
+        "name": "État de la chaudière 2 – Vanne gaz 1"
       },
-      "dhw_switch_diff": {
-        "name": "Différentiel de commutation ECS"
+      "manager_boiler2status_gasvalve2": {
+        "name": "État de la chaudière 2 – Vanne gaz 2"
       },
-      "legionella_circ_time": {
-        "name": "Anti-légionelle : durée circulation ECS"
+      "manager_boiler2status_manualstartup": {
+        "name": "État de la chaudière 2 – Réglage manuel de la puissance"
       },
-      "cascade_change_time": {
-        "name": "Cascade : temps de permutation"
+      "manager_boiler2status_pump": {
+        "name": "État de la chaudière 2 – Circulateur"
       },
-      "cascade_blocking_time": {
-        "name": "Cascade : temps de blocage"
+      "manager_boiler2status_service": {
+        "name": "État de la chaudière 2 – Entretien"
       },
-      "decouple_min": {
-        "name": "Découplage : température mini"
+      "manager_hcmode_dhw": {
+        "name": "ECS"
       },
-      "calorifier_switch_diff": {
-        "name": "Tampon : différentiel de commutation"
-      }
-    },
-    "date": {
-      "holiday_from": {
-        "name": "Congés : début"
+      "manager_hcmode_heating": {
+        "name": "Chauffage"
       },
-      "holiday_to": {
-        "name": "Congés : fin"
-      }
-    },
-    "select": {
-      "holiday_level": {
-        "name": "Congés : niveau de température",
-        "state": {
-          "frost": "hors-gel",
-          "reduced": "réduit"
-        }
+      "manager_hcmode_pump": {
+        "name": "Pompe"
       },
-      "adaption": {
-        "name": "Adaptation",
-        "state": {
-          "off": "Arrêt",
-          "on": "Marche"
-        }
+      "manager_hcmode_valveclosing": {
+        "name": "Vanne mélangeuse, fermeture"
       },
-      "control_variation": {
-        "name": "Variante de régulation",
-        "state": {
-          "constant": "Constant",
-          "weather": "Extérieur",
-          "weather_room": "Extérieur + ambiance",
-          "room": "Ambiance"
-        }
+      "manager_hcmode_valveopening": {
+        "name": "Vanne mélangeuse, ouverture"
       },
-      "hc_type": {
-        "name": "Type de circuit de chauffage",
-        "state": {
-          "floor": "Plancher",
-          "floor_2": "Plancher 2",
-          "radiator_60": "Radiateur 60°",
-          "radiator_75": "Radiateur 75°",
-          "convector": "Convecteur",
-          "universal": "Universel"
-        }
+      "module_hcmode_dhw": {
+        "name": "ECS"
       },
-      "dhw_legionella_day": {
-        "name": "Anti-légionelle : jour",
-        "state": {
-          "off": "Arrêt",
-          "monday": "Lundi",
-          "tuesday": "Mardi",
-          "wednesday": "Mercredi",
-          "thursday": "Jeudi",
-          "friday": "Vendredi",
-          "saturday": "Samedi",
-          "sunday": "Dimanche"
-        }
+      "module_hcmode_heating": {
+        "name": "Chauffage"
       },
-      "circ_with_legionella": {
-        "name": "Anti-légionelle : circulation ECS",
-        "state": {
-          "off": "Arrêt",
-          "on": "Marche"
-        }
+      "module_hcmode_pump": {
+        "name": "Pompe"
       },
-      "boiler_seq_1": {
-        "name": "Cascade : ordre d'enclenchement #1",
-        "state": {
-          "a": "A",
-          "b": "B",
-          "off": "— (arrêt)"
-        }
+      "module_hcmode_valveclosing": {
+        "name": "Vanne mélangeuse, fermeture"
       },
-      "boiler_seq_2": {
-        "name": "Cascade : ordre d'enclenchement #2",
-        "state": {
-          "a": "A",
-          "b": "B",
-          "off": "— (arrêt)"
-        }
+      "module_hcmode_valveopening": {
+        "name": "Vanne mélangeuse, ouverture"
+      },
+      "system_kastatus_burnerstatus": {
+        "name": "Brûleur"
+      },
+      "system_kastatus_circpump": {
+        "name": "Pompe de circulation ECS"
+      },
+      "system_kastatus_dhwpump": {
+        "name": "Pompe ECS"
+      },
+      "system_kastatus_error": {
+        "name": "Défaut"
+      },
+      "system_kastatus_fan": {
+        "name": "Ventilateur"
+      },
+      "system_kastatus_flame": {
+        "name": "Flamme"
+      },
+      "system_kastatus_gasvalve1": {
+        "name": "Vanne gaz 1"
+      },
+      "system_kastatus_gasvalve2": {
+        "name": "Vanne gaz 2"
+      },
+      "system_kastatus_manualstartup": {
+        "name": "Réglage manuel de la puissance"
+      },
+      "system_kastatus_pump": {
+        "name": "Circulateur"
+      },
+      "system_kastatus_service": {
+        "name": "Entretien"
       }
     },
     "sensor": {
-      "program_heating_1": {
-        "name": "Programme chauffage 1",
+      "boiler_burnerservicehours": {
+        "name": "Heures brûleur depuis le dernier entretien (i46)"
+      },
+      "boiler_counters_burnerhours": {
+        "name": "Heures de fonctionnement du brûleur"
+      },
+      "boiler_counters_burnerstarts": {
+        "name": "Démarrages brûleur"
+      },
+      "boiler_counters_operatinghours": {
+        "name": "Heures de fonctionnement"
+      },
+      "boiler_dhwtemp": {
+        "name": "Température ECS (i34)"
+      },
+      "boiler_fault_history": {
+        "name": "Mémoire de défauts",
+        "state_attributes": {
+          "entries": {
+            "name": "Entrées"
+          },
+          "ordered": {
+            "name": "Plus récente en premier"
+          }
+        }
+      },
+      "boiler_faultcounters1_code51": {
+        "name": "Compteur du défaut 51"
+      },
+      "boiler_faultcounters1_code52": {
+        "name": "Compteur du défaut 52"
+      },
+      "boiler_faultcounters1_code53": {
+        "name": "Compteur du défaut 53"
+      },
+      "boiler_faultcounters1_code55": {
+        "name": "Compteur du défaut 55"
+      },
+      "boiler_faultcounters1_code57": {
+        "name": "Compteur du défaut 57"
+      },
+      "boiler_faultcounters2_code45": {
+        "name": "Compteur du défaut 45"
+      },
+      "boiler_faultcounters2_code46": {
+        "name": "Compteur du défaut 46"
+      },
+      "boiler_faultcounters2_code47": {
+        "name": "Compteur du défaut 47"
+      },
+      "boiler_faultcounters2_code48": {
+        "name": "Compteur du défaut 48"
+      },
+      "boiler_faultcounters2_code49": {
+        "name": "Compteur du défaut 49"
+      },
+      "boiler_faultcounters3_code38": {
+        "name": "Compteur du défaut 38"
+      },
+      "boiler_faultcounters3_code39": {
+        "name": "Compteur du défaut 39"
+      },
+      "boiler_faultcounters3_code41": {
+        "name": "Compteur du défaut 41"
+      },
+      "boiler_faultcounters3_code43": {
+        "name": "Compteur du défaut 43"
+      },
+      "boiler_faultcounters3_code44": {
+        "name": "Compteur du défaut 44"
+      },
+      "boiler_faultcounters4_code33": {
+        "name": "Compteur du défaut 33"
+      },
+      "boiler_faultcounters4_code34": {
+        "name": "Compteur du défaut 34"
+      },
+      "boiler_faultcounters4_code35": {
+        "name": "Compteur du défaut 35"
+      },
+      "boiler_faultcounters4_code36": {
+        "name": "Compteur du défaut 36"
+      },
+      "boiler_faultcounters4_code37": {
+        "name": "Compteur du défaut 37"
+      },
+      "boiler_faultcounters5_code23": {
+        "name": "Compteur du défaut 23"
+      },
+      "boiler_faultcounters5_code24": {
+        "name": "Compteur du défaut 24"
+      },
+      "boiler_faultcounters5_code30": {
+        "name": "Compteur du défaut 30"
+      },
+      "boiler_faultcounters5_code31": {
+        "name": "Compteur du défaut 31"
+      },
+      "boiler_faultcounters5_code32": {
+        "name": "Compteur du défaut 32"
+      },
+      "boiler_faultcounters6_code15": {
+        "name": "Compteur du défaut 15"
+      },
+      "boiler_faultcounters6_code16": {
+        "name": "Compteur du défaut 16"
+      },
+      "boiler_faultcounters6_code18": {
+        "name": "Compteur du défaut 18"
+      },
+      "boiler_faultcounters6_code21": {
+        "name": "Compteur du défaut 21"
+      },
+      "boiler_faultcounters6_code22": {
+        "name": "Compteur du défaut 22"
+      },
+      "boiler_faultcounters7_code11": {
+        "name": "Compteur du défaut 11"
+      },
+      "boiler_faultcounters7_code12": {
+        "name": "Compteur du défaut 12"
+      },
+      "boiler_faultcounters7_code14": {
+        "name": "Compteur du défaut 14"
+      },
+      "boiler_faulthistorypointer": {
+        "name": "Mémoire de défauts, pointeur d'écriture"
+      },
+      "boiler_fluegastemp": {
+        "name": "Température des fumées (i31)"
+      },
+      "boiler_hydraulicseparatortemp": {
+        "name": "Température de la bouteille casse-pression (i39)"
+      },
+      "boiler_operation_ionisation": {
+        "name": "Signal d'ionisation"
+      },
+      "boiler_operation_load": {
+        "name": "Puissance du brûleur"
+      },
+      "boiler_operation_pumpspeed": {
+        "name": "Vitesse du circulateur"
+      },
+      "boiler_outsidetemp": {
+        "name": "Température extérieure (i33)"
+      },
+      "boiler_returntemp": {
+        "name": "Température retour (i37)"
+      },
+      "boiler_softwareversioncpu": {
+        "name": "Version du logiciel WCM-CPU (i44)"
+      },
+      "boiler_softwareversioncui": {
+        "name": "Version du logiciel WCM-CUI (i45)"
+      },
+      "boiler_supplytemp": {
+        "name": "Température de départ (i35)"
+      },
+      "boiler_temperatures_fluegastemp": {
+        "name": "Température des fumées"
+      },
+      "boiler_temperatures_outsidetemp": {
+        "name": "Température extérieure"
+      },
+      "boiler_temperatures_returntemp": {
+        "name": "Température retour"
+      },
+      "boiler_temperatures_supplytemp": {
+        "name": "Température de départ"
+      },
+      "manager_blockingtime": {
+        "name": "Temps de blocage"
+      },
+      "manager_boiler1power_currentload": {
+        "name": "Puissance de la chaudière 1 – Puissance actuelle du brûleur"
+      },
+      "manager_boiler1power_maxload": {
+        "name": "Puissance de la chaudière 1 – Puissance maximale du brûleur"
+      },
+      "manager_boiler1power_minload": {
+        "name": "Puissance de la chaudière 1 – Puissance minimale du brûleur"
+      },
+      "manager_boiler1status_dhwtemp": {
+        "name": "État de la chaudière 1 – Température ECS"
+      },
+      "manager_boiler1status_fluegastemp": {
+        "name": "État de la chaudière 1 – Température des fumées"
+      },
+      "manager_boiler1status_load": {
+        "name": "État de la chaudière 1 – Puissance du brûleur"
+      },
+      "manager_boiler1status_operatingphase": {
+        "name": "État de la chaudière 1 – Phase de fonctionnement",
+        "state": {
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
+        }
+      },
+      "manager_boiler1status_outsidetemp": {
+        "name": "État de la chaudière 1 – Température extérieure"
+      },
+      "manager_boiler1status_outsideweightedtemp": {
+        "name": "État de la chaudière 1 – Température extérieure pondérée"
+      },
+      "manager_boiler1status_status1": {
+        "name": "État de la chaudière 1 – Octet d'état"
+      },
+      "manager_boiler1status_supplysettemp": {
+        "name": "État de la chaudière 1 – Consigne de température départ de la chaudière"
+      },
+      "manager_boiler1status_supplytemp": {
+        "name": "État de la chaudière 1 – Température de départ de la chaudière"
+      },
+      "manager_boiler2power_currentload": {
+        "name": "Puissance de la chaudière 2 – Puissance actuelle du brûleur"
+      },
+      "manager_boiler2power_maxload": {
+        "name": "Puissance de la chaudière 2 – Puissance maximale du brûleur"
+      },
+      "manager_boiler2power_minload": {
+        "name": "Puissance de la chaudière 2 – Puissance minimale du brûleur"
+      },
+      "manager_boiler2status_dhwtemp": {
+        "name": "État de la chaudière 2 – Température ECS"
+      },
+      "manager_boiler2status_fluegastemp": {
+        "name": "État de la chaudière 2 – Température des fumées"
+      },
+      "manager_boiler2status_load": {
+        "name": "État de la chaudière 2 – Puissance du brûleur"
+      },
+      "manager_boiler2status_operatingphase": {
+        "name": "État de la chaudière 2 – Phase de fonctionnement",
+        "state": {
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
+        }
+      },
+      "manager_boiler2status_outsidetemp": {
+        "name": "État de la chaudière 2 – Température extérieure"
+      },
+      "manager_boiler2status_outsideweightedtemp": {
+        "name": "État de la chaudière 2 – Température extérieure pondérée"
+      },
+      "manager_boiler2status_status1": {
+        "name": "État de la chaudière 2 – Octet d'état"
+      },
+      "manager_boiler2status_supplysettemp": {
+        "name": "État de la chaudière 2 – Consigne de température départ de la chaudière"
+      },
+      "manager_boiler2status_supplytemp": {
+        "name": "État de la chaudière 2 – Température de départ de la chaudière"
+      },
+      "manager_boilermcboosttemp": {
+        "name": "Surélévation de température chaudière"
+      },
+      "manager_calorifierswitchdiff": {
+        "name": "Différentiel de commutation du stock tampon"
+      },
+      "manager_changeovertime": {
+        "name": "Temps de marche avant changement de l'ordre des chaudières"
+      },
+      "manager_configstatus": {
+        "name": "État de la configuration"
+      },
+      "manager_decouplemintemp": {
+        "name": "Température minimale de bouteille casse-pression"
+      },
+      "manager_decoupletemp": {
+        "name": "Sonde de bouteille casse-pression B22"
+      },
+      "manager_dhwexceeded": {
+        "name": "Surélévation de température ECS"
+      },
+      "manager_dhwloadtime": {
+        "name": "Temps de charge maximal ECS"
+      },
+      "manager_dhwoperationmode": {
+        "name": "Mode de fonctionnement ECS",
+        "state": {
+          "priority": "Priority",
+          "sliding": "Sliding",
+          "parallel": "Parallel"
+        }
+      },
+      "manager_dhwsetpoint": {
+        "name": "Consigne de température ECS"
+      },
+      "manager_dhwsetvalue": {
+        "name": "Consigne de température ECS actuelle"
+      },
+      "manager_dhwswitchdiff": {
+        "name": "Différentiel de commutation ECS"
+      },
+      "manager_dhwtemp": {
+        "name": "Température ECS"
+      },
+      "manager_errorcode": {
+        "name": "Code défaut de l'entrée"
+      },
+      "manager_errorday": {
+        "name": "Jour du mois du défaut"
+      },
+      "manager_errordevice": {
+        "name": "Origine du défaut de l'entrée"
+      },
+      "manager_errorhour": {
+        "name": "Heure du défaut"
+      },
+      "manager_errorid": {
+        "name": "Entrée sélectionnée de l'historique des défauts"
+      },
+      "manager_errorminute": {
+        "name": "Minute du défaut"
+      },
+      "manager_errormonth": {
+        "name": "Mois du défaut",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
+      },
+      "manager_errorstatus": {
+        "name": "Code défaut"
+      },
+      "manager_errortype": {
+        "name": "Type de défaut de l'entrée"
+      },
+      "manager_erroryear": {
+        "name": "Année du défaut"
+      },
+      "manager_gradientcurve": {
+        "name": "Pente de la courbe de chauffe"
+      },
+      "manager_hcmode_boilermcboosttemp": {
+        "name": "Échange commande à distance / circuit – Surélévation de température chaudière"
+      },
+      "manager_hcmode_opmode": {
+        "name": "Mode de fonctionnement"
+      },
+      "manager_hcmode_outsidetemp": {
+        "name": "Échange commande à distance / circuit – Température extérieure"
+      },
+      "manager_hcmode_roomtemp": {
+        "name": "Température ambiante"
+      },
+      "manager_hcmode_supplyhcmaxtemp": {
+        "name": "Échange commande à distance / circuit – Température de départ maximale"
+      },
+      "manager_hcmode_supplyhcmintemp": {
+        "name": "Échange commande à distance / circuit – Température de départ minimale"
+      },
+      "manager_hcmode_supplyhcsettemp": {
+        "name": "Consigne de température départ demandée"
+      },
+      "manager_hcmode_supplyhctemp": {
+        "name": "Température de départ"
+      },
+      "manager_heatdemandtemp": {
+        "name": "Demande de chaleur"
+      },
+      "manager_legionellacirculationtime": {
+        "name": "Temps de circulation anti-légionelle"
+      },
+      "manager_legionellasetpoint": {
+        "name": "Consigne de température anti-légionelle"
+      },
+      "manager_modulationstatus": {
+        "name": "Degré de modulation"
+      },
+      "manager_outsidetemp": {
+        "name": "Température extérieure"
+      },
+      "manager_outsideweightedtemp": {
+        "name": "Température extérieure pondérée"
+      },
+      "manager_roomfrostprotectiontemp": {
+        "name": "Température ambiante hors-gel"
+      },
+      "manager_roomnormaltemp": {
+        "name": "Température ambiante normale"
+      },
+      "manager_roomsetbacktemp": {
+        "name": "Température ambiante réduite"
+      },
+      "manager_summerwinterchangeovertemp": {
+        "name": "Commutation été/hiver"
+      },
+      "manager_supplymaxtemp": {
+        "name": "Température de départ maximale"
+      },
+      "manager_supplymintemp": {
+        "name": "Température de départ minimale"
+      },
+      "manager_systemday": {
+        "name": "Jour du mois"
+      },
+      "manager_systemhour": {
+        "name": "Heure"
+      },
+      "manager_systemminute": {
+        "name": "Minute"
+      },
+      "manager_systemmonth": {
+        "name": "Mois",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
+      },
+      "manager_systemsecond": {
+        "name": "Seconde"
+      },
+      "manager_systemweekday": {
+        "name": "Jour de la semaine",
+        "state": {
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
+      },
+      "manager_systemyear": {
+        "name": "Année"
+      },
+      "manager_versionmajor": {
+        "name": "Version du logiciel, partie majeure"
+      },
+      "manager_versionminor": {
+        "name": "Version du logiciel, partie mineure"
+      },
+      "module_boilermcboosttemp": {
+        "name": "Surélévation de température chaudière"
+      },
+      "module_gradientcurve": {
+        "name": "Pente de la courbe de chauffe"
+      },
+      "module_hcmode_boilermcboosttemp": {
+        "name": "Échange commande à distance / module d'extension – Surélévation de température chaudière"
+      },
+      "module_hcmode_opmode": {
+        "name": "Mode de fonctionnement"
+      },
+      "module_hcmode_outsidetemp": {
+        "name": "Température extérieure"
+      },
+      "module_hcmode_roomtemp": {
+        "name": "Température ambiante"
+      },
+      "module_hcmode_supplyhcmaxtemp": {
+        "name": "Échange commande à distance / module d'extension – Température de départ maximale"
+      },
+      "module_hcmode_supplyhcmintemp": {
+        "name": "Échange commande à distance / module d'extension – Température de départ minimale"
+      },
+      "module_hcmode_supplyhcsettemp": {
+        "name": "Consigne de température départ demandée"
+      },
+      "module_hcmode_supplyhctemp": {
+        "name": "Échange commande à distance / module d'extension – Température de départ"
+      },
+      "module_roomfrostprotectiontemp": {
+        "name": "Température ambiante hors-gel"
+      },
+      "module_roomnormaltemp": {
+        "name": "Température ambiante normale"
+      },
+      "module_roomsetbacktemp": {
+        "name": "Température ambiante réduite"
+      },
+      "module_summerwinterchangeovertemp": {
+        "name": "Commutation été/hiver"
+      },
+      "module_supplyhcsettemp": {
+        "name": "Consigne de température départ"
+      },
+      "module_supplyhctemp": {
+        "name": "Température de départ"
+      },
+      "module_supplymaxtemp": {
+        "name": "Température de départ maximale"
+      },
+      "module_supplymintemp": {
+        "name": "Température de départ minimale"
+      },
+      "program_circulation": {
+        "name": "Programme de circulation ECS",
         "state_attributes": {
           "monday": {
             "name": "Lundi"
@@ -225,34 +775,8 @@
           }
         }
       },
-      "program_heating_2": {
-        "name": "Programme chauffage 2",
-        "state_attributes": {
-          "monday": {
-            "name": "Lundi"
-          },
-          "tuesday": {
-            "name": "Mardi"
-          },
-          "wednesday": {
-            "name": "Mercredi"
-          },
-          "thursday": {
-            "name": "Jeudi"
-          },
-          "friday": {
-            "name": "Vendredi"
-          },
-          "saturday": {
-            "name": "Samedi"
-          },
-          "sunday": {
-            "name": "Dimanche"
-          }
-        }
-      },
-      "program_heating_3": {
-        "name": "Programme chauffage 3",
+      "program_circulation_stored": {
+        "name": "Programme de circulation ECS enregistré dans la commande à distance",
         "state_attributes": {
           "monday": {
             "name": "Lundi"
@@ -278,7 +802,7 @@
         }
       },
       "program_dhw": {
-        "name": "Programme eau chaude",
+        "name": "Programme ECS",
         "state_attributes": {
           "monday": {
             "name": "Lundi"
@@ -303,8 +827,8 @@
           }
         }
       },
-      "program_circulation": {
-        "name": "Programme circulation",
+      "program_dhw_stored": {
+        "name": "Programme ECS enregistré dans la commande à distance",
         "state_attributes": {
           "monday": {
             "name": "Lundi"
@@ -329,111 +853,165 @@
           }
         }
       },
-      "room_factor_i": {
-        "name": "Facteur d'influence pièce (I)"
+      "program_heating1": {
+        "name": "Programme de chauffe 1",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
       },
-      "h1_demand": {
-        "name": "Appel chaudière (relais H1)",
+      "program_heating2": {
+        "name": "Programme de chauffe 2",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "program_heating3": {
+        "name": "Programme de chauffe 3",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "room_frostprotectionlimittemp": {
+        "name": "Température limite hors-gel"
+      },
+      "room_gradientcurve": {
+        "name": "Pente de la courbe de chauffe"
+      },
+      "room_heatdemandtemp": {
+        "name": "Température de départ demandée"
+      },
+      "room_outsidetemp": {
+        "name": "Température extérieure"
+      },
+      "room_outsideweightedtemp": {
+        "name": "Température extérieure pondérée"
+      },
+      "room_roomfrostprotectiontemp": {
+        "name": "Température ambiante hors-gel"
+      },
+      "room_roomnormaltemp": {
+        "name": "Température ambiante normale"
+      },
+      "room_roomsetbacktemp": {
+        "name": "Température ambiante réduite"
+      },
+      "room_roomtemp": {
+        "name": "Température ambiante"
+      },
+      "room_summerwinterchangeovertemp": {
+        "name": "Commutation été/hiver"
+      },
+      "room_supplyhcsettemp": {
+        "name": "Consigne de température départ"
+      },
+      "room_supplymaxtemp": {
+        "name": "Température de départ maximale"
+      },
+      "room_supplymintemp": {
+        "name": "Température de départ minimale"
+      },
+      "room_switchonruntime": {
+        "name": "Durée d'anticipation de l'optimisation au démarrage"
+      },
+      "system_kastatus_dhwtemp": {
+        "name": "Température ECS"
+      },
+      "system_kastatus_fluegastemp": {
+        "name": "Température des fumées"
+      },
+      "system_kastatus_load": {
+        "name": "Puissance du brûleur"
+      },
+      "system_kastatus_operatingphase": {
+        "name": "Phase de fonctionnement",
         "state": {
-          "idle": "Repos",
-          "demand": "Appel"
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
         }
+      },
+      "system_kastatus_outsidetemp": {
+        "name": "Température extérieure"
+      },
+      "system_kastatus_outsideweightedtemp": {
+        "name": "Température extérieure pondérée"
+      },
+      "system_kastatus_status1": {
+        "name": "Octet d'état"
+      },
+      "system_kastatus_supplysettemp": {
+        "name": "Consigne de température départ de la chaudière"
+      },
+      "system_kastatus_supplytemp": {
+        "name": "Température de départ de la chaudière"
       }
-    },
-    "switch": {
-      "writes_enabled": {
-        "name": "Écritures chaudière"
-      }
-    }
-  },
-  "selector": {
-    "day": {
-      "options": {
-        "monday": "Lundi",
-        "tuesday": "Mardi",
-        "wednesday": "Mercredi",
-        "thursday": "Jeudi",
-        "friday": "Vendredi",
-        "saturday": "Samedi",
-        "sunday": "Dimanche"
-      }
-    }
-  },
-  "services": {
-    "set_time_program": {
-      "name": "Régler un jour de programme horaire",
-      "description": "Écrit les créneaux d'un jour (3 au plus, au quart d'heure) ; les créneaux non utilisés sont effacés.",
-      "fields": {
-        "entity_id": {
-          "name": "Programme horaire",
-          "description": "Capteur du programme horaire."
-        },
-        "day": {
-          "name": "Jour",
-          "description": "Jour de la semaine."
-        },
-        "slots": {
-          "name": "Créneaux",
-          "description": "ex. 06:30-18:00, 19:00-21:00 ; « - » pour aucun."
-        }
-      }
-    },
-    "set_clock": {
-      "name": "Régler l'horloge",
-      "description": "Diffuse l'heure de Home Assistant aux régulateurs (trame fe 0700, qui règle l'horloge f1). Ne touche aucun paramètre de chauffe.",
-      "fields": {
-        "align": {
-          "name": "Caler sur la minute",
-          "description": "Attend le début de la minute suivante pour une horloge juste à la seconde près (envoi immédiat si désactivé)."
-        }
-      }
-    }
-  },
-  "exceptions": {
-    "writes_disabled": {
-      "message": "Écriture refusée : écritures désactivées (options de l'intégration ou interrupteur des écritures)."
-    },
-    "out_of_bounds": {
-      "message": "Écriture refusée : {value} hors des bornes [{minimum}, {maximum}]."
-    },
-    "hourly_limit": {
-      "message": "Écriture refusée : plus de {limit} écritures dans l'heure."
-    },
-    "register_interval": {
-      "message": "Écriture refusée : une écriture de ce registre il y a moins de {seconds} s."
-    },
-    "clock_interval": {
-      "message": "Écriture refusée : horloge déjà diffusée il y a moins de {seconds} s."
-    },
-    "log_unreadable": {
-      "message": "Écriture refusée : journal des trames illisible ({reason}) : écriture depuis ff refusée."
-    },
-    "log_stale": {
-      "message": "Écriture refusée : journal des trames non alimenté (pas de trame récente) : écriture depuis ff refusée."
-    },
-    "service_tool_active": {
-      "message": "Écriture refusée : WCM-Diagnose semble connecté (trame de ff récente) : écriture depuis ff refusée."
-    },
-    "write_failed": {
-      "message": "Écriture en échec : {error}"
-    },
-    "write_not_retained": {
-      "message": "Écriture non retenue par {device} (relu {read_back})."
-    },
-    "clock_failed": {
-      "message": "Écriture horloge en échec : {error}"
-    },
-    "single_entry_required": {
-      "message": "Une seule intégration Weishaupt doit être chargée."
-    },
-    "not_a_program_sensor": {
-      "message": "Choisir un capteur de programme horaire Weishaupt."
-    },
-    "invalid_slots": {
-      "message": "Créneaux invalides : {error}"
-    },
-    "year_out_of_range": {
-      "message": "Année hors de 2000-2099."
     }
   }
 }

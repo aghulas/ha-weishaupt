@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ebusd",
+        "description": "Adresse de l'ebusd relié à l'installation de chauffage. ebusd doit avoir chargé une version des définitions Weishaupt. Rien n'est écrit vers l'installation de chauffage.",
+        "data": {"host": "Hôte", "port": "Port"},
+        "data_description": {
+          "host": "Nom d'hôte ou adresse IP d'ebusd.",
+          "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
+        }
+      },
+      "reconfigure": {
+        "title": "ebusd",
+        "description": "Nouvelle adresse du même ebusd.",
+        "data": {"host": "Hôte", "port": "Port"},
+        "data_description": {
+          "host": "Nom d'hôte ou adresse IP d'ebusd.",
+          "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
+        }
+      }
+    },
+    "error": {"cannot_connect": "Aucun ebusd ne répond à cette adresse."},
+    "abort": {"already_configured": "Cet ebusd est déjà configuré."}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Charge sur le bus",
+        "data": {"request_gap": "Délai entre deux requêtes", "cyclic_interval": "Intervalle des valeurs instantanées"},
+        "data_description": {
+          "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
+          "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent."
+        }
+      }
+    }
+  },
+  "issues": {
+    "definitions_mismatch": {
+      "title": "Les définitions chargées par ebusd ne sont pas celles que cette intégration attend",
+      "description": "{count} messages des définitions Weishaupt {version} sont absents d'ebusd ({missing}) ou définis autrement ({different}) : {messages}.\n\nCes valeurs ne sont pas affichées. Chargez dans ebusd une version des définitions dans la plage {accepted} (avec `--scanconfig`), puis rechargez l'intégration."
+    },
+    "no_devices": {
+      "title": "Aucun appareil Weishaupt trouvé sur le bus",
+      "description": "ebusd répond, mais aucune des adresses décrites par les définitions Weishaupt n'est sur son bus. Autres adresses vues : {addresses}.\n\nVérifiez qu'ebusd a un signal et a scanné le bus, puis rechargez l'intégration."
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {"message": "ebusd ne peut pas être interrogé : {error}"}
+  },
+  "weekdays": {
+    "monday": "Lundi", "tuesday": "Mardi", "wednesday": "Mercredi", "thursday": "Jeudi",
+    "friday": "Vendredi", "saturday": "Samedi", "sunday": "Dimanche"
+  },
+  "attributes": {"entries": "Entrées", "ordered": "Plus récente en premier"}
+}

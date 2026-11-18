@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ebusd",
+        "description": "Address of the ebusd that is connected to the heating system. ebusd must have loaded a release of the Weishaupt definitions. Nothing is written to the heating system.",
+        "data": {"host": "Host", "port": "Port"},
+        "data_description": {
+          "host": "Host name or IP address of ebusd.",
+          "port": "TCP command port of ebusd, 8888 unless it was changed."
+        }
+      },
+      "reconfigure": {
+        "title": "ebusd",
+        "description": "New address of the same ebusd.",
+        "data": {"host": "Host", "port": "Port"},
+        "data_description": {
+          "host": "Host name or IP address of ebusd.",
+          "port": "TCP command port of ebusd, 8888 unless it was changed."
+        }
+      }
+    },
+    "error": {"cannot_connect": "No ebusd answers at this address."},
+    "abort": {"already_configured": "This ebusd is already configured."}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Load on the bus",
+        "data": {"request_gap": "Time between two requests", "cyclic_interval": "Interval of the live values"},
+        "data_description": {
+          "request_gap": "The integration never sends two requests closer together than this.",
+          "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often."
+        }
+      }
+    }
+  },
+  "issues": {
+    "definitions_mismatch": {
+      "title": "The definitions loaded by ebusd are not those this integration expects",
+      "description": "{count} messages of the Weishaupt definitions {version} are missing in ebusd ({missing}) or defined differently ({different}): {messages}.\n\nThese values are not shown. Load a release of the definitions in the range {accepted} in ebusd (with `--scanconfig`), then reload the integration."
+    },
+    "no_devices": {
+      "title": "No Weishaupt device found on the bus",
+      "description": "ebusd answers, but none of the addresses the Weishaupt definitions describe is on its bus. Other addresses seen: {addresses}.\n\nCheck that ebusd has a signal and has scanned the bus, then reload the integration."
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {"message": "ebusd cannot be asked: {error}"}
+  },
+  "weekdays": {
+    "monday": "Monday", "tuesday": "Tuesday", "wednesday": "Wednesday", "thursday": "Thursday",
+    "friday": "Friday", "saturday": "Saturday", "sunday": "Sunday"
+  },
+  "attributes": {"entries": "Entries", "ordered": "Most recent first"}
+}

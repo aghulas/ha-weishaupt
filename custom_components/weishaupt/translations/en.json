@@ -3,15 +3,31 @@
     "step": {
       "user": {
         "title": "ebusd",
-        "description": "ebusd started with --enablehex, reachable over TCP.",
+        "description": "Address of the ebusd that is connected to the heating system. ebusd must have loaded a release of the Weishaupt definitions. Nothing is written to the heating system.",
         "data": {
           "host": "Host",
           "port": "Port"
+        },
+        "data_description": {
+          "host": "Host name or IP address of ebusd.",
+          "port": "TCP command port of ebusd, 8888 unless it was changed."
+        }
+      },
+      "reconfigure": {
+        "title": "ebusd",
+        "description": "New address of the same ebusd.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "Host name or IP address of ebusd.",
+          "port": "TCP command port of ebusd, 8888 unless it was changed."
         }
       }
     },
     "error": {
-      "cannot_connect": "ebusd does not answer, or does not accept hex commands (--enablehex)."
+      "cannot_connect": "No ebusd answers at this address."
     },
     "abort": {
       "already_configured": "This ebusd is already configured."
@@ -20,151 +36,647 @@
   "options": {
     "step": {
       "init": {
-        "title": "Weishaupt",
-        "description": "Writes go to the boiler regulators. Writes from the service tool address ff are refused while WCM-Diagnose may be connected, which is read from the ebusd telegram log.",
+        "title": "Load on the bus",
         "data": {
-          "telegram_db": "ebusd telegram log (SQLite)",
-          "writes_enabled": "Enable writes"
+          "request_gap": "Time between two requests",
+          "cyclic_interval": "Interval of the live values"
+        },
+        "data_description": {
+          "request_gap": "The integration never sends two requests closer together than this.",
+          "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often."
         }
       }
+    }
+  },
+  "issues": {
+    "definitions_mismatch": {
+      "title": "The definitions loaded by ebusd are not those this integration expects",
+      "description": "{count} messages of the Weishaupt definitions {version} are missing in ebusd ({missing}) or defined differently ({different}): {messages}.\n\nThese values are not shown. Load a release of the definitions in the range {accepted} in ebusd (with `--scanconfig`), then reload the integration."
+    },
+    "no_devices": {
+      "title": "No Weishaupt device found on the bus",
+      "description": "ebusd answers, but none of the addresses the Weishaupt definitions describe is on its bus. Other addresses seen: {addresses}.\n\nCheck that ebusd has a signal and has scanned the bus, then reload the integration."
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {
+      "message": "ebusd cannot be asked: {error}"
     }
   },
   "device": {
-    "ka": {
-      "name": "System manager KA"
+    "boiler1": {
+      "name": "Boiler 1"
     },
-    "fs": {
-      "name": "Room unit FS{number}"
+    "boiler2": {
+      "name": "Boiler 2"
     },
-    "em": {
-      "name": "Heating module EM{number}"
+    "manager": {
+      "name": "System manager"
     },
-    "write_guard": {
-      "name": "Weishaupt write guard"
+    "module2": {
+      "name": "Heating module 2"
+    },
+    "module3": {
+      "name": "Heating module 3"
+    },
+    "room1": {
+      "name": "Room unit 1"
+    },
+    "room2": {
+      "name": "Room unit 2"
+    },
+    "room3": {
+      "name": "Room unit 3"
+    },
+    "system": {
+      "name": "Installation"
     }
   },
   "entity": {
-    "number": {
-      "room_normal": {
-        "name": "Normal room setpoint"
+    "binary_sensor": {
+      "manager_boiler1status_burnerstatus": {
+        "name": "Boiler 1 status – Burner"
       },
-      "room_reduced": {
-        "name": "Setback room setpoint"
+      "manager_boiler1status_circpump": {
+        "name": "Boiler 1 status – Circulation pump"
       },
-      "room_frost": {
-        "name": "Frost protection room setpoint"
+      "manager_boiler1status_dhwpump": {
+        "name": "Boiler 1 status – Hot water pump"
       },
-      "gradient": {
-        "name": "Heating curve gradient"
+      "manager_boiler1status_error": {
+        "name": "Boiler 1 status – Fault"
       },
-      "summer_winter": {
-        "name": "Summer/winter changeover"
+      "manager_boiler1status_fan": {
+        "name": "Boiler 1 status – Fan"
       },
-      "supply_max": {
-        "name": "Maximum flow temperature"
+      "manager_boiler1status_flame": {
+        "name": "Boiler 1 status – Flame"
       },
-      "supply_min": {
-        "name": "Minimum flow temperature"
+      "manager_boiler1status_gasvalve1": {
+        "name": "Boiler 1 status – Gas valve 1"
       },
-      "dhw_setpoint": {
+      "manager_boiler1status_gasvalve2": {
+        "name": "Boiler 1 status – Gas valve 2"
+      },
+      "manager_boiler1status_manualstartup": {
+        "name": "Boiler 1 status – Manual start-up"
+      },
+      "manager_boiler1status_pump": {
+        "name": "Boiler 1 status – Pump"
+      },
+      "manager_boiler1status_service": {
+        "name": "Boiler 1 status – Service"
+      },
+      "manager_boiler2status_burnerstatus": {
+        "name": "Boiler 2 status – Burner"
+      },
+      "manager_boiler2status_circpump": {
+        "name": "Boiler 2 status – Circulation pump"
+      },
+      "manager_boiler2status_dhwpump": {
+        "name": "Boiler 2 status – Hot water pump"
+      },
+      "manager_boiler2status_error": {
+        "name": "Boiler 2 status – Fault"
+      },
+      "manager_boiler2status_fan": {
+        "name": "Boiler 2 status – Fan"
+      },
+      "manager_boiler2status_flame": {
+        "name": "Boiler 2 status – Flame"
+      },
+      "manager_boiler2status_gasvalve1": {
+        "name": "Boiler 2 status – Gas valve 1"
+      },
+      "manager_boiler2status_gasvalve2": {
+        "name": "Boiler 2 status – Gas valve 2"
+      },
+      "manager_boiler2status_manualstartup": {
+        "name": "Boiler 2 status – Manual start-up"
+      },
+      "manager_boiler2status_pump": {
+        "name": "Boiler 2 status – Pump"
+      },
+      "manager_boiler2status_service": {
+        "name": "Boiler 2 status – Service"
+      },
+      "manager_hcmode_dhw": {
+        "name": "Hot water"
+      },
+      "manager_hcmode_heating": {
+        "name": "Heating"
+      },
+      "manager_hcmode_pump": {
+        "name": "Pump"
+      },
+      "manager_hcmode_valveclosing": {
+        "name": "Mixer closing"
+      },
+      "manager_hcmode_valveopening": {
+        "name": "Mixer opening"
+      },
+      "module_hcmode_dhw": {
+        "name": "Hot water"
+      },
+      "module_hcmode_heating": {
+        "name": "Heating"
+      },
+      "module_hcmode_pump": {
+        "name": "Pump"
+      },
+      "module_hcmode_valveclosing": {
+        "name": "Mixer closing"
+      },
+      "module_hcmode_valveopening": {
+        "name": "Mixer opening"
+      },
+      "system_kastatus_burnerstatus": {
+        "name": "Burner"
+      },
+      "system_kastatus_circpump": {
+        "name": "Circulation pump"
+      },
+      "system_kastatus_dhwpump": {
+        "name": "Hot water pump"
+      },
+      "system_kastatus_error": {
+        "name": "Fault"
+      },
+      "system_kastatus_fan": {
+        "name": "Fan"
+      },
+      "system_kastatus_flame": {
+        "name": "Flame"
+      },
+      "system_kastatus_gasvalve1": {
+        "name": "Gas valve 1"
+      },
+      "system_kastatus_gasvalve2": {
+        "name": "Gas valve 2"
+      },
+      "system_kastatus_manualstartup": {
+        "name": "Manual start-up"
+      },
+      "system_kastatus_pump": {
+        "name": "Pump"
+      },
+      "system_kastatus_service": {
+        "name": "Service"
+      }
+    },
+    "sensor": {
+      "boiler_burnerservicehours": {
+        "name": "Burner hours since the last service (i46)"
+      },
+      "boiler_counters_burnerhours": {
+        "name": "Burner operating hours"
+      },
+      "boiler_counters_burnerstarts": {
+        "name": "Burner starts"
+      },
+      "boiler_counters_operatinghours": {
+        "name": "Operating hours"
+      },
+      "boiler_dhwtemp": {
+        "name": "Hot water temperature (i34)"
+      },
+      "boiler_fault_history": {
+        "name": "Fault history",
+        "state_attributes": {
+          "entries": {
+            "name": "Entries"
+          },
+          "ordered": {
+            "name": "Most recent first"
+          }
+        }
+      },
+      "boiler_faultcounters1_code51": {
+        "name": "Fault 51 counter"
+      },
+      "boiler_faultcounters1_code52": {
+        "name": "Fault 52 counter"
+      },
+      "boiler_faultcounters1_code53": {
+        "name": "Fault 53 counter"
+      },
+      "boiler_faultcounters1_code55": {
+        "name": "Fault 55 counter"
+      },
+      "boiler_faultcounters1_code57": {
+        "name": "Fault 57 counter"
+      },
+      "boiler_faultcounters2_code45": {
+        "name": "Fault 45 counter"
+      },
+      "boiler_faultcounters2_code46": {
+        "name": "Fault 46 counter"
+      },
+      "boiler_faultcounters2_code47": {
+        "name": "Fault 47 counter"
+      },
+      "boiler_faultcounters2_code48": {
+        "name": "Fault 48 counter"
+      },
+      "boiler_faultcounters2_code49": {
+        "name": "Fault 49 counter"
+      },
+      "boiler_faultcounters3_code38": {
+        "name": "Fault 38 counter"
+      },
+      "boiler_faultcounters3_code39": {
+        "name": "Fault 39 counter"
+      },
+      "boiler_faultcounters3_code41": {
+        "name": "Fault 41 counter"
+      },
+      "boiler_faultcounters3_code43": {
+        "name": "Fault 43 counter"
+      },
+      "boiler_faultcounters3_code44": {
+        "name": "Fault 44 counter"
+      },
+      "boiler_faultcounters4_code33": {
+        "name": "Fault 33 counter"
+      },
+      "boiler_faultcounters4_code34": {
+        "name": "Fault 34 counter"
+      },
+      "boiler_faultcounters4_code35": {
+        "name": "Fault 35 counter"
+      },
+      "boiler_faultcounters4_code36": {
+        "name": "Fault 36 counter"
+      },
+      "boiler_faultcounters4_code37": {
+        "name": "Fault 37 counter"
+      },
+      "boiler_faultcounters5_code23": {
+        "name": "Fault 23 counter"
+      },
+      "boiler_faultcounters5_code24": {
+        "name": "Fault 24 counter"
+      },
+      "boiler_faultcounters5_code30": {
+        "name": "Fault 30 counter"
+      },
+      "boiler_faultcounters5_code31": {
+        "name": "Fault 31 counter"
+      },
+      "boiler_faultcounters5_code32": {
+        "name": "Fault 32 counter"
+      },
+      "boiler_faultcounters6_code15": {
+        "name": "Fault 15 counter"
+      },
+      "boiler_faultcounters6_code16": {
+        "name": "Fault 16 counter"
+      },
+      "boiler_faultcounters6_code18": {
+        "name": "Fault 18 counter"
+      },
+      "boiler_faultcounters6_code21": {
+        "name": "Fault 21 counter"
+      },
+      "boiler_faultcounters6_code22": {
+        "name": "Fault 22 counter"
+      },
+      "boiler_faultcounters7_code11": {
+        "name": "Fault 11 counter"
+      },
+      "boiler_faultcounters7_code12": {
+        "name": "Fault 12 counter"
+      },
+      "boiler_faultcounters7_code14": {
+        "name": "Fault 14 counter"
+      },
+      "boiler_faulthistorypointer": {
+        "name": "Fault history pointer"
+      },
+      "boiler_fluegastemp": {
+        "name": "Flue gas temperature (i31)"
+      },
+      "boiler_hydraulicseparatortemp": {
+        "name": "Hydraulic separator temperature (i39)"
+      },
+      "boiler_operation_ionisation": {
+        "name": "Ionisation signal"
+      },
+      "boiler_operation_load": {
+        "name": "Burner load"
+      },
+      "boiler_operation_pumpspeed": {
+        "name": "Pump speed"
+      },
+      "boiler_outsidetemp": {
+        "name": "Outside temperature (i33)"
+      },
+      "boiler_returntemp": {
+        "name": "Return temperature (i37)"
+      },
+      "boiler_softwareversioncpu": {
+        "name": "WCM-CPU software version (i44)"
+      },
+      "boiler_softwareversioncui": {
+        "name": "WCM-CUI software version (i45)"
+      },
+      "boiler_supplytemp": {
+        "name": "Flow temperature (i35)"
+      },
+      "boiler_temperatures_fluegastemp": {
+        "name": "Flue gas temperature"
+      },
+      "boiler_temperatures_outsidetemp": {
+        "name": "Outside temperature"
+      },
+      "boiler_temperatures_returntemp": {
+        "name": "Return temperature"
+      },
+      "boiler_temperatures_supplytemp": {
+        "name": "Flow temperature"
+      },
+      "manager_blockingtime": {
+        "name": "Blocking time"
+      },
+      "manager_boiler1power_currentload": {
+        "name": "Boiler 1 load – Current burner load"
+      },
+      "manager_boiler1power_maxload": {
+        "name": "Boiler 1 load – Maximum burner load"
+      },
+      "manager_boiler1power_minload": {
+        "name": "Boiler 1 load – Minimum burner load"
+      },
+      "manager_boiler1status_dhwtemp": {
+        "name": "Boiler 1 status – Hot water temperature"
+      },
+      "manager_boiler1status_fluegastemp": {
+        "name": "Boiler 1 status – Flue gas temperature"
+      },
+      "manager_boiler1status_load": {
+        "name": "Boiler 1 status – Burner load"
+      },
+      "manager_boiler1status_operatingphase": {
+        "name": "Boiler 1 status – Operating phase",
+        "state": {
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
+        }
+      },
+      "manager_boiler1status_outsidetemp": {
+        "name": "Boiler 1 status – Outside temperature"
+      },
+      "manager_boiler1status_outsideweightedtemp": {
+        "name": "Boiler 1 status – Weighted outside temperature"
+      },
+      "manager_boiler1status_status1": {
+        "name": "Boiler 1 status – Status byte"
+      },
+      "manager_boiler1status_supplysettemp": {
+        "name": "Boiler 1 status – Boiler flow setpoint"
+      },
+      "manager_boiler1status_supplytemp": {
+        "name": "Boiler 1 status – Boiler flow temperature"
+      },
+      "manager_boiler2power_currentload": {
+        "name": "Boiler 2 load – Current burner load"
+      },
+      "manager_boiler2power_maxload": {
+        "name": "Boiler 2 load – Maximum burner load"
+      },
+      "manager_boiler2power_minload": {
+        "name": "Boiler 2 load – Minimum burner load"
+      },
+      "manager_boiler2status_dhwtemp": {
+        "name": "Boiler 2 status – Hot water temperature"
+      },
+      "manager_boiler2status_fluegastemp": {
+        "name": "Boiler 2 status – Flue gas temperature"
+      },
+      "manager_boiler2status_load": {
+        "name": "Boiler 2 status – Burner load"
+      },
+      "manager_boiler2status_operatingphase": {
+        "name": "Boiler 2 status – Operating phase",
+        "state": {
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
+        }
+      },
+      "manager_boiler2status_outsidetemp": {
+        "name": "Boiler 2 status – Outside temperature"
+      },
+      "manager_boiler2status_outsideweightedtemp": {
+        "name": "Boiler 2 status – Weighted outside temperature"
+      },
+      "manager_boiler2status_status1": {
+        "name": "Boiler 2 status – Status byte"
+      },
+      "manager_boiler2status_supplysettemp": {
+        "name": "Boiler 2 status – Boiler flow setpoint"
+      },
+      "manager_boiler2status_supplytemp": {
+        "name": "Boiler 2 status – Boiler flow temperature"
+      },
+      "manager_boilermcboosttemp": {
+        "name": "Boiler boost offset"
+      },
+      "manager_calorifierswitchdiff": {
+        "name": "Calorifier switching differential"
+      },
+      "manager_changeovertime": {
+        "name": "Boiler sequence changeover time"
+      },
+      "manager_configstatus": {
+        "name": "Configuration status"
+      },
+      "manager_decouplemintemp": {
+        "name": "De-couple minimum temperature"
+      },
+      "manager_decoupletemp": {
+        "name": "De-couple sensor B22"
+      },
+      "manager_dhwexceeded": {
+        "name": "Hot water exceed temperature"
+      },
+      "manager_dhwloadtime": {
+        "name": "Maximum hot water loading time"
+      },
+      "manager_dhwoperationmode": {
+        "name": "Hot water operating mode",
+        "state": {
+          "priority": "Priority",
+          "sliding": "Sliding",
+          "parallel": "Parallel"
+        }
+      },
+      "manager_dhwsetpoint": {
         "name": "Hot water setpoint"
       },
-      "room_factor_curve": {
-        "name": "Room influence factor (P)"
+      "manager_dhwsetvalue": {
+        "name": "Current hot water setpoint"
       },
-      "boiler_mc_boost": {
-        "name": "Mixed circuit boost"
-      },
-      "switch_on_runtime": {
-        "name": "Switch-on lead time (anticipation)"
-      },
-      "frost_protection_limit": {
-        "name": "Frost protection limit temperature"
-      },
-      "modulation_max": {
-        "name": "Maximum modulation"
-      },
-      "modulation_min": {
-        "name": "Minimum modulation"
-      },
-      "regulation_p": {
-        "name": "Controller P (cascade)"
-      },
-      "regulation_i": {
-        "name": "Controller I (cascade)"
-      },
-      "legionella_setup_temp": {
-        "name": "Legionella protection: hot water setpoint"
-      },
-      "dhw_load_time": {
-        "name": "Maximum hot water charging time"
-      },
-      "dhw_switch_diff": {
+      "manager_dhwswitchdiff": {
         "name": "Hot water switching differential"
       },
-      "legionella_circ_time": {
-        "name": "Legionella protection: hot water circulation time"
+      "manager_dhwtemp": {
+        "name": "Hot water temperature"
       },
-      "cascade_change_time": {
-        "name": "Cascade: change-over time"
+      "manager_errorcode": {
+        "name": "Fault code of the entry"
       },
-      "cascade_blocking_time": {
-        "name": "Cascade: blocking time"
+      "manager_errorday": {
+        "name": "Fault day of the month"
       },
-      "decouple_min": {
-        "name": "Hydraulic separator: minimum temperature"
+      "manager_errordevice": {
+        "name": "Origin of the entry"
       },
-      "calorifier_switch_diff": {
-        "name": "Buffer: switching differential"
-      }
-    },
-    "date": {
-      "holiday_from": {
-        "name": "Holiday: start"
+      "manager_errorhour": {
+        "name": "Fault hour"
       },
-      "holiday_to": {
-        "name": "Holiday: end"
-      }
-    },
-    "select": {
-      "holiday_level": {
-        "name": "Holiday: temperature level",
+      "manager_errorid": {
+        "name": "Selected fault-log entry"
+      },
+      "manager_errorminute": {
+        "name": "Fault minute"
+      },
+      "manager_errormonth": {
+        "name": "Fault month",
         "state": {
-          "frost": "Frost protection",
-          "reduced": "Setback"
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
         }
       },
-      "adaption": {
-        "name": "Adaption",
+      "manager_errorstatus": {
+        "name": "Fault code"
+      },
+      "manager_errortype": {
+        "name": "Fault type of the entry"
+      },
+      "manager_erroryear": {
+        "name": "Fault year"
+      },
+      "manager_gradientcurve": {
+        "name": "Heating curve gradient"
+      },
+      "manager_hcmode_boilermcboosttemp": {
+        "name": "Room unit / circuit exchange – Boiler boost offset"
+      },
+      "manager_hcmode_opmode": {
+        "name": "Operating mode"
+      },
+      "manager_hcmode_outsidetemp": {
+        "name": "Room unit / circuit exchange – Outside temperature"
+      },
+      "manager_hcmode_roomtemp": {
+        "name": "Room temperature"
+      },
+      "manager_hcmode_supplyhcmaxtemp": {
+        "name": "Room unit / circuit exchange – Maximum flow temperature"
+      },
+      "manager_hcmode_supplyhcmintemp": {
+        "name": "Room unit / circuit exchange – Minimum flow temperature"
+      },
+      "manager_hcmode_supplyhcsettemp": {
+        "name": "Requested flow setpoint"
+      },
+      "manager_hcmode_supplyhctemp": {
+        "name": "Flow temperature"
+      },
+      "manager_heatdemandtemp": {
+        "name": "Heat demand"
+      },
+      "manager_legionellacirculationtime": {
+        "name": "Legionella circulation time"
+      },
+      "manager_legionellasetpoint": {
+        "name": "Legionella protection setpoint"
+      },
+      "manager_modulationstatus": {
+        "name": "Burner modulation"
+      },
+      "manager_outsidetemp": {
+        "name": "Outside temperature"
+      },
+      "manager_outsideweightedtemp": {
+        "name": "Weighted outside temperature"
+      },
+      "manager_roomfrostprotectiontemp": {
+        "name": "Frost protection room temperature"
+      },
+      "manager_roomnormaltemp": {
+        "name": "Normal room temperature"
+      },
+      "manager_roomsetbacktemp": {
+        "name": "Setback room temperature"
+      },
+      "manager_summerwinterchangeovertemp": {
+        "name": "Summer / winter changeover"
+      },
+      "manager_supplymaxtemp": {
+        "name": "Maximum flow temperature"
+      },
+      "manager_supplymintemp": {
+        "name": "Minimum flow temperature"
+      },
+      "manager_systemday": {
+        "name": "Day of the month"
+      },
+      "manager_systemhour": {
+        "name": "Hour"
+      },
+      "manager_systemminute": {
+        "name": "Minute"
+      },
+      "manager_systemmonth": {
+        "name": "Month",
         "state": {
-          "off": "Off",
-          "on": "On"
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
         }
       },
-      "control_variation": {
-        "name": "Control variant",
-        "state": {
-          "constant": "Constant",
-          "weather": "Weather",
-          "weather_room": "Weather + room",
-          "room": "Room"
-        }
+      "manager_systemsecond": {
+        "name": "Second"
       },
-      "hc_type": {
-        "name": "Heating circuit type",
+      "manager_systemweekday": {
+        "name": "Day of the week",
         "state": {
-          "floor": "Underfloor",
-          "floor_2": "Underfloor 2",
-          "radiator_60": "Radiator 60°",
-          "radiator_75": "Radiator 75°",
-          "convector": "Convector",
-          "universal": "Universal"
-        }
-      },
-      "dhw_legionella_day": {
-        "name": "Legionella protection: day",
-        "state": {
-          "off": "Off",
           "monday": "Monday",
           "tuesday": "Tuesday",
           "wednesday": "Wednesday",
@@ -174,33 +686,71 @@
           "sunday": "Sunday"
         }
       },
-      "circ_with_legionella": {
-        "name": "Legionella protection: hot water circulation",
-        "state": {
-          "off": "Off",
-          "on": "On"
-        }
+      "manager_systemyear": {
+        "name": "Year"
       },
-      "boiler_seq_1": {
-        "name": "Cascade: start order #1",
-        "state": {
-          "a": "A",
-          "b": "B",
-          "off": "— (off)"
-        }
+      "manager_versionmajor": {
+        "name": "Software version, major part"
       },
-      "boiler_seq_2": {
-        "name": "Cascade: start order #2",
-        "state": {
-          "a": "A",
-          "b": "B",
-          "off": "— (off)"
-        }
-      }
-    },
-    "sensor": {
-      "program_heating_1": {
-        "name": "Heating program 1",
+      "manager_versionminor": {
+        "name": "Software version, minor part"
+      },
+      "module_boilermcboosttemp": {
+        "name": "Boiler boost offset"
+      },
+      "module_gradientcurve": {
+        "name": "Heating curve gradient"
+      },
+      "module_hcmode_boilermcboosttemp": {
+        "name": "Room unit / module exchange – Boiler boost offset"
+      },
+      "module_hcmode_opmode": {
+        "name": "Operating mode"
+      },
+      "module_hcmode_outsidetemp": {
+        "name": "Outside temperature"
+      },
+      "module_hcmode_roomtemp": {
+        "name": "Room temperature"
+      },
+      "module_hcmode_supplyhcmaxtemp": {
+        "name": "Room unit / module exchange – Maximum flow temperature"
+      },
+      "module_hcmode_supplyhcmintemp": {
+        "name": "Room unit / module exchange – Minimum flow temperature"
+      },
+      "module_hcmode_supplyhcsettemp": {
+        "name": "Requested flow setpoint"
+      },
+      "module_hcmode_supplyhctemp": {
+        "name": "Room unit / module exchange – Flow temperature"
+      },
+      "module_roomfrostprotectiontemp": {
+        "name": "Frost protection room temperature"
+      },
+      "module_roomnormaltemp": {
+        "name": "Normal room temperature"
+      },
+      "module_roomsetbacktemp": {
+        "name": "Setback room temperature"
+      },
+      "module_summerwinterchangeovertemp": {
+        "name": "Summer / winter changeover"
+      },
+      "module_supplyhcsettemp": {
+        "name": "Flow setpoint"
+      },
+      "module_supplyhctemp": {
+        "name": "Flow temperature"
+      },
+      "module_supplymaxtemp": {
+        "name": "Maximum flow temperature"
+      },
+      "module_supplymintemp": {
+        "name": "Minimum flow temperature"
+      },
+      "program_circulation": {
+        "name": "Circulation program",
         "state_attributes": {
           "monday": {
             "name": "Monday"
@@ -225,34 +775,8 @@
           }
         }
       },
-      "program_heating_2": {
-        "name": "Heating program 2",
-        "state_attributes": {
-          "monday": {
-            "name": "Monday"
-          },
-          "tuesday": {
-            "name": "Tuesday"
-          },
-          "wednesday": {
-            "name": "Wednesday"
-          },
-          "thursday": {
-            "name": "Thursday"
-          },
-          "friday": {
-            "name": "Friday"
-          },
-          "saturday": {
-            "name": "Saturday"
-          },
-          "sunday": {
-            "name": "Sunday"
-          }
-        }
-      },
-      "program_heating_3": {
-        "name": "Heating program 3",
+      "program_circulation_stored": {
+        "name": "Circulation program stored in the room unit",
         "state_attributes": {
           "monday": {
             "name": "Monday"
@@ -303,8 +827,8 @@
           }
         }
       },
-      "program_circulation": {
-        "name": "Circulation program",
+      "program_dhw_stored": {
+        "name": "Hot water program stored in the room unit",
         "state_attributes": {
           "monday": {
             "name": "Monday"
@@ -329,111 +853,165 @@
           }
         }
       },
-      "room_factor_i": {
-        "name": "Room influence factor (I)"
+      "program_heating1": {
+        "name": "Heating program 1",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
       },
-      "h1_demand": {
-        "name": "Boiler demand (H1 relay)",
+      "program_heating2": {
+        "name": "Heating program 2",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "program_heating3": {
+        "name": "Heating program 3",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "room_frostprotectionlimittemp": {
+        "name": "Frost protection limit"
+      },
+      "room_gradientcurve": {
+        "name": "Heating curve gradient"
+      },
+      "room_heatdemandtemp": {
+        "name": "Requested flow temperature"
+      },
+      "room_outsidetemp": {
+        "name": "Outside temperature"
+      },
+      "room_outsideweightedtemp": {
+        "name": "Weighted outside temperature"
+      },
+      "room_roomfrostprotectiontemp": {
+        "name": "Frost protection room temperature"
+      },
+      "room_roomnormaltemp": {
+        "name": "Normal room temperature"
+      },
+      "room_roomsetbacktemp": {
+        "name": "Setback room temperature"
+      },
+      "room_roomtemp": {
+        "name": "Room temperature"
+      },
+      "room_summerwinterchangeovertemp": {
+        "name": "Summer / winter changeover"
+      },
+      "room_supplyhcsettemp": {
+        "name": "Flow setpoint"
+      },
+      "room_supplymaxtemp": {
+        "name": "Maximum flow temperature"
+      },
+      "room_supplymintemp": {
+        "name": "Minimum flow temperature"
+      },
+      "room_switchonruntime": {
+        "name": "Optimised switch-on lead time"
+      },
+      "system_kastatus_dhwtemp": {
+        "name": "Hot water temperature"
+      },
+      "system_kastatus_fluegastemp": {
+        "name": "Flue gas temperature"
+      },
+      "system_kastatus_load": {
+        "name": "Burner load"
+      },
+      "system_kastatus_operatingphase": {
+        "name": "Operating phase",
         "state": {
-          "idle": "Idle",
-          "demand": "Demand"
+          "burner_off": "Burner off",
+          "standby_check_fan": "Standby check fan",
+          "prepurge_speed_achieved": "Prepurge speed achieved",
+          "prepurge": "Prepurge",
+          "ignition_speed_achieved": "Ignition speed achieved",
+          "ignition": "Ignition",
+          "burner_in_operation": "Burner in operation",
+          "gas_valve_check": "Gas valve check",
+          "post_purge": "Post purge",
+          "forced_venting": "Forced venting"
         }
+      },
+      "system_kastatus_outsidetemp": {
+        "name": "Outside temperature"
+      },
+      "system_kastatus_outsideweightedtemp": {
+        "name": "Weighted outside temperature"
+      },
+      "system_kastatus_status1": {
+        "name": "Status byte"
+      },
+      "system_kastatus_supplysettemp": {
+        "name": "Boiler flow setpoint"
+      },
+      "system_kastatus_supplytemp": {
+        "name": "Boiler flow temperature"
       }
-    },
-    "switch": {
-      "writes_enabled": {
-        "name": "Boiler writes"
-      }
-    }
-  },
-  "selector": {
-    "day": {
-      "options": {
-        "monday": "Monday",
-        "tuesday": "Tuesday",
-        "wednesday": "Wednesday",
-        "thursday": "Thursday",
-        "friday": "Friday",
-        "saturday": "Saturday",
-        "sunday": "Sunday"
-      }
-    }
-  },
-  "services": {
-    "set_time_program": {
-      "name": "Set a time program day",
-      "description": "Writes the slots of one day (up to 3, quarters of an hour), unused slots are cleared.",
-      "fields": {
-        "entity_id": {
-          "name": "Time program",
-          "description": "Sensor of the time program."
-        },
-        "day": {
-          "name": "Day",
-          "description": "Day of the week."
-        },
-        "slots": {
-          "name": "Slots",
-          "description": "e.g. 06:30-18:00, 19:00-21:00 ; '-' for none."
-        }
-      }
-    },
-    "set_clock": {
-      "name": "Set the clock",
-      "description": "Broadcasts Home Assistant's time to the regulators (fe 0700 telegram, which sets the f1 clock). Touches no heating setting.",
-      "fields": {
-        "align": {
-          "name": "Align to the minute",
-          "description": "Wait for the top of the next minute for a clock accurate to about a second (send immediately if off)."
-        }
-      }
-    }
-  },
-  "exceptions": {
-    "writes_disabled": {
-      "message": "Write refused: writes are disabled (integration options or write switch)."
-    },
-    "out_of_bounds": {
-      "message": "Write refused: {value} is outside the bounds [{minimum}, {maximum}]."
-    },
-    "hourly_limit": {
-      "message": "Write refused: more than {limit} writes within the hour."
-    },
-    "register_interval": {
-      "message": "Write refused: this register was written less than {seconds} s ago."
-    },
-    "clock_interval": {
-      "message": "Write refused: the clock was broadcast less than {seconds} s ago."
-    },
-    "log_unreadable": {
-      "message": "Write refused: the telegram log cannot be read ({reason}), so a write from ff is not allowed."
-    },
-    "log_stale": {
-      "message": "Write refused: the telegram log is not being fed (no recent telegram), so a write from ff is not allowed."
-    },
-    "service_tool_active": {
-      "message": "Write refused: WCM-Diagnose seems to be connected (recent telegram from ff), so a write from ff is not allowed."
-    },
-    "write_failed": {
-      "message": "Write failed: {error}"
-    },
-    "write_not_retained": {
-      "message": "Write not retained by {device} (read back {read_back})."
-    },
-    "clock_failed": {
-      "message": "Clock broadcast failed: {error}"
-    },
-    "single_entry_required": {
-      "message": "Exactly one Weishaupt integration must be loaded."
-    },
-    "not_a_program_sensor": {
-      "message": "Choose a Weishaupt time program sensor."
-    },
-    "invalid_slots": {
-      "message": "Invalid slots: {error}"
-    },
-    "year_out_of_range": {
-      "message": "The year must be within 2000-2099."
     }
   }
 }

@@ -30,7 +30,7 @@ def table():
     for em in ("em1", "em2", "em3"):
         expected |= {(em, "number", k): "ff" for k in EM_FF}
     # flow limits of the modules: 31 proven on em2 (15/11) and em3; em1, the system manager's direct circuit,
-    # acknowledges them from 31 without taking them and takes them from ff (18/11, 0.1.3)
+    # acknowledges them from 31 without taking them; written from ff to 50 they were taken (18/11, 0.1.3)
     expected |= {("em1", "number", "supply_max"): "ff", ("em1", "number", "supply_min"): "ff",
                  ("em2", "number", "supply_max"): "31", ("em2", "number", "supply_min"): "31",
                  ("em3", "number", "supply_max"): "31", ("em3", "number", "supply_min"): "31"}

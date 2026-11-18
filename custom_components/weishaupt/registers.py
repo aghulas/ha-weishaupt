@@ -233,8 +233,9 @@ EM_SETTINGS = [
             max_ref="supply_max"),     # source 31
 ]
 # em1 (address 50) is the system manager's own direct circuit: it acknowledges a flow maximum or minimum written from
-# 31 but does not take it, while the same register written from ff (to 15, the system manager) was taken and 50 read
-# the new value (proof writes of 18/11/2026). So em1 writes its flow limits from ff; em2 and em3 keep 31 (proven).
+# 31 but does not take it. Written from ff to 50, both were taken and 15 read the same value right after (proof
+# writes of 18/11/2026: maximum 82.0 -> 81.5 -> 82.0, minimum 8.0 -> 8.5 -> 8.0, each acknowledged 00). So em1 writes
+# its flow limits from ff; em2 and em3 keep 31 (proven).
 EM1_SETTINGS = [replace(s, source="ff") if s.key in ("supply_max", "supply_min") else s for s in EM_SETTINGS]
 # Boiler demand (external relay), read-only: H1Status (290a), value in the low byte.
 EM_READ_PARAMS = [

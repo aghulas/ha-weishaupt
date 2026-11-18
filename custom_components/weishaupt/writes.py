@@ -21,10 +21,11 @@ from .model import Message, Model
 PBSB = "5023"
 WCRC_MARKER = "[WCRC]"
 
-# Ranges the metadata does not carry (the definitions have none: the bounds are fractional), quoted from the
-# evidence record `settings-writes.md` of the definitions, which takes them from the vendor's installation manual
-# of the room unit and heating circuit (WCM-FS 2.0). Step 0.5 as every other temperature of the lot and the changes
-# proven on the bus (10.0 -> 10.5). A contract gap: to be carried by the metadata.
+# Ranges the metadata does not carry (`open.range` of the metadata: the definitions have none, the bounds are
+# fractional), quoted from the evidence record `settings-writes.md` of the definitions, which takes them from the
+# vendor's installation manual of the room unit and heating circuit (WCM-FS 2.0) and states them for heating module
+# 2; the record gives the other heating circuits and room units "as on em2". Step 0.5 as every other temperature
+# of the lot and the changes proven on the bus. A contract gap: to be carried by the metadata.
 FALLBACK_RANGES: dict[str, tuple[float, float, float]] = {
     "RoomSetbackTemp": (10.0, 21.5, 0.5),
     "GradientCurve": (2.5, 40.0, 0.5),
@@ -74,6 +75,12 @@ class WriteSpec:
     proof: str
     open: tuple[str, ...]
     bounds_from: str  # "definitions", or "evidence" for the fallback ranges
+
+    @property
+    def ebusd_source(self) -> str | None:
+        """The `-s` of the write command: "ff" for a setting proven from the address of the vendor service tool,
+        None (ebusd's own address) for one proven from 31. Taken from the metadata, never decided here."""
+        return "ff" if self.source == "ff" else None
 
     @property
     def register_id(self) -> str:

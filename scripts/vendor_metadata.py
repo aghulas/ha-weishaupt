@@ -71,8 +71,8 @@ def translations(model_module, language: str) -> dict:
         if description.options:
             item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
-        if description.message.writable:  # the number entity of a writable setting has the name of its sensor
-            entity["number"][description.translation_key] = {"name": description.name[language]}
+    for description in model.number_entities:  # a number has the name of the sensor of its register
+        entity["number"][description.translation_key] = {"name": description.name[language]}
     for description in model.group_entities:
         item = {"name": description.name[language]}
         if description.group.family == "program":

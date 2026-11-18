@@ -24,8 +24,8 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.2"
-    assert len(model.messages) == 531
+    assert model.version == "0.5.4"
+    assert len(model.messages) == 536
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
@@ -88,12 +88,26 @@ def test_entities(model):
     assert not groups["fs1/group/heating1"].enabled_default and groups["bc1/group/fault_history"].enabled_default
     assert not by_key["ka/BlockingTime/value"].enabled_default and by_key["bc1/Counters/burnerstarts"].enabled_default
     enabled = [e for e in list(model.value_entities) + list(model.group_entities) if e.enabled_default]
-    assert len(enabled) == 156  # of 338: live values, states, operating counters, fault histories
+    assert len(enabled) == 156  # of 346: live values, states, operating counters, fault histories
 
 
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):
+    """The value of a writable setting stays a sensor; the number entity comes on top, with writes enabled."""
     writable = [e for e in model.value_entities if e.message.writable]
-    assert len(writable) == 22 and {e.platform for e in writable} == {"sensor"}
+    assert len(writable) == 63 and {e.platform for e in writable} == {"sensor"}
+
+
+def test_one_number_per_writable_register(model):
+    """66 writable settings, 65 numbers: the system manager's own circuit (em1, address 50) reads three registers
+    of the system manager (ka, 15). Where both are writable (maximum flow temperature) the number of ka is the
+    one; where only em1 is (normal and setback room temperature) the number writes through em1 and has the name
+    of the sensor of ka."""
+    writable = {k for k, m in model.messages.items() if m.writable}
+    numbers = {n.message.key: n for n in model.number_entities}
+    assert len(writable) == 66 and len(numbers) == 65
+    assert writable - set(numbers) == {"em1/SupplyMaxTemp"}
+    assert numbers["em1/RoomNormalTemp"].translation_key == "manager_roomnormaltemp"
+    assert numbers["ka/SupplyMaxTemp"].translation_key == "manager_supplymaxtemp"
 
 
 def test_slug():
@@ -144,13 +158,13 @@ def test_renamed_message(model):
 
 
 def test_fixtures_of_the_release(model, golden):
-    """The fixtures file (schema 2): 579 telegrams captured on a bus, all 531 messages. Each has as many values
+    """The fixtures file (schema 2): telegrams captured on a bus, for all 536 messages. Each has as many values
     as the metadata has fields, the values the evidence states, and the answer the simulated ebusd replays for a
     message is the text of one of its captured telegrams, as the real ebusd gave it again when recorded."""
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
-    assert len(readings) == 579 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
+    assert len(readings) == 755 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"

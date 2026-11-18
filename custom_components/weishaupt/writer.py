@@ -250,7 +250,7 @@ class Writer:
                 raise WriteRefused("linked_unknown", other=other.key) from err
             bound = other.value_of(other_raw)
             low, high = (max(low, bound), high) if is_floor else (low, min(high, bound))
-        source = "ff" if spec.source == "ff" else None
+        source = spec.ebusd_source
         service_tool = None
         if source == "ff":
             service_tool = await self.hass.async_add_executor_job(read_service_tool_state, self.telegram_db)

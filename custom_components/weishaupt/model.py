@@ -21,9 +21,11 @@ METADATA_FILE = Path(__file__).parent / "metadata.json"
 # Definitions releases this version of the integration accepts. The second number of a definitions version changes
 # when a message or a field is renamed, removed or retyped; the third only adds. 0.5.0 renamed a message of the
 # system manager, so 0.4.x and 0.5.x do not expose the same names. 0.5.1 and 0.5.2 added messages: an ebusd that
-# runs 0.5.0 or 0.5.1 lacks some of the messages of this metadata and the comparison would name them, so the range
-# starts at the release the metadata comes from. A later 0.5.x only adds messages.
-ACCEPTED_DEFINITIONS = ">=0.5.2, <0.6"
+# runs 0.5.0 to 0.5.2 lacks some of the messages of this metadata (0.5.3 added five reads) and the comparison would
+# name them. 0.5.4 differs from 0.5.3 only by the write lines of two settings of the system manager's own circuit:
+# the read lines the comparison looks at are the same, and with 0.5.3 those two settings stay read-only (their write
+# definition is not loaded). So the range starts at 0.5.3. A later 0.5.x only adds messages.
+ACCEPTED_DEFINITIONS = ">=0.5.3, <0.6"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "
@@ -186,6 +188,21 @@ class ValueEntity:
 
 
 @dataclass(frozen=True)
+class NumberDescription:
+    """The number entity of a writable setting. It has the name and translation key of the sensor that shows the
+    same register, and writes through its own message."""
+
+    message: Message
+    field: Field
+    translation_key: str
+    name: dict[str, str]
+
+    @property
+    def key(self) -> str:
+        return f"{self.message.key}/{self.field.name}"
+
+
+@dataclass(frozen=True)
 class GroupEntity:
     """One sensor for a group of messages."""
 
@@ -222,6 +239,7 @@ class Model:
     groups: dict[str, Group]
     value_entities: tuple[ValueEntity, ...] = ()
     group_entities: tuple[GroupEntity, ...] = ()
+    number_entities: tuple[NumberDescription, ...] = ()
     _by_circuit: dict[str, Device] = field(default_factory=dict)
 
     @classmethod
@@ -245,6 +263,7 @@ class Model:
         model._by_circuit = {c.circuit: d for d in devices.values() for c in d.circuits}
         model.value_entities = _value_entities(model)
         model.group_entities = _group_entities(model)
+        model.number_entities = _number_entities(model)
         return model
 
     def device_of(self, message: Message) -> Device:
@@ -350,6 +369,25 @@ def _value_entities(model: Model) -> tuple[ValueEntity, ...]:
         entities.append(ValueEntity(message, fld, key, name))
     _check_unique(entities)
     return tuple(entities)
+
+
+def _number_entities(model: Model) -> tuple[NumberDescription, ...]:
+    """One number per writable register of a device. A writable message that reads the same register as another
+    message of its device (`same_as`, e.g. the system manager's own circuit `em1` and `ka`) gets no number when
+    the other one is writable too, and otherwise takes the name of the other one's sensor, which is the one shown."""
+    shown = {e.message.key: e for e in model.value_entities}
+    numbers = []
+    for message in model.messages.values():
+        if not message.writable:
+            continue
+        if message.same_as:
+            if model.messages[message.same_as].writable:
+                continue
+            base = shown[message.same_as]
+        else:
+            base = shown[message.key]
+        numbers.append(NumberDescription(message, base.field, base.translation_key, base.name))
+    return tuple(numbers)
 
 
 def _group_entities(model: Model) -> tuple[GroupEntity, ...]:

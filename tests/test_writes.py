@@ -2,6 +2,7 @@
 answers a real ebusd gave (fork build with the run-time checksum, and a stock build) to the same commands."""
 import json
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
@@ -36,15 +37,18 @@ def captured():
 
 def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
     marked = {key for key, message in model.messages.items() if message.writable}
-    assert set(specs) == marked and len(specs) == 22
-    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 20, "comfort": 2}
+    assert set(specs) == marked and len(specs) == 66
+    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 64, "comfort": 2}
     assert {key for key, spec in specs.items() if spec.risk == "comfort"} == {"em2/RoomNormalTemp",
                                                                              "em2/RoomSetbackTemp"}
-    assert {key for key, spec in specs.items() if spec.source == "31"} == {"em2/SupplyMaxTemp", "em2/SupplyMinTemp"}
-    # three settings have no range in the definitions: the bounds of the evidence record
-    assert {key: (s.minimum, s.maximum, s.step) for key, s in specs.items() if s.bounds_from == "evidence"} == {
-        "em2/RoomSetbackTemp": (10.0, 21.5, 0.5), "em2/GradientCurve": (2.5, 40.0, 0.5),
-        "em3/GradientCurve": (2.5, 40.0, 0.5)}
+    # twelve settings have no range in the definitions (`open.range` of the metadata): the bounds of the evidence
+    # record, setback room temperature and heating curve of every room unit and heating circuit
+    model_open = set(json.loads((Path(__file__).parent.parent / "custom_components" / "weishaupt" /
+                                 "metadata.json").read_text())["open"]["range"])
+    fallback = {key: (s.minimum, s.maximum, s.step) for key, s in specs.items() if s.bounds_from == "evidence"}
+    assert set(fallback) == model_open and len(fallback) == 12
+    assert {v for k, v in fallback.items() if k.endswith("/RoomSetbackTemp")} == {(10.0, 21.5, 0.5)}
+    assert {v for k, v in fallback.items() if k.endswith("/GradientCurve")} == {(2.5, 40.0, 0.5)}
     for spec in specs.values():  # every other bound and step is the field's
         fld = model.messages[spec.key].fields[0]
         if spec.bounds_from == "definitions":
@@ -52,8 +56,32 @@ def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
             assert spec.step == (fld.step or 1)
 
 
+def test_every_setting_has_the_source_of_its_metadata(model, specs):
+    """The source address comes from the metadata, setting by setting; nothing in the integration decides it. The
+    flow limits of the system manager's own circuit (em1) are taken from ff only, those of the heating modules
+    (em2, em3) from 31."""
+    for key, spec in specs.items():
+        source = model.messages[key].write.source
+        assert spec.source == source, key
+        assert spec.ebusd_source == ("ff" if source == "ff" else None), key
+    assert {key for key, spec in specs.items() if spec.source == "31"} == {
+        "em2/SupplyMaxTemp", "em2/SupplyMinTemp", "em3/SupplyMaxTemp", "em3/SupplyMinTemp"}
+    assert specs["em1/SupplyMaxTemp"].source == specs["em1/SupplyMinTemp"].source == "ff"
+
+
+def test_the_source_follows_the_metadata_when_it_changes(model, loaded):
+    """A metadata that gave another source would be followed: the integration holds no table of sources."""
+    import dataclasses
+    message = model.messages["em1/SupplyMaxTemp"]
+    changed = dataclasses.replace(message, write=dataclasses.replace(message.write, source="31"))
+    model2 = dataclasses.replace(model, messages=model.messages | {message.key: changed})
+    specs, _, _ = write_specs(model2, loaded)
+    assert specs["em1/SupplyMaxTemp"].ebusd_source is None and specs["em2/SupplyMaxTemp"].source == "31"
+
+
 def test_every_captured_write_telegram_is_built_byte_for_byte(specs, captured):
-    """The telegram built for each setting equals the one captured on the bus, for all 22 settings."""
+    """The telegram built for each setting equals the ones captured on the bus (change and restore), for all 66
+    settings, from the source the capture shows."""
     covered = set()
     for reading in captured:
         key = f"{reading['circuit']}/{reading['message']}"
@@ -63,7 +91,7 @@ def test_every_captured_write_telegram_is_built_byte_for_byte(specs, captured):
         assert spec.source == reading["qq"] and spec.zz == reading["zz"]
         assert spec.on_step(reading["decoded"]["value"])
         covered.add(key)
-    assert covered == set(specs) and len(captured) == 24
+    assert covered == set(specs) and len(captured) == 112
 
 
 def test_the_changes_of_the_telegram_log(specs):
@@ -79,7 +107,7 @@ def test_the_changes_of_the_telegram_log(specs):
            "em2/RoomFrostProtectionTemp": (10.5, "54140a6900"), "em2/GradientCurve": (10.5, "8c0e016900"),
            "em2/SummerWinterChangeOverTemp": (20.5, "ac1601cd00"), "em2/SupplyMaxTemp": (75.5, "fe2800f302"),
            "em2/SupplyMinTemp": (8.5, "002b015500"), "em3/GradientCurve": (10.5, "8c0e016900")}
-    assert set(log) == set(specs)
+    assert set(log) <= set(specs)
     for key, (value, data) in log.items():
         assert specs[key].telegram(value)[8:] == data, key
 
@@ -135,14 +163,14 @@ def test_structural_settings_are_never_writable(model):
 
 @pytest.mark.parametrize("build", ["fork", "stock"])
 def test_the_simulation_answers_writes_as_the_real_ebusd(golden, build):
-    """96 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
+    """448 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
     gives the same answer to each, for the fork's build and for a stock one. Without a bus a matched telegram ends
     in `no signal`: it would have been sent."""
     fake = FakeEbusd(golden)
     fake.runtime_checksum = build == "fork"
     fake.signal = False
     recorded = golden["writes"][build]
-    assert len(recorded) == 96
+    assert len(recorded) == 448
     for command, answer in recorded.items():
         assert fake.answer(command) == answer, command
     assert fake.writes == []

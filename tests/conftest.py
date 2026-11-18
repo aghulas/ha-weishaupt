@@ -41,7 +41,7 @@ from fake_ebusd import FakeEbusd  # noqa: E402
 
 @pytest.fixture(scope="session")
 def golden() -> dict:
-    """Answers of a real ebusd (fork build 26.1) that loaded release 0.5.2, recorded without a bus."""
+    """Answers of a real ebusd (fork build 26.1) that loaded release 0.5.4, recorded without a bus."""
     return json.loads((DATA / "ebusd-golden.json").read_text(encoding="utf-8"))
 
 

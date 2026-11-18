@@ -1,9 +1,9 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "0.5.2",
-  "commit": "419821c",
-  "messages": 531
+  "version": "0.5.4",
+  "commit": "970143b",
+  "messages": 536
  },
  "verified": {
   "by": "ebusd",
@@ -11,9 +11,9 @@
   "loaded": "lot files only, no scan"
  },
  "coverage": {
-  "messages": 531,
-  "covered": 531,
-  "readings": 579,
+  "messages": 536,
+  "covered": 536,
+  "readings": 755,
   "by_kind": {
    "counter": {
     "messages": 18,
@@ -32,8 +32,8 @@
     "covered": 7
    },
    "setting": {
-    "messages": 68,
-    "covered": 68
+    "messages": 73,
+    "covered": 73
    },
    "program_slot": {
     "messages": 357,
@@ -54,8 +54,8 @@
     "covered": 26
    },
    "room1": {
-    "messages": 120,
-    "covered": 120
+    "messages": 121,
+    "covered": 121
    },
    "module2": {
     "messages": 11,
@@ -66,12 +66,12 @@
     "covered": 11
    },
    "room2": {
-    "messages": 119,
-    "covered": 119
+    "messages": 121,
+    "covered": 121
    },
    "room3": {
-    "messages": 119,
-    "covered": 119
+    "messages": 121,
+    "covered": 121
    },
    "system": {
     "messages": 1,
@@ -982,6 +982,3702 @@
     "value": 10.0
    },
    "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "88 05 00 cd 00",
+   "slave": "",
+   "telegram": "ff75502305880500cd00/00",
+   "device": "room2",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "a8 05 00 d2 00",
+   "slave": "",
+   "telegram": "ff75502305a80500d200/00",
+   "device": "room2",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "78 08 00 87 00",
+   "slave": "",
+   "telegram": "ff755023057808008700/00",
+   "device": "room2",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "c4 08 00 8c 00",
+   "slave": "",
+   "telegram": "ff75502305c408008c00/00",
+   "device": "room2",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "d0 14 0a 4b 00",
+   "slave": "",
+   "telegram": "ff75502305d0140a4b00/00",
+   "device": "room2",
+   "expect": {
+    "value": 7.5
+   },
+   "decoded": {
+    "value": 7.5
+   },
+   "text": "7.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "dc 14 0a 50 00",
+   "slave": "",
+   "telegram": "ff75502305dc140a5000/00",
+   "device": "room2",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "a0 0e 01 c3 00",
+   "slave": "",
+   "telegram": "ff75502305a00e01c300/00",
+   "device": "room2",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "1c 0e 01 c8 00",
+   "slave": "",
+   "telegram": "ff755023051c0e01c800/00",
+   "device": "room2",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "10 16 01 91 00",
+   "slave": "",
+   "telegram": "ff755023051016019100/00",
+   "device": "room2",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "d8 16 01 96 00",
+   "slave": "",
+   "telegram": "ff75502305d816019600/00",
+   "device": "room2",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "ae 28 00 e9 02",
+   "slave": "",
+   "telegram": "ff75502305ae2800e902/00",
+   "device": "room2",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "66 28 00 ee 02",
+   "slave": "",
+   "telegram": "ff75502305662800ee02/00",
+   "device": "room2",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "00 2b 01 55 00",
+   "slave": "",
+   "telegram": "ff75502305002b015500/00",
+   "device": "room2",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "70 2b 01 50 00",
+   "slave": "",
+   "telegram": "ff75502305702b015000/00",
+   "device": "room2",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SwitchOnRuntime",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "84 10 01 02 00",
+   "slave": "",
+   "telegram": "ff755023058410010200/00",
+   "device": "room2",
+   "expect": {
+    "value": 2
+   },
+   "decoded": {
+    "value": 2
+   },
+   "text": "2",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SwitchOnRuntime",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "d8 10 01 03 00",
+   "slave": "",
+   "telegram": "ff75502305d810010300/00",
+   "device": "room2",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "FrostProtectionLimitTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "e3 be 02 fb ff",
+   "slave": "",
+   "telegram": "ff75502305e3be02fbff/00",
+   "device": "room2",
+   "expect": {
+    "value": -0.5
+   },
+   "decoded": {
+    "value": -0.5
+   },
+   "text": "-0.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "FrostProtectionLimitTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "a4 be 02 00 00",
+   "slave": "",
+   "telegram": "ff75502305a4be020000/00",
+   "device": "room2",
+   "expect": {
+    "value": 0.0
+   },
+   "decoded": {
+    "value": 0.0
+   },
+   "text": "0.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "bd 13 00 ef 01",
+   "slave": "",
+   "telegram": "ff75502305bd1300ef01/00",
+   "device": "room2",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "b1 13 00 f4 01",
+   "slave": "",
+   "telegram": "ff75502305b11300f401/00",
+   "device": "room2",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "BoilerMCBoostTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "a4 11 01 0f 00",
+   "slave": "",
+   "telegram": "ff75502305a411010f00/00",
+   "device": "room2",
+   "expect": {
+    "value": 1.5
+   },
+   "decoded": {
+    "value": 1.5
+   },
+   "text": "1.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "BoilerMCBoostTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "a8 11 01 14 00",
+   "slave": "",
+   "telegram": "ff75502305a811011400/00",
+   "device": "room2",
+   "expect": {
+    "value": 2.0
+   },
+   "decoded": {
+    "value": 2.0
+   },
+   "text": "2.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "cd 00",
+   "telegram": "3175502203700500/02cd00",
+   "device": "room2",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d2 00",
+   "telegram": "3175502203700500/02d200",
+   "device": "room2",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "87 00",
+   "telegram": "3175502203580800/028700",
+   "device": "room2",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "8c 00",
+   "telegram": "3175502203580800/028c00",
+   "device": "room2",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "4b 00",
+   "telegram": "317550220396140a/024b00",
+   "device": "room2",
+   "expect": {
+    "value": 7.5
+   },
+   "decoded": {
+    "value": 7.5
+   },
+   "text": "7.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "50 00",
+   "telegram": "317550220396140a/025000",
+   "device": "room2",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "c3 00",
+   "telegram": "3175502203cd0e01/02c300",
+   "device": "room2",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "c8 00",
+   "telegram": "3175502203cd0e01/02c800",
+   "device": "room2",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "91 00",
+   "telegram": "3175502203251601/029100",
+   "device": "room2",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "96 00",
+   "telegram": "3175502203251601/029600",
+   "device": "room2",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "e9 02",
+   "telegram": "3175502203642800/02e902",
+   "device": "room2",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "ee 02",
+   "telegram": "3175502203642800/02ee02",
+   "device": "room2",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "55 00",
+   "telegram": "3175502203812b01/025500",
+   "device": "room2",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "50 00",
+   "telegram": "3175502203812b01/025000",
+   "device": "room2",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SwitchOnRuntime",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "b1 10 01",
+   "slave": "02 00",
+   "telegram": "3175502203b11001/020200",
+   "device": "room2",
+   "expect": {
+    "value": 2
+   },
+   "decoded": {
+    "value": 2
+   },
+   "text": "2",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SwitchOnRuntime",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "b1 10 01",
+   "slave": "03 00",
+   "telegram": "3175502203b11001/020300",
+   "device": "room2",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "FrostProtectionLimitTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "b2 be 02",
+   "slave": "fb ff",
+   "telegram": "3175502203b2be02/02fbff",
+   "device": "room2",
+   "expect": {
+    "value": -0.5
+   },
+   "decoded": {
+    "value": -0.5
+   },
+   "text": "-0.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "FrostProtectionLimitTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "b2 be 02",
+   "slave": "00 00",
+   "telegram": "3175502203b2be02/020000",
+   "device": "room2",
+   "expect": {
+    "value": 0.0
+   },
+   "decoded": {
+    "value": 0.0
+   },
+   "text": "0.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "ef 01",
+   "telegram": "3175502203541300/02ef01",
+   "device": "room2",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "f4 01",
+   "telegram": "3175502203541300/02f401",
+   "device": "room2",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "BoilerMCBoostTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "ed 11 01",
+   "slave": "0f 00",
+   "telegram": "3175502203ed1101/020f00",
+   "device": "room2",
+   "expect": {
+    "value": 1.5
+   },
+   "decoded": {
+    "value": 1.5
+   },
+   "text": "1.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "BoilerMCBoostTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "ed 11 01",
+   "slave": "14 00",
+   "telegram": "3175502203ed1101/021400",
+   "device": "room2",
+   "expect": {
+    "value": 2.0
+   },
+   "decoded": {
+    "value": 2.0
+   },
+   "text": "2.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "88 05 00 cd 00",
+   "slave": "",
+   "telegram": "fff5502305880500cd00/00",
+   "device": "room3",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "a8 05 00 d2 00",
+   "slave": "",
+   "telegram": "fff5502305a80500d200/00",
+   "device": "room3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "78 08 00 87 00",
+   "slave": "",
+   "telegram": "fff55023057808008700/00",
+   "device": "room3",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "c4 08 00 8c 00",
+   "slave": "",
+   "telegram": "fff5502305c408008c00/00",
+   "device": "room3",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "d0 14 0a 4b 00",
+   "slave": "",
+   "telegram": "fff5502305d0140a4b00/00",
+   "device": "room3",
+   "expect": {
+    "value": 7.5
+   },
+   "decoded": {
+    "value": 7.5
+   },
+   "text": "7.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "dc 14 0a 50 00",
+   "slave": "",
+   "telegram": "fff5502305dc140a5000/00",
+   "device": "room3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "6c 0e 01 cd 00",
+   "slave": "",
+   "telegram": "fff55023056c0e01cd00/00",
+   "device": "room3",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "4c 0e 01 d2 00",
+   "slave": "",
+   "telegram": "fff55023054c0e01d200/00",
+   "device": "room3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "10 16 01 91 00",
+   "slave": "",
+   "telegram": "fff55023051016019100/00",
+   "device": "room3",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "d8 16 01 96 00",
+   "slave": "",
+   "telegram": "fff5502305d816019600/00",
+   "device": "room3",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "ae 28 00 e9 02",
+   "slave": "",
+   "telegram": "fff5502305ae2800e902/00",
+   "device": "room3",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "66 28 00 ee 02",
+   "slave": "",
+   "telegram": "fff5502305662800ee02/00",
+   "device": "room3",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "00 2b 01 55 00",
+   "slave": "",
+   "telegram": "fff5502305002b015500/00",
+   "device": "room3",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "70 2b 01 50 00",
+   "slave": "",
+   "telegram": "fff5502305702b015000/00",
+   "device": "room3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SwitchOnRuntime",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "84 10 01 02 00",
+   "slave": "",
+   "telegram": "fff55023058410010200/00",
+   "device": "room3",
+   "expect": {
+    "value": 2
+   },
+   "decoded": {
+    "value": 2
+   },
+   "text": "2",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SwitchOnRuntime",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "d8 10 01 03 00",
+   "slave": "",
+   "telegram": "fff5502305d810010300/00",
+   "device": "room3",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "FrostProtectionLimitTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "e3 be 02 fb ff",
+   "slave": "",
+   "telegram": "fff5502305e3be02fbff/00",
+   "device": "room3",
+   "expect": {
+    "value": -0.5
+   },
+   "decoded": {
+    "value": -0.5
+   },
+   "text": "-0.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "FrostProtectionLimitTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "a4 be 02 00 00",
+   "slave": "",
+   "telegram": "fff5502305a4be020000/00",
+   "device": "room3",
+   "expect": {
+    "value": 0.0
+   },
+   "decoded": {
+    "value": 0.0
+   },
+   "text": "0.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "bd 13 00 ef 01",
+   "slave": "",
+   "telegram": "fff5502305bd1300ef01/00",
+   "device": "room3",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "b1 13 00 f4 01",
+   "slave": "",
+   "telegram": "fff5502305b11300f401/00",
+   "device": "room3",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "BoilerMCBoostTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "a4 11 01 0f 00",
+   "slave": "",
+   "telegram": "fff5502305a411010f00/00",
+   "device": "room3",
+   "expect": {
+    "value": 1.5
+   },
+   "decoded": {
+    "value": 1.5
+   },
+   "text": "1.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "BoilerMCBoostTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "a8 11 01 14 00",
+   "slave": "",
+   "telegram": "fff5502305a811011400/00",
+   "device": "room3",
+   "expect": {
+    "value": 2.0
+   },
+   "decoded": {
+    "value": 2.0
+   },
+   "text": "2.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "cd 00",
+   "telegram": "31f5502203700500/02cd00",
+   "device": "room3",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d2 00",
+   "telegram": "31f5502203700500/02d200",
+   "device": "room3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "87 00",
+   "telegram": "31f5502203580800/028700",
+   "device": "room3",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "8c 00",
+   "telegram": "31f5502203580800/028c00",
+   "device": "room3",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "4b 00",
+   "telegram": "31f550220396140a/024b00",
+   "device": "room3",
+   "expect": {
+    "value": 7.5
+   },
+   "decoded": {
+    "value": 7.5
+   },
+   "text": "7.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "50 00",
+   "telegram": "31f550220396140a/025000",
+   "device": "room3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "cd 00",
+   "telegram": "31f5502203cd0e01/02cd00",
+   "device": "room3",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "d2 00",
+   "telegram": "31f5502203cd0e01/02d200",
+   "device": "room3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "91 00",
+   "telegram": "31f5502203251601/029100",
+   "device": "room3",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "96 00",
+   "telegram": "31f5502203251601/029600",
+   "device": "room3",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "e9 02",
+   "telegram": "31f5502203642800/02e902",
+   "device": "room3",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "ee 02",
+   "telegram": "31f5502203642800/02ee02",
+   "device": "room3",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "55 00",
+   "telegram": "31f5502203812b01/025500",
+   "device": "room3",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "50 00",
+   "telegram": "31f5502203812b01/025000",
+   "device": "room3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SwitchOnRuntime",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "b1 10 01",
+   "slave": "02 00",
+   "telegram": "31f5502203b11001/020200",
+   "device": "room3",
+   "expect": {
+    "value": 2
+   },
+   "decoded": {
+    "value": 2
+   },
+   "text": "2",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SwitchOnRuntime",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "b1 10 01",
+   "slave": "03 00",
+   "telegram": "31f5502203b11001/020300",
+   "device": "room3",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "FrostProtectionLimitTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "b2 be 02",
+   "slave": "fb ff",
+   "telegram": "31f5502203b2be02/02fbff",
+   "device": "room3",
+   "expect": {
+    "value": -0.5
+   },
+   "decoded": {
+    "value": -0.5
+   },
+   "text": "-0.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "FrostProtectionLimitTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "b2 be 02",
+   "slave": "00 00",
+   "telegram": "31f5502203b2be02/020000",
+   "device": "room3",
+   "expect": {
+    "value": 0.0
+   },
+   "decoded": {
+    "value": 0.0
+   },
+   "text": "0.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "ef 01",
+   "telegram": "31f5502203541300/02ef01",
+   "device": "room3",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "f4 01",
+   "telegram": "31f5502203541300/02f401",
+   "device": "room3",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "BoilerMCBoostTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "ed 11 01",
+   "slave": "0f 00",
+   "telegram": "31f5502203ed1101/020f00",
+   "device": "room3",
+   "expect": {
+    "value": 1.5
+   },
+   "decoded": {
+    "value": 1.5
+   },
+   "text": "1.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "BoilerMCBoostTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "ed 11 01",
+   "slave": "14 00",
+   "telegram": "31f5502203ed1101/021400",
+   "device": "room3",
+   "expect": {
+    "value": 2.0
+   },
+   "decoded": {
+    "value": 2.0
+   },
+   "text": "2.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "a8 05 00 d2 00",
+   "slave": "",
+   "telegram": "ff50502305a80500d200/00",
+   "device": "manager",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "d8 05 00 d7 00",
+   "slave": "",
+   "telegram": "ff50502305d80500d700/00",
+   "device": "manager",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "bc 08 00 9b 00",
+   "slave": "",
+   "telegram": "ff50502305bc08009b00/00",
+   "device": "manager",
+   "expect": {
+    "value": 15.5
+   },
+   "decoded": {
+    "value": 15.5
+   },
+   "text": "15.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "8c 08 00 a0 00",
+   "slave": "",
+   "telegram": "ff505023058c0800a000/00",
+   "device": "manager",
+   "expect": {
+    "value": 16.0
+   },
+   "decoded": {
+    "value": 16.0
+   },
+   "text": "16.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "4c 14 0a 5f 00",
+   "slave": "",
+   "telegram": "ff505023054c140a5f00/00",
+   "device": "manager",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "7c 14 0a 64 00",
+   "slave": "",
+   "telegram": "ff505023057c140a6400/00",
+   "device": "manager",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "94 0e 01 5f 00",
+   "slave": "",
+   "telegram": "ff50502305940e015f00/00",
+   "device": "manager",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "a4 0e 01 64 00",
+   "slave": "",
+   "telegram": "ff50502305a40e016400/00",
+   "device": "manager",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "60 16 01 c3 00",
+   "slave": "",
+   "telegram": "ff50502305601601c300/00",
+   "device": "manager",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "dc 16 01 c8 00",
+   "slave": "",
+   "telegram": "ff50502305dc1601c800/00",
+   "device": "manager",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d2 00",
+   "telegram": "3150502203700500/02d200",
+   "device": "manager",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d7 00",
+   "telegram": "3150502203700500/02d700",
+   "device": "manager",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "9b 00",
+   "telegram": "3150502203580800/029b00",
+   "device": "manager",
+   "expect": {
+    "value": 15.5
+   },
+   "decoded": {
+    "value": 15.5
+   },
+   "text": "15.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "a0 00",
+   "telegram": "3150502203580800/02a000",
+   "device": "manager",
+   "expect": {
+    "value": 16.0
+   },
+   "decoded": {
+    "value": 16.0
+   },
+   "text": "16.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "5f 00",
+   "telegram": "315050220396140a/025f00",
+   "device": "manager",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "64 00",
+   "telegram": "315050220396140a/026400",
+   "device": "manager",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "5f 00",
+   "telegram": "3150502203cd0e01/025f00",
+   "device": "manager",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "64 00",
+   "telegram": "3150502203cd0e01/026400",
+   "device": "manager",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "c3 00",
+   "telegram": "3150502203251601/02c300",
+   "device": "manager",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "c8 00",
+   "telegram": "3150502203251601/02c800",
+   "device": "manager",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "64 05 00 dc 00",
+   "slave": "",
+   "telegram": "ff52502305640500dc00/00",
+   "device": "module3",
+   "expect": {
+    "value": 22.0
+   },
+   "decoded": {
+    "value": 22.0
+   },
+   "text": "22.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "d8 05 00 d7 00",
+   "slave": "",
+   "telegram": "ff52502305d80500d700/00",
+   "device": "module3",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "c0 08 00 d2 00",
+   "slave": "",
+   "telegram": "ff52502305c00800d200/00",
+   "device": "module3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "b0 08 00 d7 00",
+   "slave": "",
+   "telegram": "ff52502305b00800d700/00",
+   "device": "module3",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "4c 14 0a 5f 00",
+   "slave": "",
+   "telegram": "ff525023054c140a5f00/00",
+   "device": "module3",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "7c 14 0a 64 00",
+   "slave": "",
+   "telegram": "ff525023057c140a6400/00",
+   "device": "module3",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "60 16 01 c3 00",
+   "slave": "",
+   "telegram": "ff52502305601601c300/00",
+   "device": "module3",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "dc 16 01 c8 00",
+   "slave": "",
+   "telegram": "ff52502305dc1601c800/00",
+   "device": "module3",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "ae 28 00 e9 02",
+   "slave": "",
+   "telegram": "3152502305ae2800e902/00",
+   "device": "module3",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "66 28 00 ee 02",
+   "slave": "",
+   "telegram": "3152502305662800ee02/00",
+   "device": "module3",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "00 2b 01 55 00",
+   "slave": "",
+   "telegram": "3152502305002b015500/00",
+   "device": "module3",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5023",
+   "master": "70 2b 01 50 00",
+   "slave": "",
+   "telegram": "3152502305702b015000/00",
+   "device": "module3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "dc 00",
+   "telegram": "3152502203700500/02dc00",
+   "device": "module3",
+   "expect": {
+    "value": 22.0
+   },
+   "decoded": {
+    "value": 22.0
+   },
+   "text": "22.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d7 00",
+   "telegram": "3152502203700500/02d700",
+   "device": "module3",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "d2 00",
+   "telegram": "3152502203580800/02d200",
+   "device": "module3",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "d7 00",
+   "telegram": "3152502203580800/02d700",
+   "device": "module3",
+   "expect": {
+    "value": 21.5
+   },
+   "decoded": {
+    "value": 21.5
+   },
+   "text": "21.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "5f 00",
+   "telegram": "315250220396140a/025f00",
+   "device": "module3",
+   "expect": {
+    "value": 9.5
+   },
+   "decoded": {
+    "value": 9.5
+   },
+   "text": "9.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "RoomFrostProtectionTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "96 14 0a",
+   "slave": "64 00",
+   "telegram": "315250220396140a/026400",
+   "device": "module3",
+   "expect": {
+    "value": 10.0
+   },
+   "decoded": {
+    "value": 10.0
+   },
+   "text": "10.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "c3 00",
+   "telegram": "3152502203251601/02c300",
+   "device": "module3",
+   "expect": {
+    "value": 19.5
+   },
+   "decoded": {
+    "value": 19.5
+   },
+   "text": "19.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "c8 00",
+   "telegram": "3152502203251601/02c800",
+   "device": "module3",
+   "expect": {
+    "value": 20.0
+   },
+   "decoded": {
+    "value": 20.0
+   },
+   "text": "20.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "e9 02",
+   "telegram": "3152502203642800/02e902",
+   "device": "module3",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "ee 02",
+   "telegram": "3152502203642800/02ee02",
+   "device": "module3",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "55 00",
+   "telegram": "3152502203812b01/025500",
+   "device": "module3",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em3",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "50 00",
+   "telegram": "3152502203812b01/025000",
+   "device": "module3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "88 05 00 cd 00",
+   "slave": "",
+   "telegram": "ff35502305880500cd00/00",
+   "device": "room1",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomNormalTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "a8 05 00 d2 00",
+   "slave": "",
+   "telegram": "ff35502305a80500d200/00",
+   "device": "room1",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "78 08 00 87 00",
+   "slave": "",
+   "telegram": "ff355023057808008700/00",
+   "device": "room1",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomSetbackTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "c4 08 00 8c 00",
+   "slave": "",
+   "telegram": "ff35502305c408008c00/00",
+   "device": "room1",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "b4 0e 01 b9 00",
+   "slave": "",
+   "telegram": "ff35502305b40e01b900/00",
+   "device": "room1",
+   "expect": {
+    "value": 18.5
+   },
+   "decoded": {
+    "value": 18.5
+   },
+   "text": "18.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "GradientCurve",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "7c 0e 01 be 00",
+   "slave": "",
+   "telegram": "ff355023057c0e01be00/00",
+   "device": "room1",
+   "expect": {
+    "value": 19.0
+   },
+   "decoded": {
+    "value": 19.0
+   },
+   "text": "19.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "10 16 01 91 00",
+   "slave": "",
+   "telegram": "ff355023051016019100/00",
+   "device": "room1",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "d8 16 01 96 00",
+   "slave": "",
+   "telegram": "ff35502305d816019600/00",
+   "device": "room1",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "ae 28 00 e9 02",
+   "slave": "",
+   "telegram": "ff35502305ae2800e902/00",
+   "device": "room1",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "66 28 00 ee 02",
+   "slave": "",
+   "telegram": "ff35502305662800ee02/00",
+   "device": "room1",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "00 2b 01 55 00",
+   "slave": "",
+   "telegram": "ff35502305002b015500/00",
+   "device": "room1",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "70 2b 01 50 00",
+   "slave": "",
+   "telegram": "ff35502305702b015000/00",
+   "device": "room1",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "bd 13 00 ef 01",
+   "slave": "",
+   "telegram": "ff35502305bd1300ef01/00",
+   "device": "room1",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "b1 13 00 f4 01",
+   "slave": "",
+   "telegram": "ff35502305b11300f401/00",
+   "device": "room1",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "cd 00",
+   "telegram": "3135502203700500/02cd00",
+   "device": "room1",
+   "expect": {
+    "value": 20.5
+   },
+   "decoded": {
+    "value": 20.5
+   },
+   "text": "20.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomNormalTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "70 05 00",
+   "slave": "d2 00",
+   "telegram": "3135502203700500/02d200",
+   "device": "room1",
+   "expect": {
+    "value": 21.0
+   },
+   "decoded": {
+    "value": 21.0
+   },
+   "text": "21.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "87 00",
+   "telegram": "3135502203580800/028700",
+   "device": "room1",
+   "expect": {
+    "value": 13.5
+   },
+   "decoded": {
+    "value": 13.5
+   },
+   "text": "13.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "58 08 00",
+   "slave": "8c 00",
+   "telegram": "3135502203580800/028c00",
+   "device": "room1",
+   "expect": {
+    "value": 14.0
+   },
+   "decoded": {
+    "value": 14.0
+   },
+   "text": "14.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "b9 00",
+   "telegram": "3135502203cd0e01/02b900",
+   "device": "room1",
+   "expect": {
+    "value": 18.5
+   },
+   "decoded": {
+    "value": 18.5
+   },
+   "text": "18.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "GradientCurve",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "cd 0e 01",
+   "slave": "be 00",
+   "telegram": "3135502203cd0e01/02be00",
+   "device": "room1",
+   "expect": {
+    "value": 19.0
+   },
+   "decoded": {
+    "value": 19.0
+   },
+   "text": "19.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "91 00",
+   "telegram": "3135502203251601/029100",
+   "device": "room1",
+   "expect": {
+    "value": 14.5
+   },
+   "decoded": {
+    "value": 14.5
+   },
+   "text": "14.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SummerWinterChangeOverTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "25 16 01",
+   "slave": "96 00",
+   "telegram": "3135502203251601/029600",
+   "device": "room1",
+   "expect": {
+    "value": 15.0
+   },
+   "decoded": {
+    "value": 15.0
+   },
+   "text": "15.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "e9 02",
+   "telegram": "3135502203642800/02e902",
+   "device": "room1",
+   "expect": {
+    "value": 74.5
+   },
+   "decoded": {
+    "value": 74.5
+   },
+   "text": "74.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "ee 02",
+   "telegram": "3135502203642800/02ee02",
+   "device": "room1",
+   "expect": {
+    "value": 75.0
+   },
+   "decoded": {
+    "value": 75.0
+   },
+   "text": "75.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "55 00",
+   "telegram": "3135502203812b01/025500",
+   "device": "room1",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "50 00",
+   "telegram": "3135502203812b01/025000",
+   "device": "room1",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "ef 01",
+   "telegram": "3135502203541300/02ef01",
+   "device": "room1",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "f4 01",
+   "telegram": "3135502203541300/02f401",
+   "device": "room1",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "b3 28 00 2f 03",
+   "slave": "",
+   "telegram": "ff15502305b328002f03/00",
+   "device": "manager",
+   "expect": {
+    "value": 81.5
+   },
+   "decoded": {
+    "value": 81.5
+   },
+   "text": "81.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "bf 28 00 34 03",
+   "slave": "",
+   "telegram": "ff15502305bf28003403/00",
+   "device": "manager",
+   "expect": {
+    "value": 82.0
+   },
+   "decoded": {
+    "value": 82.0
+   },
+   "text": "82.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "bd 13 00 ef 01",
+   "slave": "",
+   "telegram": "ff15502305bd1300ef01/00",
+   "device": "manager",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWSetpoint",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "b1 13 00 f4 01",
+   "slave": "",
+   "telegram": "ff15502305b11300f401/00",
+   "device": "manager",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "2f 03",
+   "telegram": "3115502203642800/022f03",
+   "device": "manager",
+   "expect": {
+    "value": 81.5
+   },
+   "decoded": {
+    "value": 81.5
+   },
+   "text": "81.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "34 03",
+   "telegram": "3115502203642800/023403",
+   "device": "manager",
+   "expect": {
+    "value": 82.0
+   },
+   "decoded": {
+    "value": 82.0
+   },
+   "text": "82.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "ef 01",
+   "telegram": "3115502203541300/02ef01",
+   "device": "manager",
+   "expect": {
+    "value": 49.5
+   },
+   "decoded": {
+    "value": 49.5
+   },
+   "text": "49.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "54 13 00",
+   "slave": "f4 01",
+   "telegram": "3115502203541300/02f401",
+   "device": "manager",
+   "expect": {
+    "value": 50.0
+   },
+   "decoded": {
+    "value": 50.0
+   },
+   "text": "50.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "b3 28 00 2f 03",
+   "slave": "",
+   "telegram": "ff50502305b328002f03/00",
+   "device": "manager",
+   "expect": {
+    "value": 81.5
+   },
+   "decoded": {
+    "value": 81.5
+   },
+   "text": "81.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMaxTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "bf 28 00 34 03",
+   "slave": "",
+   "telegram": "ff50502305bf28003403/00",
+   "device": "manager",
+   "expect": {
+    "value": 82.0
+   },
+   "decoded": {
+    "value": 82.0
+   },
+   "text": "82.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "00 2b 01 55 00",
+   "slave": "",
+   "telegram": "ff50502305002b015500/00",
+   "device": "manager",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMinTemp",
+   "type": "write",
+   "qq": "ff",
+   "zz": "50",
+   "pbsb": "5023",
+   "master": "70 2b 01 50 00",
+   "slave": "",
+   "telegram": "ff50502305702b015000/00",
+   "device": "manager",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "2f 03",
+   "telegram": "3150502203642800/022f03",
+   "device": "manager",
+   "expect": {
+    "value": 81.5
+   },
+   "decoded": {
+    "value": 81.5
+   },
+   "text": "81.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "64 28 00",
+   "slave": "34 03",
+   "telegram": "3150502203642800/023403",
+   "device": "manager",
+   "expect": {
+    "value": 82.0
+   },
+   "decoded": {
+    "value": 82.0
+   },
+   "text": "82.0",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "55 00",
+   "telegram": "3150502203812b01/025500",
+   "device": "manager",
+   "expect": {
+    "value": 8.5
+   },
+   "decoded": {
+    "value": 8.5
+   },
+   "text": "8.5",
+   "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "em1",
+   "message": "SupplyMinTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "50",
+   "pbsb": "5022",
+   "master": "81 2b 01",
+   "slave": "50 00",
+   "telegram": "3150502203812b01/025000",
+   "device": "manager",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
    "evidence": "settings-writes",
    "date": "2026-11-18"
   },

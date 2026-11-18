@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.5.2",
-  "commit": "419821c",
-  "messages": 531,
-  "csv_lines": 553,
-  "loaded_by_ebusd": 613,
-  "sidecar_sha256": "a2c42c26408e4d001b4f5d087453903eb5ab83efc5ead5ff22cf1c564465312a"
+  "version": "0.5.4",
+  "commit": "970143b",
+  "messages": 536,
+  "csv_lines": 602,
+  "loaded_by_ebusd": 662,
+  "sidecar_sha256": "4fa6093b867e116c205d6909d373315e7592b05bc1b927c3273b0d0bdee00935"
  },
  "languages": [
   "en",
@@ -4794,41 +4794,6 @@
     }
    ]
   },
-  "ka/DHWSetpoint": {
-   "circuit": "ka",
-   "name": "DHWSetpoint",
-   "address": "15",
-   "device": "manager",
-   "menu": "dhw",
-   "kind": "setting",
-   "label": {
-    "en": "Hot water setpoint",
-    "fr": "Consigne de température ECS"
-   },
-   "description": {
-    "en": "configured hot water setpoint",
-    "fr": "consigne de température ECS réglée"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "ka-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
   "ka/DHWLoadingPriority": {
    "circuit": "ka",
    "name": "DHWLoadingPriority",
@@ -4878,41 +4843,6 @@
      "description": {
       "en": "hot water loading with priority over the heating circuit, in parallel with it, or sliding",
       "fr": "charge ECS prioritaire sur le circuit de chauffage, en parallèle, ou mobile"
-     }
-    }
-   ]
-  },
-  "ka/SupplyMaxTemp": {
-   "circuit": "ka",
-   "name": "SupplyMaxTemp",
-   "address": "15",
-   "device": "manager",
-   "menu": "flow",
-   "kind": "setting",
-   "label": {
-    "en": "Maximum flow temperature",
-    "fr": "Température de départ maximale"
-   },
-   "description": {
-    "en": "maximum flow temperature limit",
-    "fr": "limite de la température de départ maximale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "ka-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
      }
     }
    ]
@@ -5112,6 +5042,98 @@
      "unit": "°C",
      "min": 0,
      "max": 50,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "ka/SupplyMaxTemp": {
+   "circuit": "ka",
+   "name": "SupplyMaxTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum flow temperature",
+    "fr": "Température de départ maximale"
+   },
+   "description": {
+    "en": "maximum flow temperature limit",
+    "fr": "limite de la température de départ maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "ka-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "ka/DHWSetpoint": {
+   "circuit": "ka",
+   "name": "DHWSetpoint",
+   "address": "15",
+   "device": "manager",
+   "menu": "dhw",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water setpoint",
+    "fr": "Consigne de température ECS"
+   },
+   "description": {
+    "en": "configured hot water setpoint",
+    "fr": "consigne de température ECS réglée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "ka-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 40,
+     "max": 60,
      "step": 0.5,
      "description": {
       "en": "temperature",
@@ -8491,14 +8513,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 16,
+     "max": 35,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -8526,143 +8561,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "fs1/GradientCurve": {
-   "circuit": "fs1",
-   "name": "GradientCurve",
-   "address": "35",
-   "device": "room1",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Heating curve gradient",
-    "fr": "Pente de la courbe de chauffe"
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
    },
-   "description": {
-    "en": "steepness of the heating curve",
-    "fr": "pente de la courbe de chauffe"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "room-units-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10
-    }
-   ]
-  },
-  "fs1/SummerWinterChangeOverTemp": {
-   "circuit": "fs1",
-   "name": "SummerWinterChangeOverTemp",
-   "address": "35",
-   "device": "room1",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Summer / winter changeover",
-    "fr": "Commutation été/hiver"
-   },
-   "description": {
-    "en": "outside temperature of the summer / winter changeover",
-    "fr": "température extérieure de commutation été/hiver"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "room-units-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "fs1/SupplyMaxTemp": {
-   "circuit": "fs1",
-   "name": "SupplyMaxTemp",
-   "address": "35",
-   "device": "room1",
-   "menu": "flow",
-   "kind": "setting",
-   "label": {
-    "en": "Maximum flow temperature",
-    "fr": "Température de départ maximale"
-   },
-   "description": {
-    "en": "maximum flow temperature",
-    "fr": "température de départ maximale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "room-units-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "fs1/SupplyMinTemp": {
-   "circuit": "fs1",
-   "name": "SupplyMinTemp",
-   "address": "35",
-   "device": "room1",
-   "menu": "flow",
-   "kind": "setting",
-   "label": {
-    "en": "Minimum flow temperature",
-    "fr": "Température de départ minimale"
-   },
-   "description": {
-    "en": "minimum flow temperature",
-    "fr": "température de départ minimale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "room-units-reads"
-   ],
    "fields": [
     {
      "name": "value",
@@ -8716,6 +8626,237 @@
      "unit": "°C",
      "min": 4,
      "max": 16,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/GradientCurve": {
+   "circuit": "fs1",
+   "name": "GradientCurve",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Heating curve gradient",
+    "fr": "Pente de la courbe de chauffe"
+   },
+   "description": {
+    "en": "steepness of the heating curve",
+    "fr": "pente de la courbe de chauffe"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "room-units-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10
+    }
+   ]
+  },
+  "fs1/SummerWinterChangeOverTemp": {
+   "circuit": "fs1",
+   "name": "SummerWinterChangeOverTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer / winter changeover",
+    "fr": "Commutation été/hiver"
+   },
+   "description": {
+    "en": "outside temperature of the summer / winter changeover",
+    "fr": "température extérieure de commutation été/hiver"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "room-units-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 30,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/SupplyMaxTemp": {
+   "circuit": "fs1",
+   "name": "SupplyMaxTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum flow temperature",
+    "fr": "Température de départ maximale"
+   },
+   "description": {
+    "en": "maximum flow temperature",
+    "fr": "température de départ maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "room-units-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/SupplyMinTemp": {
+   "circuit": "fs1",
+   "name": "SupplyMinTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Minimum flow temperature",
+    "fr": "Température de départ minimale"
+   },
+   "description": {
+    "en": "minimum flow temperature",
+    "fr": "température de départ minimale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "room-units-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/DHWSetpoint": {
+   "circuit": "fs1",
+   "name": "DHWSetpoint",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water setpoint",
+    "fr": "Consigne de température ECS"
+   },
+   "description": {
+    "en": "configured hot water setpoint",
+    "fr": "consigne de température ECS réglée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 40,
+     "max": 60,
      "step": 0.5,
      "description": {
       "en": "temperature",
@@ -19375,15 +19516,28 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
    "same_as": "ka/RoomNormalTemp",
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 16,
+     "max": 35,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -19411,9 +19565,19 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
    "same_as": "ka/RoomSetbackTemp",
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -19447,14 +19611,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 4,
+     "max": 16,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -19482,8 +19659,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -19512,14 +19699,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 30,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -19547,15 +19747,28 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
    "same_as": "ka/SupplyMaxTemp",
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -19583,14 +19796,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "heating-modules-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -25465,6 +25691,147 @@
     }
    ]
   },
+  "em3/RoomNormalTemp": {
+   "circuit": "em3",
+   "name": "RoomNormalTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Normal room temperature",
+    "fr": "Température ambiante normale"
+   },
+   "description": {
+    "en": "normal room temperature setpoint",
+    "fr": "consigne de température ambiante normale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 16,
+     "max": 35,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em3/RoomSetbackTemp": {
+   "circuit": "em3",
+   "name": "RoomSetbackTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Setback room temperature",
+    "fr": "Température ambiante réduite"
+   },
+   "description": {
+    "en": "setback room temperature setpoint",
+    "fr": "consigne de température ambiante réduite"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em3/RoomFrostProtectionTemp": {
+   "circuit": "em3",
+   "name": "RoomFrostProtectionTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Frost protection room temperature",
+    "fr": "Température ambiante hors-gel"
+   },
+   "description": {
+    "en": "room temperature setpoint of the frost protection",
+    "fr": "consigne de température ambiante hors-gel"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 4,
+     "max": 16,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
   "em3/GradientCurve": {
    "circuit": "em3",
    "name": "GradientCurve",
@@ -25502,6 +25869,150 @@
      "name": "value",
      "type": "UIN",
      "divisor": 10
+    }
+   ]
+  },
+  "em3/SummerWinterChangeOverTemp": {
+   "circuit": "em3",
+   "name": "SummerWinterChangeOverTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer / winter changeover",
+    "fr": "Commutation été/hiver"
+   },
+   "description": {
+    "en": "outside temperature of the summer / winter changeover",
+    "fr": "température extérieure de commutation été/hiver"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 30,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em3/SupplyMaxTemp": {
+   "circuit": "em3",
+   "name": "SupplyMaxTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum flow temperature",
+    "fr": "Température de départ maximale"
+   },
+   "description": {
+    "en": "maximum flow temperature",
+    "fr": "température de départ maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em3/SupplyMinTemp": {
+   "circuit": "em3",
+   "name": "SupplyMinTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Minimum flow temperature",
+    "fr": "Température de départ minimale"
+   },
+   "description": {
+    "en": "minimum flow temperature",
+    "fr": "température de départ minimale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
     }
    ]
   },
@@ -25606,216 +26117,6 @@
      "description": {
       "en": "temperature difference",
       "fr": "différentiel de température"
-     }
-    }
-   ]
-  },
-  "em3/RoomNormalTemp": {
-   "circuit": "em3",
-   "name": "RoomNormalTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Normal room temperature",
-    "fr": "Température ambiante normale"
-   },
-   "description": {
-    "en": "normal room temperature setpoint",
-    "fr": "consigne de température ambiante normale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "em3/RoomSetbackTemp": {
-   "circuit": "em3",
-   "name": "RoomSetbackTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Setback room temperature",
-    "fr": "Température ambiante réduite"
-   },
-   "description": {
-    "en": "setback room temperature setpoint",
-    "fr": "consigne de température ambiante réduite"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "em3/RoomFrostProtectionTemp": {
-   "circuit": "em3",
-   "name": "RoomFrostProtectionTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Frost protection room temperature",
-    "fr": "Température ambiante hors-gel"
-   },
-   "description": {
-    "en": "room temperature setpoint of the frost protection",
-    "fr": "consigne de température ambiante hors-gel"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "em3/SummerWinterChangeOverTemp": {
-   "circuit": "em3",
-   "name": "SummerWinterChangeOverTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Summer / winter changeover",
-    "fr": "Commutation été/hiver"
-   },
-   "description": {
-    "en": "outside temperature of the summer / winter changeover",
-    "fr": "température extérieure de commutation été/hiver"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "em3/SupplyMaxTemp": {
-   "circuit": "em3",
-   "name": "SupplyMaxTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "flow",
-   "kind": "setting",
-   "label": {
-    "en": "Maximum flow temperature",
-    "fr": "Température de départ maximale"
-   },
-   "description": {
-    "en": "maximum flow temperature",
-    "fr": "température de départ maximale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
-  "em3/SupplyMinTemp": {
-   "circuit": "em3",
-   "name": "SupplyMinTemp",
-   "address": "52",
-   "device": "module3",
-   "menu": "flow",
-   "kind": "setting",
-   "label": {
-    "en": "Minimum flow temperature",
-    "fr": "Température de départ minimale"
-   },
-   "description": {
-    "en": "minimum flow temperature",
-    "fr": "température de départ minimale"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
      }
     }
    ]
@@ -26015,14 +26316,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 16,
+     "max": 35,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -26050,8 +26364,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -26085,14 +26409,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 4,
+     "max": 16,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -26120,8 +26457,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -26150,14 +26497,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 30,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -26185,14 +26545,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -26220,17 +26593,124 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/DHWSetpoint": {
+   "circuit": "fs2",
+   "name": "DHWSetpoint",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water setpoint",
+    "fr": "Consigne de température ECS"
+   },
+   "description": {
+    "en": "configured hot water setpoint",
+    "fr": "consigne de température ECS réglée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 40,
+     "max": 60,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/BoilerMCBoostTemp": {
+   "circuit": "fs2",
+   "name": "BoilerMCBoostTemp",
+   "address": "75",
+   "device": "room2",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler boost offset",
+    "fr": "Surélévation de température chaudière"
+   },
+   "description": {
+    "en": "boiler boost offset: added to the flow setpoint for the demand to the heat source",
+    "fr": "surélévation de température chaudière avec circuit mélangé : ajoutée à la consigne de température départ pour la demande au générateur de chaleur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "min": 0,
+     "max": 20,
+     "step": 0.5,
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
      }
     }
    ]
@@ -26255,13 +26735,25 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "unit": "min",
+     "min": 0,
+     "max": 10,
      "description": {
       "en": "minutes",
       "fr": "minutes"
@@ -26289,14 +26781,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "SIN",
      "divisor": 10,
      "unit": "°C",
+     "min": -20,
+     "max": 0,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -36642,14 +37147,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 16,
+     "max": 35,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -36677,8 +37195,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -36712,14 +37240,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 4,
+     "max": 16,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -36747,8 +37288,18 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
@@ -36777,14 +37328,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 30,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -36812,14 +37376,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -36847,17 +37424,124 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
      "unit": "°C",
+     "min": 8,
+     "max": 82,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/DHWSetpoint": {
+   "circuit": "fs3",
+   "name": "DHWSetpoint",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water setpoint",
+    "fr": "Consigne de température ECS"
+   },
+   "description": {
+    "en": "configured hot water setpoint",
+    "fr": "consigne de température ECS réglée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 40,
+     "max": 60,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/BoilerMCBoostTemp": {
+   "circuit": "fs3",
+   "name": "BoilerMCBoostTemp",
+   "address": "f5",
+   "device": "room3",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler boost offset",
+    "fr": "Surélévation de température chaudière"
+   },
+   "description": {
+    "en": "boiler boost offset: added to the flow setpoint for the demand to the heat source",
+    "fr": "surélévation de température chaudière avec circuit mélangé : ajoutée à la consigne de température départ pour la demande au générateur de chaleur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "min": 0,
+     "max": 20,
+     "step": 0.5,
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
      }
     }
    ]
@@ -36882,13 +37566,25 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "unit": "min",
+     "min": 0,
+     "max": 10,
      "description": {
       "en": "minutes",
       "fr": "minutes"
@@ -36916,14 +37612,27 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
+    "settings-writes",
     "room-units-reads"
    ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
    "fields": [
     {
      "name": "value",
      "type": "SIN",
      "divisor": 10,
      "unit": "°C",
+     "min": -20,
+     "max": 0,
+     "step": 0.5,
      "description": {
       "en": "temperature",
       "fr": "température"
@@ -48206,19 +48915,39 @@
    "bc2/BurnerServiceHours"
   ],
   "range": [
+   "fs1/RoomSetbackTemp",
+   "fs1/GradientCurve",
+   "em1/RoomSetbackTemp",
+   "em1/GradientCurve",
    "em2/RoomSetbackTemp",
    "em2/GradientCurve",
-   "em3/GradientCurve"
+   "em3/RoomSetbackTemp",
+   "em3/GradientCurve",
+   "fs2/RoomSetbackTemp",
+   "fs2/GradientCurve",
+   "fs3/RoomSetbackTemp",
+   "fs3/GradientCurve"
   ],
   "step": [
    "ka/BlockingTime",
    "ka/ChangeOverTime",
    "ka/RegulationP",
    "ka/RegulationI",
+   "fs1/RoomSetbackTemp",
+   "fs1/GradientCurve",
    "fs1/SwitchOnRuntime",
+   "em1/RoomSetbackTemp",
+   "em1/GradientCurve",
    "em2/RoomSetbackTemp",
    "em2/GradientCurve",
-   "em3/GradientCurve"
+   "em3/RoomSetbackTemp",
+   "em3/GradientCurve",
+   "fs2/RoomSetbackTemp",
+   "fs2/GradientCurve",
+   "fs2/SwitchOnRuntime",
+   "fs3/RoomSetbackTemp",
+   "fs3/GradientCurve",
+   "fs3/SwitchOnRuntime"
   ],
   "value_labels": [
    "ForcedVenting"

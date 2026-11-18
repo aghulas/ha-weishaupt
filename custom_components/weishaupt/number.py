@@ -17,7 +17,7 @@ from .const import DOMAIN
 from .entity import WeishauptEntity, parse_number
 from .guard import WriteRefused
 from .hub import Hub, WeishauptConfigEntry
-from .model import ValueEntity
+from .model import NumberDescription
 from .sensor import UNITS
 from .writer import ConfirmationPending, WriteFailed
 from .writes import WriteSpec
@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
         return
     async_add_entities(
         SettingNumber(hub, description, hub.writer.specs[description.message.key])
-        for description in hub.model.value_entities
+        for description in hub.model.number_entities
         if description.message.key in hub.writer.specs)
 
 
@@ -40,7 +40,7 @@ class SettingNumber(WeishauptEntity, NumberEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, hub: Hub, description: ValueEntity, spec: WriteSpec) -> None:
+    def __init__(self, hub: Hub, description: NumberDescription, spec: WriteSpec) -> None:
         message = description.message
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
                          (message.key,))

@@ -53,14 +53,15 @@ def sent(fake) -> list[str]:
 
 
 async def test_entities_when_writes_are_enabled(hass, fake, log):
-    """22 number entities (the settings the definitions prove), the write switch, off; the probe of the run-time
+    """65 number entities (the 66 settings the definitions prove, one register shared by em1 and ka), the write
+    switch, off; the probe of the run-time
     checksum is the only write command at start-up, and it is refused by ebusd before sending."""
     entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
     await setup(hass, entry)
     writer = entry.runtime_data.writer
     registry = er.async_get(hass)
     numbers = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "number"]
-    assert len(numbers) == 22
+    assert len(numbers) == 65
     assert {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in numbers if not e.disabled_by} == {
         "em2/RoomNormalTemp/value", "em2/RoomSetbackTemp/value"}  # comfort enabled, regulation created disabled
     assert all(e.entity_category == "config" for e in numbers)
@@ -73,7 +74,7 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert fake.writes == []
     # the read side is the one of phase 1: the sensors of the settings stay as they were
     assert len([e for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-                if e.domain in ("sensor", "binary_sensor")]) == 341
+                if e.domain in ("sensor", "binary_sensor")]) == 346
     await settled(hass, entry)
     number = hass.states.get(number_id(hass, entry, "em2/RoomNormalTemp"))
     assert number.state == "21.5" and number.attributes["min"] == 16 and number.attributes["max"] == 35
@@ -277,7 +278,7 @@ async def test_diagnostics_carry_the_writes(hass, fake, log):
     await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
     data = await async_get_config_entry_diagnostics(hass, entry)
     writes = data["writes"]
-    assert writes["capability"] == "present" and len(writes["writable"]) == 22
+    assert writes["capability"] == "present" and len(writes["writable"]) == 66
     assert writes["journal"][0]["result"] == "ok" and log not in str(data)
 
 
@@ -336,3 +337,27 @@ async def test_probe_unknown_refuses(hass, fake, log, monkeypatch):
     with pytest.raises(WriteRefused) as err:
         await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
     assert err.value.code == "capability_unknown"
+
+
+async def test_each_flow_limit_from_the_source_of_its_metadata(hass, fake, log):
+    """em1 (the system manager's own circuit) takes its flow limits from ff only; em3 from 31: the write commands
+    follow the metadata."""
+    entry, writer = await writing(hass, fake, log)
+    for key, value in (("em1/SupplyMinTemp", 9.0), ("em3/SupplyMinTemp", 9.0)):
+        with pytest.raises(ConfirmationPending):
+            await writer.async_request(key, value, None)
+        await writer.async_confirm(next(iter(writer.pending)), None)
+    em1, em3 = writer.specs["em1/SupplyMinTemp"], writer.specs["em3/SupplyMinTemp"]
+    assert sent(fake) == [f"write -s ff -c em1 -h {em1.telegram(9.0)}", f"write -c em3 -h {em3.telegram(9.0)}"]
+    assert [w[0] for w in fake.writes] == ["ff", None]
+
+
+async def test_a_setting_written_through_the_own_circuit_of_the_manager(hass, fake, log,
+                                                                       entity_registry_enabled_by_default):
+    """The normal room temperature of the system manager is proven written at its own circuit (em1, 50): the
+    number has the name of the system manager's sensor and writes through em1."""
+    entry, writer = await writing(hass, fake, log)
+    entity_id = number_id(hass, entry, "em1/RoomNormalTemp")
+    assert entity_id is not None and number_id(hass, entry, "ka/RoomNormalTemp") is None
+    assert er.async_get(hass).async_get(entity_id).translation_key == "manager_roomnormaltemp"
+    assert number_id(hass, entry, "em1/SupplyMaxTemp") is None and number_id(hass, entry, "ka/SupplyMaxTemp")

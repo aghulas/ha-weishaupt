@@ -1,0 +1,360 @@
+# Master part of the telegram ebusd builds for `write [-s ff] -c <circuit> <message> <value>` from the
+# definitions in named-write-definitions.csv: library of the ebusd fork (tag v26.1-weishaupt.1, same
+# src/lib as commit 492867d9), Message::prepareMaster with the run-time checksum. Source `31` stands
+# for ebusd's own address (no -s). `ERR` = ebusd refuses the value and sends nothing.
+device,message,value,case,master
+ka,SupplyMaxTemp,8,minimum,ff15502305d428005000
+ka,SupplyMaxTemp,45,middle,ff155023052d2800c201
+ka,SupplyMaxTemp,82,maximum,ff15502305bf28003403
+ka,SupplyMaxTemp,45.125,between steps,ff15502305712800c301
+ka,SupplyMaxTemp,45.25,half step,ff15502305e52800c501
+ka,ModulationMax,30,minimum,ERR ERR: element not found
+ka,ModulationMax,65,middle,ERR ERR: element not found
+ka,ModulationMax,100,maximum,ERR ERR: element not found
+ka,ModulationMax,65.25,between steps,ERR ERR: element not found
+ka,ModulationMax,65.5,half step,ERR ERR: element not found
+ka,ModulationMin,30,minimum,ERR ERR: element not found
+ka,ModulationMin,65,middle,ERR ERR: element not found
+ka,ModulationMin,100,maximum,ERR ERR: element not found
+ka,ModulationMin,65.25,between steps,ERR ERR: element not found
+ka,ModulationMin,65.5,half step,ERR ERR: element not found
+ka,DHWSetpoint,40,minimum,ff15502305d913009001
+ka,DHWSetpoint,50,middle,ff15502305b11300f401
+ka,DHWSetpoint,60,maximum,ff155023050a13005802
+ka,DHWSetpoint,50.125,between steps,ff15502305ed1300f501
+ka,DHWSetpoint,50.25,half step,ff15502305551300f701
+ka,RegulationP,10,minimum,ff15502305109f020a00
+ka,RegulationP,155,middle,ff155023050c9f029b00
+ka,RegulationP,300,maximum,ff15502305b99f022c01
+ka,RegulationP,155.25,between steps,ff155023050c9f029b00
+ka,RegulationP,155.5,half step,ff155023050c9f029b00
+ka,RegulationI,10,minimum,ff15502305189e020a00
+ka,RegulationI,105,middle,ff15502305b89e026900
+ka,RegulationI,200,maximum,ff15502305289e02c800
+ka,RegulationI,105.25,between steps,ff15502305b89e026900
+ka,RegulationI,105.5,half step,ff15502305b89e026900
+ka,LegionellaSetupTemp,40,minimum,ff15502305a187059001
+ka,LegionellaSetupTemp,60,middle,ff155023057287055802
+ka,LegionellaSetupTemp,80,maximum,ff15502305df87052003
+ka,LegionellaSetupTemp,60.125,between steps,ff155023052e87055902
+ka,LegionellaSetupTemp,60.25,half step,ff155023059687055b02
+ka,DHWLoadTime,0,minimum,ff155023059080010000
+ka,DHWLoadTime,90,middle,ff15502305b880015a00
+ka,DHWLoadTime,180,maximum,ff15502305c08001b400
+ka,DHWLoadTime,92.5,between steps,ff155023052c80015c00
+ka,DHWLoadTime,95,half step,ff15502305c880015f00
+ka,DHWSwitchDiff,-10,minimum,ff15502305cf40019cff
+ka,DHWSwitchDiff,-5.5,middle,ff15502305774001c9ff
+ka,DHWSwitchDiff,-1,maximum,ff155023056b4001f6ff
+ka,DHWSwitchDiff,-5.375,between steps,ff15502305934001caff
+ka,DHWSwitchDiff,-5.25,half step,ff15502305cf4001cbff
+ka,LegionellaCirculationTime,180,minimum,ff1550230584b109b400
+ka,LegionellaCirculationTime,660,middle,ff15502305bab1099402
+ka,LegionellaCirculationTime,1200,maximum,ff15502305acb109b004
+ka,LegionellaCirculationTime,675,between steps,ff15502305feb109a302
+ka,LegionellaCirculationTime,690,half step,ff1550230512b109b202
+ka,ChangeOverTime,0,minimum,ff15502305e0ecfd0000
+ka,ChangeOverTime,125,middle,ff155023053cecfd7d00
+ka,ChangeOverTime,250,maximum,ff1550230504ecfdfa00
+ka,ChangeOverTime,125.25,between steps,ff155023053cecfd7d00
+ka,ChangeOverTime,125.5,half step,ff155023053cecfd7d00
+ka,BlockingTime,0,minimum,ff155023057425000000
+ka,BlockingTime,15,middle,ff15502305e425000f00
+ka,BlockingTime,30,maximum,ff155023050825001e00
+ka,BlockingTime,15.25,between steps,ff15502305e425000f00
+ka,BlockingTime,15.5,half step,ff15502305e425000f00
+ka,DeCoupleMin,0,minimum,ff15502305b8e7fd0000
+ka,DeCoupleMin,25,middle,ff155023055ce7fdfa00
+ka,DeCoupleMin,50,maximum,ff1550230591e7fdf401
+ka,DeCoupleMin,25.125,between steps,ff1550230500e7fdfb00
+ka,DeCoupleMin,25.25,half step,ff1550230594e7fdfd00
+ka,CalorfierSwitchDifference,1,minimum,ff1550230570e2fd0a00
+ka,CalorfierSwitchDifference,10.5,middle,ff15502305d0e2fd6900
+ka,CalorfierSwitchDifference,20,maximum,ff1550230540e2fdc800
+ka,CalorfierSwitchDifference,10.625,between steps,ff1550230534e2fd6a00
+ka,CalorfierSwitchDifference,10.75,half step,ff15502305a0e2fd6c00
+fs1,RoomNormalTemp,16,minimum,ff35502305e40500a000
+fs1,RoomNormalTemp,25.5,middle,ff35502305bc0500ff00
+fs1,RoomNormalTemp,35,maximum,ff355023052d05005e01
+fs1,RoomNormalTemp,25.625,between steps,ff355023052905000001
+fs1,RoomNormalTemp,25.75,half step,ff355023059105000201
+fs1,RoomSetbackTemp,10,minimum,ff355023052808006400
+fs1,RoomSetbackTemp,15.5,middle,ff35502305bc08009b00
+fs1,RoomSetbackTemp,21.5,maximum,ff35502305b00800d700
+fs1,RoomSetbackTemp,15.625,between steps,ff355023057408009c00
+fs1,RoomSetbackTemp,15.75,half step,ff35502305cc08009e00
+fs1,RoomFrostProtectionTemp,4,minimum,ff3550230570140a2800
+fs1,RoomFrostProtectionTemp,10,middle,ff355023057c140a6400
+fs1,RoomFrostProtectionTemp,16,maximum,ff35502305d8140aa000
+fs1,RoomFrostProtectionTemp,10.125,between steps,ff3550230520140a6500
+fs1,RoomFrostProtectionTemp,10.25,half step,ff3550230598140a6700
+fs1,GradientCurve,2.5,minimum,ff35502305780e011900
+fs1,GradientCurve,21,middle,ff355023054c0e01d200
+fs1,GradientCurve,40,maximum,ff355023058d0e019001
+fs1,GradientCurve,21.125,between steps,ff35502305100e01d300
+fs1,GradientCurve,21.25,half step,ff35502305840e01d500
+fs1,SummerWinterChangeOverTemp,8,minimum,ff35502305c416015000
+fs1,SummerWinterChangeOverTemp,19,middle,ff35502305bc1601be00
+fs1,SummerWinterChangeOverTemp,30,maximum,ff355023054516012c01
+fs1,SummerWinterChangeOverTemp,19.125,between steps,ff35502305e01601bf00
+fs1,SummerWinterChangeOverTemp,19.25,half step,ff35502305d81601c100
+fs1,SupplyMaxTemp,8,minimum,ff35502305d428005000
+fs1,SupplyMaxTemp,45,middle,ff355023052d2800c201
+fs1,SupplyMaxTemp,82,maximum,ff35502305bf28003403
+fs1,SupplyMaxTemp,45.125,between steps,ff35502305712800c301
+fs1,SupplyMaxTemp,45.25,half step,ff35502305e52800c501
+fs1,SupplyMinTemp,8,minimum,ff35502305702b015000
+fs1,SupplyMinTemp,45,middle,ff35502305892b01c201
+fs1,SupplyMinTemp,82,maximum,ff355023051b2b013403
+fs1,SupplyMinTemp,45.125,between steps,ff35502305d52b01c301
+fs1,SupplyMinTemp,45.25,half step,ff35502305412b01c501
+fs1,DHWSetpoint,40,minimum,ff35502305d913009001
+fs1,DHWSetpoint,50,middle,ff35502305b11300f401
+fs1,DHWSetpoint,60,maximum,ff355023050a13005802
+fs1,DHWSetpoint,50.125,between steps,ff35502305ed1300f501
+fs1,DHWSetpoint,50.25,half step,ff35502305551300f701
+fs1,RoomFactorCurve,1,minimum,ERR ERR: element not found
+fs1,RoomFactorCurve,10,middle,ERR ERR: element not found
+fs1,RoomFactorCurve,20,maximum,ERR ERR: element not found
+fs1,RoomFactorCurve,10.25,between steps,ERR ERR: element not found
+fs1,RoomFactorCurve,10.5,half step,ERR ERR: element not found
+fs1,BoilerMCBoostTemp,0,minimum,ff355023053411010000
+fs1,BoilerMCBoostTemp,10,middle,ff355023055c11016400
+fs1,BoilerMCBoostTemp,20,maximum,ff35502305e41101c800
+fs1,BoilerMCBoostTemp,10.125,between steps,ff355023050011016500
+fs1,BoilerMCBoostTemp,10.25,half step,ff35502305b811016700
+fs1,SwitchOnRuntime,0,minimum,ff355023053c10010000
+fs1,SwitchOnRuntime,5,middle,ff355023054c10010500
+fs1,SwitchOnRuntime,10,maximum,ff35502305dc10010a00
+fs1,SwitchOnRuntime,5.25,between steps,ff355023054c10010500
+fs1,SwitchOnRuntime,5.5,half step,ff355023054c10010500
+fs1,FrostProtectionLimitTemp,-20,minimum,ff355023058fbe0238ff
+fs1,FrostProtectionLimitTemp,-10,middle,ff355023056fbe029cff
+fs1,FrostProtectionLimitTemp,0,maximum,ff35502305a4be020000
+fs1,FrostProtectionLimitTemp,-9.875,between steps,ff3550230533be029dff
+fs1,FrostProtectionLimitTemp,-9.75,half step,ff35502305d7be029eff
+fs2,RoomNormalTemp,16,minimum,ff75502305e40500a000
+fs2,RoomNormalTemp,25.5,middle,ff75502305bc0500ff00
+fs2,RoomNormalTemp,35,maximum,ff755023052d05005e01
+fs2,RoomNormalTemp,25.625,between steps,ff755023052905000001
+fs2,RoomNormalTemp,25.75,half step,ff755023059105000201
+fs2,RoomSetbackTemp,10,minimum,ff755023052808006400
+fs2,RoomSetbackTemp,15.5,middle,ff75502305bc08009b00
+fs2,RoomSetbackTemp,21.5,maximum,ff75502305b00800d700
+fs2,RoomSetbackTemp,15.625,between steps,ff755023057408009c00
+fs2,RoomSetbackTemp,15.75,half step,ff75502305cc08009e00
+fs2,RoomFrostProtectionTemp,4,minimum,ff7550230570140a2800
+fs2,RoomFrostProtectionTemp,10,middle,ff755023057c140a6400
+fs2,RoomFrostProtectionTemp,16,maximum,ff75502305d8140aa000
+fs2,RoomFrostProtectionTemp,10.125,between steps,ff7550230520140a6500
+fs2,RoomFrostProtectionTemp,10.25,half step,ff7550230598140a6700
+fs2,GradientCurve,2.5,minimum,ff75502305780e011900
+fs2,GradientCurve,21,middle,ff755023054c0e01d200
+fs2,GradientCurve,40,maximum,ff755023058d0e019001
+fs2,GradientCurve,21.125,between steps,ff75502305100e01d300
+fs2,GradientCurve,21.25,half step,ff75502305840e01d500
+fs2,SummerWinterChangeOverTemp,8,minimum,ff75502305c416015000
+fs2,SummerWinterChangeOverTemp,19,middle,ff75502305bc1601be00
+fs2,SummerWinterChangeOverTemp,30,maximum,ff755023054516012c01
+fs2,SummerWinterChangeOverTemp,19.125,between steps,ff75502305e01601bf00
+fs2,SummerWinterChangeOverTemp,19.25,half step,ff75502305d81601c100
+fs2,SupplyMaxTemp,8,minimum,ff75502305d428005000
+fs2,SupplyMaxTemp,45,middle,ff755023052d2800c201
+fs2,SupplyMaxTemp,82,maximum,ff75502305bf28003403
+fs2,SupplyMaxTemp,45.125,between steps,ff75502305712800c301
+fs2,SupplyMaxTemp,45.25,half step,ff75502305e52800c501
+fs2,SupplyMinTemp,8,minimum,ff75502305702b015000
+fs2,SupplyMinTemp,45,middle,ff75502305892b01c201
+fs2,SupplyMinTemp,82,maximum,ff755023051b2b013403
+fs2,SupplyMinTemp,45.125,between steps,ff75502305d52b01c301
+fs2,SupplyMinTemp,45.25,half step,ff75502305412b01c501
+fs2,DHWSetpoint,40,minimum,ff75502305d913009001
+fs2,DHWSetpoint,50,middle,ff75502305b11300f401
+fs2,DHWSetpoint,60,maximum,ff755023050a13005802
+fs2,DHWSetpoint,50.125,between steps,ff75502305ed1300f501
+fs2,DHWSetpoint,50.25,half step,ff75502305551300f701
+fs2,RoomFactorCurve,1,minimum,ERR ERR: element not found
+fs2,RoomFactorCurve,10,middle,ERR ERR: element not found
+fs2,RoomFactorCurve,20,maximum,ERR ERR: element not found
+fs2,RoomFactorCurve,10.25,between steps,ERR ERR: element not found
+fs2,RoomFactorCurve,10.5,half step,ERR ERR: element not found
+fs2,BoilerMCBoostTemp,0,minimum,ff755023053411010000
+fs2,BoilerMCBoostTemp,10,middle,ff755023055c11016400
+fs2,BoilerMCBoostTemp,20,maximum,ff75502305e41101c800
+fs2,BoilerMCBoostTemp,10.125,between steps,ff755023050011016500
+fs2,BoilerMCBoostTemp,10.25,half step,ff75502305b811016700
+fs2,SwitchOnRuntime,0,minimum,ff755023053c10010000
+fs2,SwitchOnRuntime,5,middle,ff755023054c10010500
+fs2,SwitchOnRuntime,10,maximum,ff75502305dc10010a00
+fs2,SwitchOnRuntime,5.25,between steps,ff755023054c10010500
+fs2,SwitchOnRuntime,5.5,half step,ff755023054c10010500
+fs2,FrostProtectionLimitTemp,-20,minimum,ff755023058fbe0238ff
+fs2,FrostProtectionLimitTemp,-10,middle,ff755023056fbe029cff
+fs2,FrostProtectionLimitTemp,0,maximum,ff75502305a4be020000
+fs2,FrostProtectionLimitTemp,-9.875,between steps,ff7550230533be029dff
+fs2,FrostProtectionLimitTemp,-9.75,half step,ff75502305d7be029eff
+fs3,RoomNormalTemp,16,minimum,fff5502305e40500a000
+fs3,RoomNormalTemp,25.5,middle,fff5502305bc0500ff00
+fs3,RoomNormalTemp,35,maximum,fff55023052d05005e01
+fs3,RoomNormalTemp,25.625,between steps,fff55023052905000001
+fs3,RoomNormalTemp,25.75,half step,fff55023059105000201
+fs3,RoomSetbackTemp,10,minimum,fff55023052808006400
+fs3,RoomSetbackTemp,15.5,middle,fff5502305bc08009b00
+fs3,RoomSetbackTemp,21.5,maximum,fff5502305b00800d700
+fs3,RoomSetbackTemp,15.625,between steps,fff55023057408009c00
+fs3,RoomSetbackTemp,15.75,half step,fff5502305cc08009e00
+fs3,RoomFrostProtectionTemp,4,minimum,fff550230570140a2800
+fs3,RoomFrostProtectionTemp,10,middle,fff55023057c140a6400
+fs3,RoomFrostProtectionTemp,16,maximum,fff5502305d8140aa000
+fs3,RoomFrostProtectionTemp,10.125,between steps,fff550230520140a6500
+fs3,RoomFrostProtectionTemp,10.25,half step,fff550230598140a6700
+fs3,GradientCurve,2.5,minimum,fff5502305780e011900
+fs3,GradientCurve,21,middle,fff55023054c0e01d200
+fs3,GradientCurve,40,maximum,fff55023058d0e019001
+fs3,GradientCurve,21.125,between steps,fff5502305100e01d300
+fs3,GradientCurve,21.25,half step,fff5502305840e01d500
+fs3,SummerWinterChangeOverTemp,8,minimum,fff5502305c416015000
+fs3,SummerWinterChangeOverTemp,19,middle,fff5502305bc1601be00
+fs3,SummerWinterChangeOverTemp,30,maximum,fff55023054516012c01
+fs3,SummerWinterChangeOverTemp,19.125,between steps,fff5502305e01601bf00
+fs3,SummerWinterChangeOverTemp,19.25,half step,fff5502305d81601c100
+fs3,SupplyMaxTemp,8,minimum,fff5502305d428005000
+fs3,SupplyMaxTemp,45,middle,fff55023052d2800c201
+fs3,SupplyMaxTemp,82,maximum,fff5502305bf28003403
+fs3,SupplyMaxTemp,45.125,between steps,fff5502305712800c301
+fs3,SupplyMaxTemp,45.25,half step,fff5502305e52800c501
+fs3,SupplyMinTemp,8,minimum,fff5502305702b015000
+fs3,SupplyMinTemp,45,middle,fff5502305892b01c201
+fs3,SupplyMinTemp,82,maximum,fff55023051b2b013403
+fs3,SupplyMinTemp,45.125,between steps,fff5502305d52b01c301
+fs3,SupplyMinTemp,45.25,half step,fff5502305412b01c501
+fs3,DHWSetpoint,40,minimum,fff5502305d913009001
+fs3,DHWSetpoint,50,middle,fff5502305b11300f401
+fs3,DHWSetpoint,60,maximum,fff55023050a13005802
+fs3,DHWSetpoint,50.125,between steps,fff5502305ed1300f501
+fs3,DHWSetpoint,50.25,half step,fff5502305551300f701
+fs3,RoomFactorCurve,1,minimum,ERR ERR: element not found
+fs3,RoomFactorCurve,10,middle,ERR ERR: element not found
+fs3,RoomFactorCurve,20,maximum,ERR ERR: element not found
+fs3,RoomFactorCurve,10.25,between steps,ERR ERR: element not found
+fs3,RoomFactorCurve,10.5,half step,ERR ERR: element not found
+fs3,BoilerMCBoostTemp,0,minimum,fff55023053411010000
+fs3,BoilerMCBoostTemp,10,middle,fff55023055c11016400
+fs3,BoilerMCBoostTemp,20,maximum,fff5502305e41101c800
+fs3,BoilerMCBoostTemp,10.125,between steps,fff55023050011016500
+fs3,BoilerMCBoostTemp,10.25,half step,fff5502305b811016700
+fs3,SwitchOnRuntime,0,minimum,fff55023053c10010000
+fs3,SwitchOnRuntime,5,middle,fff55023054c10010500
+fs3,SwitchOnRuntime,10,maximum,fff5502305dc10010a00
+fs3,SwitchOnRuntime,5.25,between steps,fff55023054c10010500
+fs3,SwitchOnRuntime,5.5,half step,fff55023054c10010500
+fs3,FrostProtectionLimitTemp,-20,minimum,fff55023058fbe0238ff
+fs3,FrostProtectionLimitTemp,-10,middle,fff55023056fbe029cff
+fs3,FrostProtectionLimitTemp,0,maximum,fff5502305a4be020000
+fs3,FrostProtectionLimitTemp,-9.875,between steps,fff550230533be029dff
+fs3,FrostProtectionLimitTemp,-9.75,half step,fff5502305d7be029eff
+em1,RoomNormalTemp,16,minimum,ff50502305e40500a000
+em1,RoomNormalTemp,25.5,middle,ff50502305bc0500ff00
+em1,RoomNormalTemp,35,maximum,ff505023052d05005e01
+em1,RoomNormalTemp,25.625,between steps,ff505023052905000001
+em1,RoomNormalTemp,25.75,half step,ff505023059105000201
+em1,RoomSetbackTemp,10,minimum,ff505023052808006400
+em1,RoomSetbackTemp,15.5,middle,ff50502305bc08009b00
+em1,RoomSetbackTemp,21.5,maximum,ff50502305b00800d700
+em1,RoomSetbackTemp,15.625,between steps,ff505023057408009c00
+em1,RoomSetbackTemp,15.75,half step,ff50502305cc08009e00
+em1,RoomFrostProtectionTemp,4,minimum,ff5050230570140a2800
+em1,RoomFrostProtectionTemp,10,middle,ff505023057c140a6400
+em1,RoomFrostProtectionTemp,16,maximum,ff50502305d8140aa000
+em1,RoomFrostProtectionTemp,10.125,between steps,ff5050230520140a6500
+em1,RoomFrostProtectionTemp,10.25,half step,ff5050230598140a6700
+em1,GradientCurve,2.5,minimum,ff50502305780e011900
+em1,GradientCurve,21,middle,ff505023054c0e01d200
+em1,GradientCurve,40,maximum,ff505023058d0e019001
+em1,GradientCurve,21.125,between steps,ff50502305100e01d300
+em1,GradientCurve,21.25,half step,ff50502305840e01d500
+em1,SummerWinterChangeOverTemp,8,minimum,ff50502305c416015000
+em1,SummerWinterChangeOverTemp,19,middle,ff50502305bc1601be00
+em1,SummerWinterChangeOverTemp,30,maximum,ff505023054516012c01
+em1,SummerWinterChangeOverTemp,19.125,between steps,ff50502305e01601bf00
+em1,SummerWinterChangeOverTemp,19.25,half step,ff50502305d81601c100
+em1,SupplyMaxTemp,8,minimum,3150502305d428005000
+em1,SupplyMaxTemp,45,middle,31505023052d2800c201
+em1,SupplyMaxTemp,82,maximum,3150502305bf28003403
+em1,SupplyMaxTemp,45.125,between steps,3150502305712800c301
+em1,SupplyMaxTemp,45.25,half step,3150502305e52800c501
+em1,SupplyMinTemp,8,minimum,3150502305702b015000
+em1,SupplyMinTemp,45,middle,3150502305892b01c201
+em1,SupplyMinTemp,82,maximum,31505023051b2b013403
+em1,SupplyMinTemp,45.125,between steps,3150502305d52b01c301
+em1,SupplyMinTemp,45.25,half step,3150502305412b01c501
+em2,RoomNormalTemp,16,minimum,ff51502305e40500a000
+em2,RoomNormalTemp,25.5,middle,ff51502305bc0500ff00
+em2,RoomNormalTemp,35,maximum,ff515023052d05005e01
+em2,RoomNormalTemp,25.625,between steps,ff515023052905000001
+em2,RoomNormalTemp,25.75,half step,ff515023059105000201
+em2,RoomSetbackTemp,10,minimum,ff515023052808006400
+em2,RoomSetbackTemp,15.5,middle,ff51502305bc08009b00
+em2,RoomSetbackTemp,21.5,maximum,ff51502305b00800d700
+em2,RoomSetbackTemp,15.625,between steps,ff515023057408009c00
+em2,RoomSetbackTemp,15.75,half step,ff51502305cc08009e00
+em2,RoomFrostProtectionTemp,4,minimum,ff5150230570140a2800
+em2,RoomFrostProtectionTemp,10,middle,ff515023057c140a6400
+em2,RoomFrostProtectionTemp,16,maximum,ff51502305d8140aa000
+em2,RoomFrostProtectionTemp,10.125,between steps,ff5150230520140a6500
+em2,RoomFrostProtectionTemp,10.25,half step,ff5150230598140a6700
+em2,GradientCurve,2.5,minimum,ff51502305780e011900
+em2,GradientCurve,21,middle,ff515023054c0e01d200
+em2,GradientCurve,40,maximum,ff515023058d0e019001
+em2,GradientCurve,21.125,between steps,ff51502305100e01d300
+em2,GradientCurve,21.25,half step,ff51502305840e01d500
+em2,SummerWinterChangeOverTemp,8,minimum,ff51502305c416015000
+em2,SummerWinterChangeOverTemp,19,middle,ff51502305bc1601be00
+em2,SummerWinterChangeOverTemp,30,maximum,ff515023054516012c01
+em2,SummerWinterChangeOverTemp,19.125,between steps,ff51502305e01601bf00
+em2,SummerWinterChangeOverTemp,19.25,half step,ff51502305d81601c100
+em2,SupplyMaxTemp,8,minimum,3151502305d428005000
+em2,SupplyMaxTemp,45,middle,31515023052d2800c201
+em2,SupplyMaxTemp,82,maximum,3151502305bf28003403
+em2,SupplyMaxTemp,45.125,between steps,3151502305712800c301
+em2,SupplyMaxTemp,45.25,half step,3151502305e52800c501
+em2,SupplyMinTemp,8,minimum,3151502305702b015000
+em2,SupplyMinTemp,45,middle,3151502305892b01c201
+em2,SupplyMinTemp,82,maximum,31515023051b2b013403
+em2,SupplyMinTemp,45.125,between steps,3151502305d52b01c301
+em2,SupplyMinTemp,45.25,half step,3151502305412b01c501
+em3,RoomNormalTemp,16,minimum,ff52502305e40500a000
+em3,RoomNormalTemp,25.5,middle,ff52502305bc0500ff00
+em3,RoomNormalTemp,35,maximum,ff525023052d05005e01
+em3,RoomNormalTemp,25.625,between steps,ff525023052905000001
+em3,RoomNormalTemp,25.75,half step,ff525023059105000201
+em3,RoomSetbackTemp,10,minimum,ff525023052808006400
+em3,RoomSetbackTemp,15.5,middle,ff52502305bc08009b00
+em3,RoomSetbackTemp,21.5,maximum,ff52502305b00800d700
+em3,RoomSetbackTemp,15.625,between steps,ff525023057408009c00
+em3,RoomSetbackTemp,15.75,half step,ff52502305cc08009e00
+em3,RoomFrostProtectionTemp,4,minimum,ff5250230570140a2800
+em3,RoomFrostProtectionTemp,10,middle,ff525023057c140a6400
+em3,RoomFrostProtectionTemp,16,maximum,ff52502305d8140aa000
+em3,RoomFrostProtectionTemp,10.125,between steps,ff5250230520140a6500
+em3,RoomFrostProtectionTemp,10.25,half step,ff5250230598140a6700
+em3,GradientCurve,2.5,minimum,ff52502305780e011900
+em3,GradientCurve,21,middle,ff525023054c0e01d200
+em3,GradientCurve,40,maximum,ff525023058d0e019001
+em3,GradientCurve,21.125,between steps,ff52502305100e01d300
+em3,GradientCurve,21.25,half step,ff52502305840e01d500
+em3,SummerWinterChangeOverTemp,8,minimum,ff52502305c416015000
+em3,SummerWinterChangeOverTemp,19,middle,ff52502305bc1601be00
+em3,SummerWinterChangeOverTemp,30,maximum,ff525023054516012c01
+em3,SummerWinterChangeOverTemp,19.125,between steps,ff52502305e01601bf00
+em3,SummerWinterChangeOverTemp,19.25,half step,ff52502305d81601c100
+em3,SupplyMaxTemp,8,minimum,3152502305d428005000
+em3,SupplyMaxTemp,45,middle,31525023052d2800c201
+em3,SupplyMaxTemp,82,maximum,3152502305bf28003403
+em3,SupplyMaxTemp,45.125,between steps,3152502305712800c301
+em3,SupplyMaxTemp,45.25,half step,3152502305e52800c501
+em3,SupplyMinTemp,8,minimum,3152502305702b015000
+em3,SupplyMinTemp,45,middle,3152502305892b01c201
+em3,SupplyMinTemp,82,maximum,31525023051b2b013403
+em3,SupplyMinTemp,45.125,between steps,3152502305d52b01c301
+em3,SupplyMinTemp,45.25,half step,3152502305412b01c501

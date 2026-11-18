@@ -1,0 +1,73 @@
+# Write definitions (`find -f -a`) of the older configuration loaded by ebusd, for the 71 settings that
+# ha-weishaupt 0.1.0 wrote by message name. Format of ebusd's CSV dump; read-only command, 2026-11-18.
+w,ka,SupplyMaxTemp,[WCRC],,15,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,ka,ModulationMax,[WCRC] 536 Modulation Max,,15,5023,00eafd,ModulationMax,m,UIN,32768=Na,%,Percent
+w,ka,ModulationMin,[WCRC] 535 Modulation Min,,15,5023,00ebfd,ModulationMin,m,UIN,32768=Na,%,Percent
+w,ka,DHWSetpoint,[WCRC],,15,5023,001300,_16_Temp10,m,SIN,10,°C,Temperature
+w,ka,RegulationP,[WCRC] 539 1/P Regler,,15,5023,009f02,RegulationP,m,UIN,,,
+w,ka,RegulationI,[WCRC] 540 I Regler,,15,5023,009e02,RegulationI,m,UIN,,,
+w,ka,LegionellaSetupTemp,[WCRC] 580 AntiLeg Setp Temp.,,15,5023,008705,LegionellaSetupTemp,m,SIN,10,°C,Temperature
+w,ka,DHWLoadTime,[WCRC] 577 WW Load Time,,15,5023,008001,DHWLoadTime,m,UIN,,min,Minute
+w,ka,DHWSwitchDiff,[WCRC] 575 DHW Switch Diff,,15,5023,004001,ControlVariationMode,m,SIN,10,K,Temperature Kelvin
+w,ka,LegionellaCirculationTime,[WCRC] 583 Circ time,,15,5023,00b109,LegionellaCirculationTime,m,UIN,,,
+w,ka,ChangeOverTime,[WCRC] 532 Change Over Time,,15,5023,00ecfd,ChangeOverTime,m,SIN,,°C,Temperature
+w,ka,BlockingTime,[WCRC],,15,5023,002500,BlockingTime,m,UIN,,min,Minute
+w,ka,DeCoupleMin,[WCRC] 552 De-Couple Min,,15,5023,00e7fd,DeCoupleMin,m,SIN,10,°C,Temperature
+w,ka,CalorfierSwitchDifference,[WCRC] 562 Calorfier Switch Difference,,15,5023,00e2fd,CalorfierSwitchDifference,m,SIN,10,K,Temperature Kelvin
+w,fs1,RoomNormalTemp,[WCRC],,35,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs1,RoomSetbackTemp,[WCRC],,35,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs1,RoomFrostProtectionTemp,[WCRC],,35,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs1,GradientCurve,[WCRC],,35,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,fs1,SummerWinterChangeOverTemp,[WCRC],,35,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs1,SupplyMaxTemp,[WCRC],,35,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,fs1,SupplyMinTemp,[WCRC],,35,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature
+w,fs1,DHWSetpoint,[WCRC],,35,5023,001300,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs1,RoomFactorCurve,[WCRC],,35,5023,000f01,_16_RoomFactor,m,UIN,32768=Na,,Room Factor P
+w,fs1,BoilerMCBoostTemp,[WCRC],,35,5023,001101,_16_TempK10,m,SIN,10,K,Temperature Kelvin
+w,fs1,SwitchOnRuntime,[WCRC],,35,5023,001001,Minutes,m,UIN,,min,Minute
+w,fs1,FrostProtectionLimitTemp,[WCRC] 382 Frost Protection Limit,,35,5023,00be02,FrostProtectionLimitTemp,m,SIN,10,°C,Temperature
+w,fs2,RoomNormalTemp,[WCRC],,75,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs2,RoomSetbackTemp,[WCRC],,75,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs2,RoomFrostProtectionTemp,[WCRC],,75,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs2,GradientCurve,[WCRC],,75,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,fs2,SummerWinterChangeOverTemp,[WCRC],,75,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs2,SupplyMaxTemp,[WCRC],,75,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,fs2,SupplyMinTemp,[WCRC],,75,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature
+w,fs2,DHWSetpoint,[WCRC],,75,5023,001300,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs2,RoomFactorCurve,[WCRC],,75,5023,000f01,_16_RoomFactor,m,UIN,32768=Na,,Room Factor P
+w,fs2,BoilerMCBoostTemp,[WCRC],,75,5023,001101,_16_TempK10,m,SIN,10,K,Temperature Kelvin
+w,fs2,SwitchOnRuntime,[WCRC],,75,5023,001001,Minutes,m,UIN,,min,Minute
+w,fs2,FrostProtectionLimitTemp,[WCRC] 382 Frost Protection Limit,,75,5023,00be02,FrostProtectionLimitTemp,m,SIN,10,°C,Temperature
+w,fs3,RoomNormalTemp,[WCRC],,f5,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs3,RoomSetbackTemp,[WCRC],,f5,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs3,RoomFrostProtectionTemp,[WCRC],,f5,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs3,GradientCurve,[WCRC],,f5,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,fs3,SummerWinterChangeOverTemp,[WCRC],,f5,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs3,SupplyMaxTemp,[WCRC],,f5,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,fs3,SupplyMinTemp,[WCRC],,f5,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature
+w,fs3,DHWSetpoint,[WCRC],,f5,5023,001300,_16_Temp10,m,SIN,10,°C,Temperature
+w,fs3,RoomFactorCurve,[WCRC],,f5,5023,000f01,_16_RoomFactor,m,UIN,32768=Na,,Room Factor P
+w,fs3,BoilerMCBoostTemp,[WCRC],,f5,5023,001101,_16_TempK10,m,SIN,10,K,Temperature Kelvin
+w,fs3,SwitchOnRuntime,[WCRC],,f5,5023,001001,Minutes,m,UIN,,min,Minute
+w,fs3,FrostProtectionLimitTemp,[WCRC] 382 Frost Protection Limit,,f5,5023,00be02,FrostProtectionLimitTemp,m,SIN,10,°C,Temperature
+w,em1,RoomNormalTemp,[WCRC],,50,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,em1,RoomSetbackTemp,[WCRC],,50,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,em1,RoomFrostProtectionTemp,[WCRC],,50,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,em1,GradientCurve,[WCRC],,50,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,em1,SummerWinterChangeOverTemp,[WCRC],,50,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,em1,SupplyMaxTemp,[WCRC],,50,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,em1,SupplyMinTemp,[WCRC],,50,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature
+w,em2,RoomNormalTemp,[WCRC],,51,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,em2,RoomSetbackTemp,[WCRC],,51,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,em2,RoomFrostProtectionTemp,[WCRC],,51,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,em2,GradientCurve,[WCRC],,51,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,em2,SummerWinterChangeOverTemp,[WCRC],,51,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,em2,SupplyMaxTemp,[WCRC],,51,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,em2,SupplyMinTemp,[WCRC],,51,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature
+w,em3,RoomNormalTemp,[WCRC],,52,5023,000500,_16_Temp10,m,SIN,10,°C,Temperature
+w,em3,RoomSetbackTemp,[WCRC],,52,5023,000800,_16_Temp10,m,SIN,10,°C,Temperature
+w,em3,RoomFrostProtectionTemp,[WCRC],,52,5023,00140a,_16_Temp10,m,SIN,10,°C,Temperature
+w,em3,GradientCurve,[WCRC],,52,5023,000e01,_16_Gradient10,m,SIN,10,,SteepNess
+w,em3,SummerWinterChangeOverTemp,[WCRC],,52,5023,001601,_16_Temp10,m,SIN,10,°C,Temperature
+w,em3,SupplyMaxTemp,[WCRC],,52,5023,002800,SupplyMaxTemp,m,SIN,10,°C,Temperature
+w,em3,SupplyMinTemp,[WCRC],,52,5023,002b01,SupplyMinTemp,m,SIN,10,°C,Temperature

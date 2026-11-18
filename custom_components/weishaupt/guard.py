@@ -1,5 +1,8 @@
 """Write guard, independent of the caller: every write goes through WriteGuard.check() before it is sent.
 
+Not used by this version: the integration is read-only and nothing imports this module. It is kept, with its
+tests, for the version that will write settings.
+
 Rules:
 - writes are refused unless enabled in the integration options;
 - the value must be within the bounds of the register;
@@ -27,7 +30,7 @@ LOG_FRESH_MAX = 120.0
 
 
 # Reasons of a refusal. The key is also the translation key of the message shown in Home Assistant
-# (`exceptions` in strings.json); the English text here is what the logs and the tests see.
+# (`exceptions` in the translations); the English text here is what the logs and the tests see.
 REASONS = {
     "writes_disabled": "writes are disabled (integration options or write switch)",
     "out_of_bounds": "{value} is outside the bounds [{minimum}, {maximum}]",

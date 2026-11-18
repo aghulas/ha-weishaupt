@@ -1,26 +1,64 @@
-"""Base entity: one device per regulator."""
+"""Base entity: one Home Assistant device per controller on the bus, attached to the ebusd hub device."""
 from __future__ import annotations
 
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import Entity
 
-from .const import DOMAIN
-from .coordinator import WeishauptCoordinator
-from .registers import Device
+from .const import DOMAIN, MANUFACTURER, MODELS
+from .hub import Hub
+from .model import Device
+
+TEXT_TYPES = ("HEX", "STR", "NTS", "TTM", "TTH", "TTQ", "BTI", "HTI", "VTI", "BTM", "HTM", "VTM", "BDA", "HDA", "BDZ")
+NOT_AVAILABLE = "-"  # what ebusd answers for the replacement value of a type
 
 
-class WeishauptEntity(CoordinatorEntity[WeishauptCoordinator]):
+def hub_identifier(hub: Hub) -> tuple[str, str]:
+    return (DOMAIN, hub.entry.entry_id)
+
+
+def device_identifier(hub: Hub, device: Device) -> tuple[str, str]:
+    return (DOMAIN, f"{hub.entry.entry_id}_{device.id}")
+
+
+def _version(raw: str | None) -> str | None:
+    """`1104` of the scan -> `11.04`."""
+    return f"{raw[:2]}.{raw[2:]}" if raw and len(raw) == 4 and raw.isdigit() else raw
+
+
+def parse_number(text: str | None) -> int | float | None:
+    if text is None or text == NOT_AVAILABLE:
+        return None
+    try:
+        return float(text) if "." in text else int(text)
+    except ValueError:
+        return None
+
+
+class WeishauptEntity(Entity):
+    """An entity fed by the readings of one or several messages."""
+
     _attr_has_entity_name = True
+    _attr_should_poll = False
 
-    def __init__(self, coordinator: WeishauptCoordinator, device: Device, key: str) -> None:
-        super().__init__(coordinator)
-        self.device = device
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{device.key}_{key}"
-        self._attr_translation_key = key  # entity name, and option/state labels, from the translations
+    def __init__(self, hub: Hub, device: Device, key: str, translation_key: str, messages: tuple[str, ...]) -> None:
+        self.hub = hub
+        self._messages = messages
+        self._attr_unique_id = f"{hub.entry.entry_id}_{key}"
+        self._attr_translation_key = translation_key
+        scan = hub.address_of(device)
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{coordinator.config_entry.entry_id}_{device.key}")},
-            translation_key=device.kind, translation_placeholders={"number": device.number},
-            manufacturer="Weishaupt", model=f"eBUS {device.zz}")
+            identifiers={device_identifier(hub, device)},
+            translation_key=device.id,
+            manufacturer=MANUFACTURER,
+            model=MODELS.get(device.type),
+            sw_version=_version(scan.software) if scan else None,
+            hw_version=_version(scan.hardware) if scan else None,
+            via_device_id=hub.device_id,
+        )
 
-    def raw(self, register: str) -> bytes | None:
-        return (self.coordinator.data or {}).get(self.device.key, {}).get(register)
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(self.hub.async_listen(self._messages, self.async_write_ha_state))
+
+    @property
+    def available(self) -> bool:
+        return self.hub.available

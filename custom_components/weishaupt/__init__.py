@@ -1,87 +1,96 @@
-"""Weishaupt WCM regulators through ebusd (registers read with 5022, written with 5023 and the Weishaupt CRC)."""
+"""Weishaupt WTC boilers and WCM controllers through ebusd — unofficial, read-only.
+
+Devices, entities and names come from the metadata file of a release of the Weishaupt definitions for ebusd
+(`metadata.json`). At start-up what ebusd loaded is compared with it; a difference raises a repair issue and the
+messages concerned get no entity.
+"""
 from __future__ import annotations
 
-import voluptuous as vol
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST, CONF_PORT, Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST, CONF_PORT, Platform
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv, entity_registry as er
+from .const import DOCUMENTATION_URL, DOMAIN
+from .ebusd import EbusdClient, EbusdError
+from .entity import device_identifier, hub_identifier
+from .hub import Hub, WeishauptConfigEntry
+from .model import ACCEPTED_DEFINITIONS, Model
 
-from .const import DOMAIN
-from .coordinator import WeishauptConfigEntry, WeishauptCoordinator
-from .protocol import EbusdClient, encode_slot, parse_slots
-from .registers import DAYS, DEVICES, PROGRAM_SOURCE, PROGRAMS
-
-PLATFORMS = [Platform.DATE, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
-SET_TIME_PROGRAM_SCHEMA = vol.Schema({
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
-    vol.Required("day"): vol.In(DAYS),
-    vol.Required("slots"): cv.string,
-})
-SET_CLOCK_SCHEMA = vol.Schema({
-    vol.Optional("align", default=True): cv.boolean,
-})
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
+EXAMPLES = 8  # messages named in the repair issue
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
-    client = EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT])
-    coordinator = WeishauptCoordinator(hass, entry, client)
-    await coordinator.async_config_entry_first_refresh()
-    entry.runtime_data = coordinator
-    entry.async_on_unload(entry.add_update_listener(_async_reload))
+    model = await hass.async_add_executor_job(Model.load)
+    hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), model)
+    try:
+        await hub.async_setup()
+    except EbusdError as err:
+        raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
+                                  translation_placeholders={"error": str(err)}) from err
+    entry.runtime_data = hub
+    assert hub.info is not None
+    hub.device_id = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={hub_identifier(hub)}, name="ebusd", manufacturer="ebusd",
+        sw_version=hub.info.version, entry_type=dr.DeviceEntryType.SERVICE).id
+    _update_issues(hass, entry, hub)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    if not hass.services.has_service(DOMAIN, "set_time_program"):
-        hass.services.async_register(DOMAIN, "set_time_program", _time_program_handler(hass), SET_TIME_PROGRAM_SCHEMA)
-    if not hass.services.has_service(DOMAIN, "set_clock"):
-        hass.services.async_register(DOMAIN, "set_clock", _set_clock_handler(hass), SET_CLOCK_SCHEMA)
+    entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
+    entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
 
 
-def _set_clock_handler(hass: HomeAssistant):
-    async def set_clock(call: ServiceCall) -> None:
-        """WRITE (broadcast): set the regulators' clock from Home Assistant's time (`fe 0700` broadcast)."""
-        entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.state is ConfigEntryState.LOADED]
-        if len(entries) != 1:
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="single_entry_required")
-        coordinator: WeishauptCoordinator = entries[0].runtime_data
-        await coordinator.async_set_clock(align=call.data["align"])
-
-    return set_clock
-
-
-def _time_program_handler(hass: HomeAssistant):
-    async def set_time_program(call: ServiceCall) -> None:
-        """WRITE: the 3 slots of one day of a time program (unused slots cleared), one register per write,
-        unchanged slots not rewritten."""
-        entry_ = er.async_get(hass).async_get(call.data[ATTR_ENTITY_ID])
-        if entry_ is None or entry_.platform != DOMAIN or "_program_" not in entry_.unique_id:
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="not_a_program_sensor")
-        config_entry = hass.config_entries.async_get_entry(entry_.config_entry_id)
-        coordinator: WeishauptCoordinator = config_entry.runtime_data
-        suffix = entry_.unique_id.removeprefix(f"{config_entry.entry_id}_")
-        device = next(d for d in DEVICES if suffix.startswith(f"{d.key}_program_"))
-        program = next(p for p in PROGRAMS if suffix == f"{device.key}_program_{p.key}")
-        try:
-            slots = parse_slots(call.data["slots"])
-        except ValueError as err:
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="invalid_slots",
-                                         translation_placeholders={"error": str(err)}) from err
-        day = DAYS.index(call.data["day"]) + 1
-        for number in range(1, 4):
-            slot = slots[number - 1] if number <= len(slots) else None
-            raw = encode_slot(slot)
-            register = program.register(day, number)
-            if (coordinator.data or {}).get(device.key, {}).get(register) == raw:
-                continue
-            await coordinator.async_write(device, register, raw, raw[0], 0, 0x80, PROGRAM_SOURCE)
-
-    return set_time_program
+def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
+    """One repair issue when no known device answers, one when ebusd's definitions are not those expected."""
+    no_devices, mismatch = f"no_devices_{entry.entry_id}", f"definitions_mismatch_{entry.entry_id}"
+    if hub.devices:
+        ir.async_delete_issue(hass, DOMAIN, no_devices)
+    else:
+        ir.async_create_issue(
+            hass, DOMAIN, no_devices, is_fixable=False, severity=ir.IssueSeverity.WARNING,
+            translation_key="no_devices", learn_more_url=DOCUMENTATION_URL,
+            translation_placeholders={"addresses": ", ".join(a.address for a in hub.unknown_slaves) or "-"})
+    if not hub.mismatches:
+        ir.async_delete_issue(hass, DOMAIN, mismatch)
+        return
+    missing = sum(1 for m in hub.mismatches if m.reason == "missing")
+    names = [m.key for m in hub.mismatches[:EXAMPLES]]
+    if len(hub.mismatches) > EXAMPLES:
+        names.append("…")
+    ir.async_create_issue(
+        hass, DOMAIN, mismatch, is_fixable=False, learn_more_url=DOCUMENTATION_URL,
+        severity=ir.IssueSeverity.ERROR if not hub.usable else ir.IssueSeverity.WARNING,
+        translation_key="definitions_mismatch",
+        translation_placeholders={
+            "count": str(len(hub.mismatches)), "missing": str(missing),
+            "different": str(len(hub.mismatches) - missing), "version": hub.model.version,
+            "accepted": ACCEPTED_DEFINITIONS, "messages": ", ".join(names)})
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    for issue in ("no_devices", "definitions_mismatch"):
+        ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Version 1 (0.1.x) kept the options of the write path: they have no meaning in a read-only version."""
+    if entry.version == 1:
+        hass.config_entries.async_update_entry(entry, options={}, version=2)
+    return entry.version <= 2
+
+
+async def async_remove_config_entry_device(hass: HomeAssistant, entry: WeishauptConfigEntry,
+                                           device: dr.DeviceEntry) -> bool:
+    """A device may be deleted by hand when it is no longer on the bus (or was created by version 0.1)."""
+    hub = entry.runtime_data
+    current = {hub_identifier(hub)} | {device_identifier(hub, d) for d in hub.devices.values()}
+    return not current.intersection(device.identifiers)
 
 
 async def _async_reload(hass: HomeAssistant, entry: WeishauptConfigEntry) -> None:

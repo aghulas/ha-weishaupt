@@ -1,1 +1,6 @@
-pytest-homeassistant-custom-component
+# Test environment. Needs Python 3.14.
+# pytest-homeassistant-custom-component pins Home Assistant itself (0.13.375 -> homeassistant 2026.10.4) together
+# with pytest, pytest-asyncio, pytest-socket and pytest-timeout: one line pins the whole environment.
+# To test against another Home Assistant version, change this pin to the plugin release built for it.
+pytest-homeassistant-custom-component==0.13.375
+pytest-cov==7.1.0

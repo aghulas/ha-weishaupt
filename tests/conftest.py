@@ -1,8 +1,10 @@
 """Test set-up.
 
+Run the suite with `scripts/test.sh`, which creates the environment of `requirements_test.txt`.
+
 The modules without Home Assistant dependency (`ebusd`, `model`, `guard`) are loaded on their own as
-`weishaupt_core.*`, so that their tests run with plain pytest. The tests that need Home Assistant
-(`test_ha_*.py`) run under `pytest-homeassistant-custom-component` and are skipped without it.
+`weishaupt_core.*`. With a bare pytest (no Home Assistant test plugin) the tests of `test_ha_*.py` are not
+collected and the asynchronous tests are skipped with a message, instead of failing.
 """
 from __future__ import annotations
 
@@ -56,6 +58,14 @@ if HAVE_HA:
     def _custom_integrations(enable_custom_integrations):
         yield
 else:
+    import inspect
+
     @pytest.fixture
     def socket_enabled():
         yield
+
+    def pytest_collection_modifyitems(items):
+        skip = pytest.mark.skip(reason="needs the test environment: run scripts/test.sh")
+        for item in items:
+            if inspect.iscoroutinefunction(getattr(item, "function", None)) or "fake" in item.fixturenames:
+                item.add_marker(skip)

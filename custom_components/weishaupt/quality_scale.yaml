@@ -1,0 +1,87 @@
+# Integration quality scale of Home Assistant, as a checklist. A custom integration is not graded; the rules
+# are followed where they apply. Status: done, todo, or exempt with the reason.
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration registers no action.
+  appropriate-polling:
+    status: done
+    comment: >-
+      Own paced reader instead of a fixed update interval: one request at a time, a gap between requests, an
+      interval per class of message, only messages of enabled entities. The intervals are choices (README).
+  brands:
+    status: done
+    comment: Own images in brand/; nothing submitted to the brands repository.
+  common-modules:
+    status: done
+    comment: entity.py holds the base entity; hub.py takes the place of coordinator.py (see appropriate-polling).
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency:
+    status: done
+    comment: No requirement; the ebusd client is part of the integration.
+  docs-actions:
+    status: exempt
+    comment: No action.
+  docs-conditions:
+    status: exempt
+    comment: No condition.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-triggers:
+    status: exempt
+    comment: No trigger.
+  entity-event-setup:
+    status: done
+    comment: Entities subscribe to the hub in async_added_to_hass and unsubscribe on removal.
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry:
+    status: done
+    comment: >-
+      Unique id host:port, as in 0.1 (ebusd has no serial number). The same ebusd reached under two host
+      names is not detected.
+  # Silver
+  action-exceptions:
+    status: exempt
+    comment: No action.
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: ebusd has no authentication.
+  test-coverage:
+    status: done
+    comment: 97 % of the statements, measured by the test workflow (pytest --cov); the rule asks for more than 95 %.
+  # Gold, the rules already met or looked at
+  devices: done
+  diagnostics: done
+  entity-category: done
+  entity-device-class: done
+  entity-disabled-by-default: done
+  entity-translations: done
+  reconfiguration-flow: done
+  repair-issues: done
+  stale-devices:
+    status: todo
+    comment: A device that left the bus can be deleted by hand; it is not removed automatically.
+  dynamic-devices:
+    status: todo
+    comment: The bus is looked at when the entry is set up; a device that appears later needs a reload.
+  discovery:
+    status: exempt
+    comment: ebusd announces itself by no discovery protocol.
+  exception-translations: done
+  icon-translations:
+    status: todo
+    comment: No icons.json yet; entities use the icons of their device class.

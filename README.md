@@ -2,18 +2,21 @@
 
 An **unofficial** Home Assistant integration that reads and sets Weishaupt WCM regulators (system manager KA,
 room units FS, heating modules EM) through ebusd, with the commands `5022` (read) and `5023` (write), both
-protected by the Weishaupt CRC. Numeric settings are written through the message definitions of ebusd
-(`write -c <circuit> <Message>`), everything else as `hex` telegrams. The readings and boiler states that ebusd
+protected by the Weishaupt CRC. Reads and writes go as `hex` telegrams, so they do not depend on the message
+definitions ebusd loads. The readings and boiler states that ebusd
 publishes over MQTT are left as they are; this integration adds the settings.
 
 Not affiliated with Weishaupt. It writes to a heating system: read the section on writes before enabling them.
 
 ## Requirements
 
-- ebusd started with `--enablehex`, reachable over TCP (port 8888 by default): reads, dates, choices, time
-  programs and the clock go through `hex`.
-- For the numeric settings: an ebusd that computes the Weishaupt CRC at run time (john30/ebusd#1825) and a
-  Weishaupt configuration whose `5023` writes are marked `[WCRC]` (for example `RoomNormalTemp` on `fs1`).
+- ebusd started with `--enablehex`, reachable over TCP (port 8888 by default): reads and writes go through
+  `hex`. Any ebusd build and any configuration (the older Weishaupt configuration or a release of
+  `aghulas/ebusd-configuration`) will do: the integration computes the CRC itself.
+- Three settings are still written through an ebusd message definition (`write -c`): the modulation maximum and
+  minimum of the KA and the room factor of the FS (`message` in `registers.py`). Their definition in the older
+  configuration is a value list, which ebusd does not accept a number for, and a release does not define them:
+  their write is refused by ebusd and nothing is sent, as in 0.1.0.
 - The telegram log of the ebusd add-on (`sqlite_db`) readable by Home Assistant, for example
   `/share/ebusd/telegrams.db`: it tells whether the WCM-Diagnose service tool is connected.
 
@@ -61,10 +64,10 @@ circuits in service since 15/11/2026) and the **run-time write switch** (off = e
 - at most one write per register every 10 s and 30 writes per hour;
 - one register per `5023` telegram, read back after the write; a value that was not retained is reported as an
   error;
-- numeric settings (`number`) are written through their ebusd definition (`message` in `registers.py`): ebusd
-  computes the CRC and refuses a value outside the bounds of the definition before sending it; dates, choices,
-  programs and the clock go as `hex`, with the CRC computed by `protocol.py`. The read-back is in `hex` in both
-  cases;
+- every write goes as a `hex` telegram with the CRC computed by `protocol.py` (except the three settings named
+  under Requirements); the bounds above are the only range check, the integration's own. A numeric setting is
+  encoded as ebusd encoded it from the definition 0.1.0 used, so the telegram is the same byte for byte. The
+  read-back is in `hex`;
 - most settings are accepted only from the address of the service tool, `ff` (other addresses are acknowledged,
   then ignored). A write from `ff` is refused if a telegram from `ff` is in the log of the last 10 minutes
   (WCM-Diagnose connected: two masters on the same address would disturb each other) or if the log cannot be
@@ -77,7 +80,7 @@ value read back, source address).
 
 - 0.1.0 (30/10/2026): KA and FS settings with `5022`/`5023` as `hex` telegrams, write guard, holidays, time
   programs, action `set_clock`.
-- `main` since 07/11/2026: numeric settings written through the ebusd definitions.
+- 07/11/2026 to 0.1.0 as installed: numeric settings written through the ebusd definitions.
 - 15/11/2026: the whole regulation of the circuits is opened: anticipation and fine regulation of the FS,
   extension circuits EM1-3 (external boiler demand), cascade and hydraulic separator settings; global write
   switch and persistent option `writes_enabled`.
@@ -85,14 +88,23 @@ value read back, source address).
   the `day` of `set_time_program` and the program sensor attributes changed from French words to English keys:
   automations that use them must be adapted. Entity ids and unique ids are unchanged.
 
+- 0.1.1 (18/11/2026): numeric settings written as `hex` telegrams again, byte-identical to the telegrams ebusd
+  built from the definitions, so that ebusd can load a definitions release without stopping the writes. No other
+  change: same entities, unique ids, options and bounds.
+
 ## Tests
 
 ```bash
+python3 -m pip install pytest
 python3 -m pytest tests
 ```
 
-The tests cover the protocol (frames compared with those of a live bus), the write guard and the translation
-files, without Home Assistant.
+Python 3.11 or later and `pytest`; Home Assistant and its test plugins are not needed. The tests load
+`protocol.py`, `guard.py` and `registers.py` alone (`tests/conftest.py`) and read the translation files. They cover
+the protocol (frames compared with those of a live bus), the write guard, the translation files, and the raw
+writes of the numeric settings (`tests/test_raw_writes.py`: telegrams compared with captured ones, with those the
+ebusd library builds from the definitions, `tests/data/`, and with the definitions over each whole range). The
+Home Assistant modules (`coordinator.py`, the platforms) are not run by the tests.
 
 ## Licence
 

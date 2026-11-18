@@ -158,14 +158,25 @@ integration under the same name:
   which verifies the checksums. Never edit `translations/*.json` by hand; a test fails if they
   differ from what the script generates.
 - `ebusd.py` (client) and `model.py` (metadata) have no Home Assistant dependency.
+- `brand/` holds the images Home Assistant and HACS show; they are drawn by `scripts/make_brand.py`
+  (an own mark, no vendor logo).
 - `guard.py` is the write guard of 0.1, kept with its tests for the version that will write
   settings. Nothing imports it.
 
 ### Tests
 
 ```bash
-pip install -r requirements_test.txt
-pytest
+scripts/test.sh
+```
+
+creates the test environment in `.venv` (once) and runs everything; arguments go to pytest
+(`scripts/test.sh -k reader`). It needs **Python 3.14**: `requirements_test.txt` pins
+`pytest-homeassistant-custom-component`, which pins Home Assistant (2026.10.4 today) and the pytest
+plugins. With a bare `pytest` and no such environment, only the tests that need neither Home
+Assistant nor asyncio run, and the others are skipped with a message. By hand:
+
+```bash
+python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .venv/bin/pytest
 ```
 
 - The client, the model and the comparison are tested against **recorded answers of a real
@@ -176,7 +187,14 @@ pytest
 - The integration runs inside a Home Assistant test instance against a **simulated ebusd**
   (`tests/fake_ebusd.py`), a TCP server that replays those answers and makes up values for the
   messages without a recording.
-- `hassfest` passes (`docker run --rm -v "$PWD":/github/workspace ghcr.io/home-assistant/hassfest`).
+- `tests/test_packaging.py` applies the rules of HACS to `hacs.json`, the manifest and the brand
+  images.
+- hassfest, the validation of Home Assistant:
+  `docker run --rm -v "$PWD":/github/workspace ghcr.io/home-assistant/hassfest`.
+- Two workflows run on GitHub: `tests.yml` (the suite, with coverage) and `validate.yml` (hassfest
+  and the HACS action, which looks at the pushed repository and cannot be run on local files).
+- `custom_components/weishaupt/quality_scale.yaml` is the quality-scale checklist of Home
+  Assistant, rule by rule.
 
 What this does not prove: timing and load on a real bus, the behaviour of the devices, and the
 values of an installation other than the one the definitions were established on.

@@ -7,10 +7,10 @@ other.
 
 Regulation parameters whose write is not yet bus-validated are exposed READ-ONLY first (READ_PARAMS, below), so their
 value is visible while the write rule (source ff/31), the WCM-manual bounds and, for modes, the value table are being
-checked register by register on the bus (étape C of the chantier). A read param becomes a Setting/Choice once its
+checked register by register on the bus (step C). A read param becomes a Setting/Choice once its
 write is validated.
 
-Chantier Lot 1 (15/11/2026): a batch of regulation settings/choices is added with bounds from the WCM manuals
+Lot 1 (15/11/2026): a batch of regulation settings/choices is added with bounds from the WCM manuals
 (WCM-FS 83277504, WCM-KA 83258404) and mode value tables from the ebusd templates (_16_CVariation, _16_HCType),
 AHEAD of their per-register bus validation. Their `source` is "ff" by hypothesis (FS/KA settings). These writes stay
 blocked by the integration's global write switch (CONF_WRITES_ENABLED) until each register is validated on the bus
@@ -21,6 +21,9 @@ Bounds are the setting ranges of the Weishaupt manuals: WCM-FS 2.0 (83277701, 20
 §4.7) and WCM-KA 3.0 (83258401, 2013-04, p.50-63). The manuals give no step; 0.5 K and 1 % are the steps of their
 display examples. `min_ref`/`max_ref` name a setting of the same device whose current value also bounds this one,
 as the manuals describe (e.g. reduced room setpoint <= normal room setpoint).
+
+Names shown to the user are not here: every `key` is a translation key of `strings.json` (entity names, and for
+choices the option labels), translated in `translations/`.
 """
 from __future__ import annotations
 
@@ -28,21 +31,34 @@ from dataclasses import dataclass
 
 from .protocol import TEMP10, UNIT, Codec
 
-TEMP1 = Codec(1)  # _16_Temp1 : entier signé 16 bits, facteur 1 (ex. Tps cascade en heures)
+TEMP1 = Codec(1)  # _16_Temp1: signed 16-bit integer, factor 1 (e.g. cascade change-over time in hours)
 
 
 @dataclass(frozen=True)
 class Device:
     key: str
     zz: str  # slave address
-    name: str
+
+    @property
+    def kind(self) -> str:
+        """Translation key of the device name: ka, fs or em."""
+        return self.key.rstrip("0123456789")
+
+    @property
+    def number(self) -> str:
+        """Number of the device within its kind ("" for the only KA)."""
+        return self.key[len(self.kind):]
+
+    @property
+    def label(self) -> str:
+        """Short language-neutral name for logs and error messages, e.g. FS1."""
+        return self.key.upper()
 
 
 @dataclass(frozen=True)
 class Setting:
     key: str
     register: str  # register and bank, hex "RRBB"
-    name: str
     codec: Codec
     unit: str | None
     minimum: float
@@ -60,56 +76,55 @@ class DateSetting:
 
     key: str
     registers: tuple[str, str, str]
-    name: str
     source: str | None
 
 
 DEVICES = [
-    Device("ka", "15", "Cascade KA"),
-    Device("fs1", "35", "Commande FS1"),
-    Device("fs2", "75", "Commande FS2"),
-    Device("fs3", "f5", "Commande FS3"),
-    # Modules d'extension : circuits pilotés par un appel chaudière externe (relais sur l'entrée H1).
-    Device("em1", "50", "Extension EM1"),
-    Device("em2", "51", "Extension EM2"),
-    Device("em3", "52", "Extension EM3"),
+    Device("ka", "15"),
+    Device("fs1", "35"),
+    Device("fs2", "75"),
+    Device("fs3", "f5"),
+    # Extension modules: circuits driven by an external boiler demand (relay on the H1 input).
+    Device("em1", "50"),
+    Device("em2", "51"),
+    Device("em3", "52"),
 ]
 
 FS_SETTINGS = [
     # FS 112, 113, 118, 117 (range of the "Universal" circuit type), 119
-    Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 16, 35, 0.5, "ff",
+    Setting("room_normal", "0500", TEMP10, "°C", 16, 35, 0.5, "ff",
             min_ref="room_reduced", message="RoomNormalTemp"),
-    Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 10, 21.5, 0.5, "ff",
+    Setting("room_reduced", "0800", TEMP10, "°C", 10, 21.5, 0.5, "ff",
             max_ref="room_normal", message="RoomSetbackTemp"),
-    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff",
+    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff",
             message="RoomFrostProtectionTemp"),
-    Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff",
+    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff",
             message="GradientCurve"),
-    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff",
+    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff",
             message="SummerWinterChangeOverTemp"),
     # circuit flow limits, KA 342/341 (not in the FS manual): max up to 82 °C for the "Universal" type
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
+    Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, "ff",
             min_ref="supply_min", message="SupplyMaxTemp"),
-    Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, "ff",
+    Setting("supply_min", "2b01", TEMP10, "°C", 8, 82, 0.5, "ff",
             max_ref="supply_max", message="SupplyMinTemp"),
     # FS 132
-    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
+    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff",
             message="DHWSetpoint"),
-    # Lot 1 (régulation fine) — bornes WCM-FS / codecs ebusd ; source ff par hypothèse, EN ATTENTE DE VALIDATION BUS
-    Setting("room_factor_curve", "0f01", "Facteur d'influence pièce (P)", UNIT, None, 1, 20, 1, "ff",
-            message="RoomFactorCurve"),                                            # P508, défaut 5
-    Setting("boiler_mc_boost", "1101", "Surélévation t° circuit mélangé (boost)", TEMP10, "K", 0, 20, 0.5, "ff",
-            message="BoilerMCBoostTemp"),                                          # P424, défaut 2,0 K
-    # Validé écrivable sur le bus le 15/11. Max établi par sweep bus (10 retenu, 20 rejeté) -> 0..10 min.
-    Setting("switch_on_runtime", "1001", "Délai de relance (anticipation)", UNIT, "min", 0, 10, 1, "ff",
+    # Lot 1 (fine regulation): WCM-FS bounds / ebusd codecs; source ff by hypothesis, AWAITING BUS VALIDATION
+    Setting("room_factor_curve", "0f01", UNIT, None, 1, 20, 1, "ff",
+            message="RoomFactorCurve"),                                            # P508, default 5
+    Setting("boiler_mc_boost", "1101", TEMP10, "K", 0, 20, 0.5, "ff",
+            message="BoilerMCBoostTemp"),                                          # P424, default 2.0 K
+    # Validated writable on the bus on 15/11. Maximum found by a bus sweep (10 kept, 20 rejected) -> 0..10 min.
+    Setting("switch_on_runtime", "1001", UNIT, "min", 0, 10, 1, "ff",
             message="SwitchOnRuntime"),
-    # Lot 2 (15/11) — limite hors-gel (WCM-FS §6.5.28 : Arrêt + -20..0 °C) ; validée bus 0,0->-0,5->0,0 depuis ff.
-    Setting("frost_protection_limit", "be02", "Température limite hors-gel", TEMP10, "°C", -20, 0, 0.5, "ff",
+    # Lot 2 (15/11): frost protection limit (WCM-FS §6.5.28: off + -20..0 °C); bus-validated 0.0->-0.5->0.0 from ff.
+    Setting("frost_protection_limit", "be02", TEMP10, "°C", -20, 0, 0.5, "ff",
             message="FrostProtectionLimitTemp"),
 ]
 FS_DATES = [
-    DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "Congés : début", "ff"),
-    DateSetting("holiday_to", ("1e01", "1f01", "2001"), "Congés : fin", "ff"),
+    DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "ff"),
+    DateSetting("holiday_to", ("1e01", "1f01", "2001"), "ff"),
 ]
 @dataclass(frozen=True)
 class Choice:
@@ -117,28 +132,26 @@ class Choice:
 
     key: str
     register: str
-    name: str
-    options: dict[int, str]
+    options: dict[int, str]  # raw value -> option key (label in the translations)
     source: str | None
 
 
 # FS 142: written and read back on FS1 (30/10/2026), 1 moved the room setpoint of a circuit on holiday from 4 to 14 °C
 FS_CHOICES = [
-    Choice("holiday_level", "3d01", "Congés : niveau de température", {0: "hors-gel", 1: "réduit"}, "ff"),
-    # Lot 1 — modes de régulation ; tables de valeurs = gabarits ebusd _16_OnOff/_16_CVariation/_16_HCType.
-    # EN ATTENTE DE VALIDATION BUS (source ff). ⚠️ hc_type est STRUCTUREL : changer le type reconfigure le circuit.
-    Choice("adaption", "1501", "Adaptation", {0: "Arrêt", 1: "Marche"}, "ff"),
-    Choice("control_variation", "4101", "Variante de régulation",
-           {0: "Constant", 1: "Extérieur", 2: "Extérieur + ambiance", 3: "Ambiance"}, "ff"),
-    Choice("hc_type", "7309", "Type de circuit de chauffage",
-           {0: "Plancher", 1: "Plancher 2", 2: "Radiateur 60°", 3: "Radiateur 75°", 4: "Convecteur",
-            5: "Universel"}, "ff"),
+    Choice("holiday_level", "3d01", {0: "frost", 1: "reduced"}, "ff"),
+    # Lot 1: regulation modes; value tables = ebusd templates _16_OnOff/_16_CVariation/_16_HCType.
+    # AWAITING BUS VALIDATION (source ff). hc_type is STRUCTURAL: changing the type reconfigures the circuit.
+    Choice("adaption", "1501", {0: "off", 1: "on"}, "ff"),
+    Choice("control_variation", "4101",
+           {0: "constant", 1: "weather", 2: "weather_room", 3: "room"}, "ff"),
+    Choice("hc_type", "7309",
+           {0: "floor", 1: "floor_2", 2: "radiator_60", 3: "radiator_75", 4: "convector", 5: "universal"}, "ff"),
 ]
 
 
 @dataclass(frozen=True)
 class ReadParam:
-    """A regulation register exposed READ-ONLY, ahead of its write validation on the bus (étape C).
+    """A regulation register exposed READ-ONLY, ahead of its write validation on the bus (step C).
 
     `codec` decodes the raw 2 bytes for display only; `options` maps the raw integer of a mode register to a label
     (display only, no write). No bounds here: the writable entity (Setting/Choice, with the WCM-manual range) is
@@ -147,94 +160,92 @@ class ReadParam:
 
     key: str
     register: str
-    name: str
     codec: Codec
     unit: str | None = None
     options: dict[int, str] | None = None
 
 
-# Lot 1 (étape B, 15/11/2026) — anticipation / régulation fine, en LECTURE SEULE. Codecs d'après les gabarits ebusd
-# (regulator.active.inc) ; les modes (_16_CVariation, _16_HCType) sont affichés en valeur brute tant que leur table
-# n'est pas confirmée. L'écriture (bornes des notices WCM, source ff/31) s'ajoute registre par registre après
-# validation bus (étape C).
-# Restent en LECTURE SEULE : non documentés dans les notices WCM (bornes à sonder sur le bus avant écriture, étape C).
-# Les 7 autres paramètres du Lot 1 sont promus en écrivables (FS_SETTINGS/KA_SETTINGS/FS_CHOICES ci-dessus).
+# Lot 1 (step B, 15/11/2026): anticipation / fine regulation, READ-ONLY. Codecs from the ebusd templates
+# (regulator.active.inc). The write (bounds of the WCM manuals, source ff/31) is added register by register after
+# its bus validation (step C).
+# Still READ-ONLY: not documented in the WCM manuals (bounds to be probed on the bus before any write, step C).
+# The 7 other Lot 1 parameters are writable (FS_SETTINGS/KA_SETTINGS/FS_CHOICES above).
 FS_READ_PARAMS = [
-    ReadParam("room_factor_i", "7109", "Facteur d'influence pièce (I)", UNIT),               # P509 absent (FS 2.0 = P seul)
+    ReadParam("room_factor_i", "7109", UNIT),               # no P509 (FS 2.0 = P only)
 ]
 
 KA_SETTINGS = [
     # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, "ff",
+    Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, "ff",
             message="SupplyMaxTemp"),
-    Setting("modulation_max", "eafd", "Modulation maxi", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min",
+    Setting("modulation_max", "eafd", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min",
             message="ModulationMax"),
-    Setting("modulation_min", "ebfd", "Modulation mini", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max",
+    Setting("modulation_min", "ebfd", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max",
             message="ModulationMin"),
-    Setting("dhw_setpoint", "1300", "Consigne eau chaude", TEMP10, "°C", 40, 60, 0.5, "ff",
+    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff",
             message="DHWSetpoint"),
-    # Lot 1 — régulateur de puissance de la cascade (WCM-KA) ; source ff par hypothèse, EN ATTENTE DE VALIDATION BUS
-    Setting("regulation_p", "9f02", "Régulateur P (cascade)", UNIT, None, 10, 300, 1, "ff",
-            message="RegulationP"),                                                # P539, défaut 100
-    Setting("regulation_i", "9e02", "Régulateur I (cascade)", UNIT, None, 10, 200, 1, "ff",
-            message="RegulationI"),                                                # P540, défaut 100
-    # Lot 2 ECS (15/11, WCM-KA §6.7.34/6.7.37) — validés bus depuis ff ; DHWMaxLoad écarté (pas de def d'écriture).
-    Setting("legionella_setup_temp", "8705", "Anti-légionelle : consigne ECS", TEMP10, "°C", 40, 80, 0.5, "ff",
-            message="LegionellaSetupTemp"),                                        # défaut 60 °C
-    Setting("dhw_load_time", "8001", "Temps de charge maxi ECS", UNIT, "min", 0, 180, 10, "ff",
-            message="DHWLoadTime"),                                                # 0 = Arrêt ; 10..180
-    # Lot 2b (15/11) — validés bus depuis ff (WCM-KA §6.7.32 / §6.7.40).
-    Setting("dhw_switch_diff", "4001", "Différentiel de commutation ECS", TEMP10, "K", -10, -1, 0.5, "ff",
-            message="DHWSwitchDiff"),                                              # -10..-1 K, défaut -3
-    Setting("legionella_circ_time", "b109", "Anti-légionelle : durée circulation ECS", UNIT, "s", 180, 1200, 60, "ff",
-            message="LegionellaCirculationTime"),                                 # 3:00..20:00 min (en s)
-    # Cascade (15/11) — validés bus depuis ff. Tps cascade = intervalle de permutation (h) ; blocage = anti-court-cycle.
-    Setting("cascade_change_time", "ecfd", "Cascade : temps de permutation", TEMP1, "h", 0, 250, 1, "ff",
-            message="ChangeOverTime"),                                            # « Tps cascade », 50 h ; plage provisoire
-    Setting("cascade_blocking_time", "2500", "Cascade : temps de blocage", UNIT, "min", 0, 30, 1, "ff",
-            message="BlockingTime"),                                              # anti-court-cycle, 1 min ; plage provisoire
-    # Découplage hydraulique / tampon (15/11, après correction du codec ebusd ×10). Validés écrivables depuis ff.
-    # DeCoupleMax écarté (non écrivable sur le bus). Bornes provisoires (notice sans plage nette).
-    Setting("decouple_min", "e7fd", "Découplage : température mini", TEMP10, "°C", 0, 50, 0.5, "ff",
-            message="DeCoupleMin"),                                               # 8,0 °C
-    Setting("calorifier_switch_diff", "e2fd", "Tampon : différentiel de commutation", TEMP10, "K", 1, 20, 0.5, "ff",
-            message="CalorfierSwitchDifference"),                                 # 2,0 K
+    # Lot 1: cascade power controller (WCM-KA); source ff by hypothesis, AWAITING BUS VALIDATION
+    Setting("regulation_p", "9f02", UNIT, None, 10, 300, 1, "ff",
+            message="RegulationP"),                                                # P539, default 100
+    Setting("regulation_i", "9e02", UNIT, None, 10, 200, 1, "ff",
+            message="RegulationI"),                                                # P540, default 100
+    # Lot 2 hot water (15/11, WCM-KA §6.7.34/6.7.37): bus-validated from ff; DHWMaxLoad left out (no write definition).
+    Setting("legionella_setup_temp", "8705", TEMP10, "°C", 40, 80, 0.5, "ff",
+            message="LegionellaSetupTemp"),                                        # default 60 °C
+    Setting("dhw_load_time", "8001", UNIT, "min", 0, 180, 10, "ff",
+            message="DHWLoadTime"),                                                # 0 = off; 10..180
+    # Lot 2b (15/11): bus-validated from ff (WCM-KA §6.7.32 / §6.7.40).
+    Setting("dhw_switch_diff", "4001", TEMP10, "K", -10, -1, 0.5, "ff",
+            message="DHWSwitchDiff"),                                              # -10..-1 K, default -3
+    Setting("legionella_circ_time", "b109", UNIT, "s", 180, 1200, 60, "ff",
+            message="LegionellaCirculationTime"),                                 # 3:00..20:00 min (in s)
+    # Cascade (15/11): bus-validated from ff. Change-over time = rotation interval (h); blocking = anti-short-cycle.
+    Setting("cascade_change_time", "ecfd", TEMP1, "h", 0, 250, 1, "ff",
+            message="ChangeOverTime"),                                            # 50 h; provisional range
+    Setting("cascade_blocking_time", "2500", UNIT, "min", 0, 30, 1, "ff",
+            message="BlockingTime"),                                              # anti-short-cycle, 1 min; provisional range
+    # Hydraulic separator / buffer (15/11, after the ebusd codec fix, x10). Validated writable from ff.
+    # DeCoupleMax left out (not writable on the bus). Provisional bounds (the manual gives no clear range).
+    Setting("decouple_min", "e7fd", TEMP10, "°C", 0, 50, 0.5, "ff",
+            message="DeCoupleMin"),                                               # 8.0 °C
+    Setting("calorifier_switch_diff", "e2fd", TEMP10, "K", 1, 20, 0.5, "ff",
+            message="CalorfierSwitchDifference"),                                 # 2.0 K
 ]
 
-# Lot 2 ECS — modes anti-légionelle (WCM-KA §6.7.36/6.7.39) ; validés bus en no-op depuis ff (jour/état inchangés).
+# Lot 2 hot water: legionella protection modes (WCM-KA §6.7.36/6.7.39); bus-validated as no-op writes from ff.
 KA_CHOICES = [
-    Choice("dhw_legionella_day", "0101", "Anti-légionelle : jour",
-           {0: "Arrêt", 1: "Lundi", 2: "Mardi", 3: "Mercredi", 4: "Jeudi", 5: "Vendredi", 6: "Samedi",
-            7: "Dimanche"}, "ff"),
-    Choice("circ_with_legionella", "f313", "Anti-légionelle : circulation ECS", {0: "Arrêt", 1: "Marche"}, "ff"),
-    # Cascade — ordre d'enclenchement des chaudières (WCM-KA §6.7.16, « Ordre casc 1/2 »). 0=A, 1=B, 240=mise à
-    # l'arrêt. Validés bus en no-op depuis ff. ⚠️ changer l'ordre = reconfiguration (à faire chaudières à l'arrêt).
-    Choice("boiler_seq_1", "cafd", "Cascade : ordre d'enclenchement #1", {0: "A", 1: "B", 240: "— (arrêt)"}, "ff"),
-    Choice("boiler_seq_2", "cbfd", "Cascade : ordre d'enclenchement #2", {0: "A", 1: "B", 240: "— (arrêt)"}, "ff"),
+    Choice("dhw_legionella_day", "0101",
+           {0: "off", 1: "monday", 2: "tuesday", 3: "wednesday", 4: "thursday", 5: "friday", 6: "saturday",
+            7: "sunday"}, "ff"),
+    Choice("circ_with_legionella", "f313", {0: "off", 1: "on"}, "ff"),
+    # Cascade: boiler start order (WCM-KA §6.7.16). 0 = A, 1 = B, 240 = off. Bus-validated as no-op writes from ff.
+    # Changing the order is a reconfiguration (to be done with the boilers off).
+    Choice("boiler_seq_1", "cafd", {0: "a", 1: "b", 240: "off"}, "ff"),
+    Choice("boiler_seq_2", "cbfd", {0: "a", 1: "b", 240: "off"}, "ff"),
 ]
 
-# Circuits des modules d'extension EM (em1, em2, em3). Mêmes codes de registre que les FS
-# (défs ebusd partagées) ; source validée sur le bus em2 (15/11) : consignes/pente/été-hiver/hors-gel depuis ff,
-# départs maxi/mini depuis 31 (None). Pilotés par un appel chaudière externe (relais sur l'entrée H1).
+# Circuits of the EM extension modules (em1, em2, em3). Same register codes as the FS (shared ebusd definitions);
+# source validated on the bus on em2 (15/11): setpoints/gradient/summer-winter/frost from ff, flow maximum/minimum
+# from 31 (None). Driven by an external boiler demand (relay on the H1 input).
 EM_SETTINGS = [
-    Setting("room_normal", "0500", "Consigne ambiance normale", TEMP10, "°C", 16, 35, 0.5, "ff",
+    Setting("room_normal", "0500", TEMP10, "°C", 16, 35, 0.5, "ff",
             min_ref="room_reduced", message="RoomNormalTemp"),
-    Setting("room_reduced", "0800", "Consigne ambiance réduite", TEMP10, "°C", 10, 21.5, 0.5, "ff",
+    Setting("room_reduced", "0800", TEMP10, "°C", 10, 21.5, 0.5, "ff",
             max_ref="room_normal", message="RoomSetbackTemp"),
-    Setting("room_frost", "140a", "Consigne hors-gel", TEMP10, "°C", 4, 16, 0.5, "ff",
+    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff",
             message="RoomFrostProtectionTemp"),
-    Setting("gradient", "0e01", "Pente de la courbe de chauffe", TEMP10, None, 2.5, 40, 0.5, "ff",
+    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff",
             message="GradientCurve"),
-    Setting("summer_winter", "1601", "Seuil été/hiver", TEMP10, "°C", 8, 30, 0.5, "ff",
+    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff",
             message="SummerWinterChangeOverTemp"),
-    Setting("supply_max", "2800", "Température de départ maxi", TEMP10, "°C", 8, 82, 0.5, None,
+    Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, None,
             min_ref="supply_min", message="SupplyMaxTemp"),     # source 31
-    Setting("supply_min", "2b01", "Température de départ mini", TEMP10, "°C", 8, 82, 0.5, None,
+    Setting("supply_min", "2b01", TEMP10, "°C", 8, 82, 0.5, None,
             max_ref="supply_max", message="SupplyMinTemp"),     # source 31
 ]
-# Appel chaudière (relais externe) en lecture : H1Status (290a), valeur dans l'octet bas.
+# Boiler demand (external relay), read-only: H1Status (290a), value in the low byte.
 EM_READ_PARAMS = [
-    ReadParam("h1_demand", "290a", "Appel chaudière (relais H1)", UNIT, options={0: "Repos", 1: "Appel"}),
+    ReadParam("h1_demand", "290a", UNIT, options={0: "idle", 1: "demand"}),
 ]
 
 
@@ -256,20 +267,19 @@ class Program:
 
     key: str
     code: str
-    name: str
 
     def register(self, day: int, slot: int) -> str:
         """day 1 = Monday ... 7 = Sunday, slot 1-3."""
         return f"{day << 4 | (slot - 1):02x}{self.code}"
 
 
-DAYS = ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")
+DAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 PROGRAMS = [
-    Program("heating_1", "14", "Programme chauffage 1"),
-    Program("heating_2", "15", "Programme chauffage 2"),
-    Program("heating_3", "16", "Programme chauffage 3"),
-    Program("dhw", "17", "Programme eau chaude"),
-    Program("circulation", "1a", "Programme circulation"),
+    Program("heating_1", "14"),
+    Program("heating_2", "15"),
+    Program("heating_3", "16"),
+    Program("dhw", "17"),
+    Program("circulation", "1a"),
 ]
 # a slot of FS1 (heating 1, Monday, slot 1) was written and read back from ebusd's own address (30/10/2026)
 PROGRAM_SOURCE = None
@@ -284,7 +294,7 @@ def _is_em(device: Device) -> bool:
 
 
 def polls_programs(device: Device) -> bool:
-    """Les EM n'ont pas de programme horaire propre (ils suivent l'appel chaudière) : ne pas les interroger."""
+    """The EM have no time program of their own (they follow the boiler demand): do not poll them."""
     return not _is_em(device)
 
 

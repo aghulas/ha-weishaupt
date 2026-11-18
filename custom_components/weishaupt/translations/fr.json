@@ -29,6 +29,336 @@
       }
     }
   },
+  "device": {
+    "ka": {
+      "name": "Cascade KA"
+    },
+    "fs": {
+      "name": "Commande FS{number}"
+    },
+    "em": {
+      "name": "Extension EM{number}"
+    },
+    "write_guard": {
+      "name": "Weishaupt — garde-fou"
+    }
+  },
+  "entity": {
+    "number": {
+      "room_normal": {
+        "name": "Consigne ambiance normale"
+      },
+      "room_reduced": {
+        "name": "Consigne ambiance réduite"
+      },
+      "room_frost": {
+        "name": "Consigne hors-gel"
+      },
+      "gradient": {
+        "name": "Pente de la courbe de chauffe"
+      },
+      "summer_winter": {
+        "name": "Seuil été/hiver"
+      },
+      "supply_max": {
+        "name": "Température de départ maxi"
+      },
+      "supply_min": {
+        "name": "Température de départ mini"
+      },
+      "dhw_setpoint": {
+        "name": "Consigne eau chaude"
+      },
+      "room_factor_curve": {
+        "name": "Facteur d'influence pièce (P)"
+      },
+      "boiler_mc_boost": {
+        "name": "Surélévation t° circuit mélangé (boost)"
+      },
+      "switch_on_runtime": {
+        "name": "Délai de relance (anticipation)"
+      },
+      "frost_protection_limit": {
+        "name": "Température limite hors-gel"
+      },
+      "modulation_max": {
+        "name": "Modulation maxi"
+      },
+      "modulation_min": {
+        "name": "Modulation mini"
+      },
+      "regulation_p": {
+        "name": "Régulateur P (cascade)"
+      },
+      "regulation_i": {
+        "name": "Régulateur I (cascade)"
+      },
+      "legionella_setup_temp": {
+        "name": "Anti-légionelle : consigne ECS"
+      },
+      "dhw_load_time": {
+        "name": "Temps de charge maxi ECS"
+      },
+      "dhw_switch_diff": {
+        "name": "Différentiel de commutation ECS"
+      },
+      "legionella_circ_time": {
+        "name": "Anti-légionelle : durée circulation ECS"
+      },
+      "cascade_change_time": {
+        "name": "Cascade : temps de permutation"
+      },
+      "cascade_blocking_time": {
+        "name": "Cascade : temps de blocage"
+      },
+      "decouple_min": {
+        "name": "Découplage : température mini"
+      },
+      "calorifier_switch_diff": {
+        "name": "Tampon : différentiel de commutation"
+      }
+    },
+    "date": {
+      "holiday_from": {
+        "name": "Congés : début"
+      },
+      "holiday_to": {
+        "name": "Congés : fin"
+      }
+    },
+    "select": {
+      "holiday_level": {
+        "name": "Congés : niveau de température",
+        "state": {
+          "frost": "hors-gel",
+          "reduced": "réduit"
+        }
+      },
+      "adaption": {
+        "name": "Adaptation",
+        "state": {
+          "off": "Arrêt",
+          "on": "Marche"
+        }
+      },
+      "control_variation": {
+        "name": "Variante de régulation",
+        "state": {
+          "constant": "Constant",
+          "weather": "Extérieur",
+          "weather_room": "Extérieur + ambiance",
+          "room": "Ambiance"
+        }
+      },
+      "hc_type": {
+        "name": "Type de circuit de chauffage",
+        "state": {
+          "floor": "Plancher",
+          "floor_2": "Plancher 2",
+          "radiator_60": "Radiateur 60°",
+          "radiator_75": "Radiateur 75°",
+          "convector": "Convecteur",
+          "universal": "Universel"
+        }
+      },
+      "dhw_legionella_day": {
+        "name": "Anti-légionelle : jour",
+        "state": {
+          "off": "Arrêt",
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
+      },
+      "circ_with_legionella": {
+        "name": "Anti-légionelle : circulation ECS",
+        "state": {
+          "off": "Arrêt",
+          "on": "Marche"
+        }
+      },
+      "boiler_seq_1": {
+        "name": "Cascade : ordre d'enclenchement #1",
+        "state": {
+          "a": "A",
+          "b": "B",
+          "off": "— (arrêt)"
+        }
+      },
+      "boiler_seq_2": {
+        "name": "Cascade : ordre d'enclenchement #2",
+        "state": {
+          "a": "A",
+          "b": "B",
+          "off": "— (arrêt)"
+        }
+      }
+    },
+    "sensor": {
+      "program_heating_1": {
+        "name": "Programme chauffage 1",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "program_heating_2": {
+        "name": "Programme chauffage 2",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "program_heating_3": {
+        "name": "Programme chauffage 3",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "program_dhw": {
+        "name": "Programme eau chaude",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "program_circulation": {
+        "name": "Programme circulation",
+        "state_attributes": {
+          "monday": {
+            "name": "Lundi"
+          },
+          "tuesday": {
+            "name": "Mardi"
+          },
+          "wednesday": {
+            "name": "Mercredi"
+          },
+          "thursday": {
+            "name": "Jeudi"
+          },
+          "friday": {
+            "name": "Vendredi"
+          },
+          "saturday": {
+            "name": "Samedi"
+          },
+          "sunday": {
+            "name": "Dimanche"
+          }
+        }
+      },
+      "room_factor_i": {
+        "name": "Facteur d'influence pièce (I)"
+      },
+      "h1_demand": {
+        "name": "Appel chaudière (relais H1)",
+        "state": {
+          "idle": "Repos",
+          "demand": "Appel"
+        }
+      }
+    },
+    "switch": {
+      "writes_enabled": {
+        "name": "Écritures chaudière"
+      }
+    }
+  },
+  "selector": {
+    "day": {
+      "options": {
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche"
+      }
+    }
+  },
   "services": {
     "set_time_program": {
       "name": "Régler un jour de programme horaire",
@@ -57,6 +387,53 @@
           "description": "Attend le début de la minute suivante pour une horloge juste à la seconde près (envoi immédiat si désactivé)."
         }
       }
+    }
+  },
+  "exceptions": {
+    "writes_disabled": {
+      "message": "Écriture refusée : écritures désactivées (options de l'intégration ou interrupteur des écritures)."
+    },
+    "out_of_bounds": {
+      "message": "Écriture refusée : {value} hors des bornes [{minimum}, {maximum}]."
+    },
+    "hourly_limit": {
+      "message": "Écriture refusée : plus de {limit} écritures dans l'heure."
+    },
+    "register_interval": {
+      "message": "Écriture refusée : une écriture de ce registre il y a moins de {seconds} s."
+    },
+    "clock_interval": {
+      "message": "Écriture refusée : horloge déjà diffusée il y a moins de {seconds} s."
+    },
+    "log_unreadable": {
+      "message": "Écriture refusée : journal des trames illisible ({reason}) : écriture depuis ff refusée."
+    },
+    "log_stale": {
+      "message": "Écriture refusée : journal des trames non alimenté (pas de trame récente) : écriture depuis ff refusée."
+    },
+    "service_tool_active": {
+      "message": "Écriture refusée : WCM-Diagnose semble connecté (trame de ff récente) : écriture depuis ff refusée."
+    },
+    "write_failed": {
+      "message": "Écriture en échec : {error}"
+    },
+    "write_not_retained": {
+      "message": "Écriture non retenue par {device} (relu {read_back})."
+    },
+    "clock_failed": {
+      "message": "Écriture horloge en échec : {error}"
+    },
+    "single_entry_required": {
+      "message": "Une seule intégration Weishaupt doit être chargée."
+    },
+    "not_a_program_sensor": {
+      "message": "Choisir un capteur de programme horaire Weishaupt."
+    },
+    "invalid_slots": {
+      "message": "Créneaux invalides : {error}"
+    },
+    "year_out_of_range": {
+      "message": "Année hors de 2000-2099."
     }
   }
 }

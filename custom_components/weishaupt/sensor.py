@@ -29,7 +29,7 @@ class WeishauptProgram(WeishauptEntity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, program: Program) -> None:
-        super().__init__(coordinator, device, f"program_{program.key}", program.name)
+        super().__init__(coordinator, device, f"program_{program.key}")
         self.program = program
 
     def slots(self, day: int) -> list[tuple[int, int] | None] | None:
@@ -53,12 +53,13 @@ class WeishauptProgram(WeishauptEntity, SensorEntity):
 
 
 class WeishauptReadParam(WeishauptEntity, SensorEntity):
-    """A regulation register exposed READ-ONLY (anticipation / régulation fine) ahead of its write validation."""
+    """A regulation register exposed READ-ONLY (anticipation / fine regulation) ahead of its write validation."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, param: ReadParam) -> None:
-        super().__init__(coordinator, device, f"read_{param.key}", param.name)
+        super().__init__(coordinator, device, f"read_{param.key}")
+        self._attr_translation_key = param.key
         self.param = param
         self._attr_native_unit_of_measurement = None if param.options else param.unit
 

@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .coordinator import WeishauptConfigEntry, WeishauptCoordinator
 from .entity import WeishauptEntity
 from .protocol import UNIT
@@ -29,7 +30,7 @@ class WeishauptDate(WeishauptEntity, DateEntity):
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, setting: DateSetting) -> None:
-        super().__init__(coordinator, device, setting.key, setting.name)
+        super().__init__(coordinator, device, setting.key)
         self.setting = setting
 
     @property
@@ -44,9 +45,9 @@ class WeishauptDate(WeishauptEntity, DateEntity):
             return None  # e.g. the values found before the first holiday was set (03/09/01)
 
     async def async_set_value(self, value: datetime.date) -> None:
-        """ÉCRITURE: day, month and year, one register per write, through the guard of the coordinator."""
+        """WRITE: day, month and year, one register per write, through the guard of the coordinator."""
         if not 2000 <= value.year <= 2099:
-            raise HomeAssistantError("année hors de 2000-2099")
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="year_out_of_range")
         for register, part, (low, high) in zip(self.setting.registers, (value.day, value.month, value.year - 2000),
                                                PART_BOUNDS, strict=True):
             await self.coordinator.async_write(self.device, register, UNIT.encode(part), part, low, high,

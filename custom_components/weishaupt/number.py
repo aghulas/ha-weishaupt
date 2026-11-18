@@ -23,7 +23,7 @@ class WeishauptNumber(WeishauptEntity, NumberEntity):
     _attr_mode = NumberMode.BOX
 
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, setting: Setting) -> None:
-        super().__init__(coordinator, device, setting.key, setting.name)
+        super().__init__(coordinator, device, setting.key)
         self.setting = setting
         self._attr_native_step = setting.step
         self._attr_native_unit_of_measurement = setting.unit
@@ -50,7 +50,7 @@ class WeishauptNumber(WeishauptEntity, NumberEntity):
         return None if raw is None else self.setting.codec.decode(raw)
 
     async def async_set_native_value(self, value: float) -> None:
-        """ÉCRITURE: through the guard of the coordinator."""
+        """WRITE: through the guard of the coordinator."""
         s = self.setting
         low, high = self._bounds()
         await self.coordinator.async_write(self.device, s.register, s.codec.encode(value), value, low, high, s.source,

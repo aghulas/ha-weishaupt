@@ -41,10 +41,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
 
 def _set_clock_handler(hass: HomeAssistant):
     async def set_clock(call: ServiceCall) -> None:
-        """ÉCRITURE (diffusion): set the regulators' clock from Home Assistant's time (`fe 0700` broadcast)."""
+        """WRITE (broadcast): set the regulators' clock from Home Assistant's time (`fe 0700` broadcast)."""
         entries = [e for e in hass.config_entries.async_entries(DOMAIN) if e.state is ConfigEntryState.LOADED]
         if len(entries) != 1:
-            raise ServiceValidationError("une seule intégration Weishaupt doit être chargée")
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="single_entry_required")
         coordinator: WeishauptCoordinator = entries[0].runtime_data
         await coordinator.async_set_clock(align=call.data["align"])
 
@@ -53,11 +53,11 @@ def _set_clock_handler(hass: HomeAssistant):
 
 def _time_program_handler(hass: HomeAssistant):
     async def set_time_program(call: ServiceCall) -> None:
-        """ÉCRITURE: the 3 slots of one day of a time program (unused slots cleared), one register per write,
+        """WRITE: the 3 slots of one day of a time program (unused slots cleared), one register per write,
         unchanged slots not rewritten."""
         entry_ = er.async_get(hass).async_get(call.data[ATTR_ENTITY_ID])
         if entry_ is None or entry_.platform != DOMAIN or "_program_" not in entry_.unique_id:
-            raise ServiceValidationError("choisir un capteur de programme horaire Weishaupt")
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="not_a_program_sensor")
         config_entry = hass.config_entries.async_get_entry(entry_.config_entry_id)
         coordinator: WeishauptCoordinator = config_entry.runtime_data
         suffix = entry_.unique_id.removeprefix(f"{config_entry.entry_id}_")
@@ -66,7 +66,8 @@ def _time_program_handler(hass: HomeAssistant):
         try:
             slots = parse_slots(call.data["slots"])
         except ValueError as err:
-            raise ServiceValidationError(f"créneaux invalides : {err}") from err
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="invalid_slots",
+                                         translation_placeholders={"error": str(err)}) from err
         day = DAYS.index(call.data["day"]) + 1
         for number in range(1, 4):
             slot = slots[number - 1] if number <= len(slots) else None

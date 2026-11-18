@@ -23,7 +23,7 @@ class WeishauptSelect(WeishauptEntity, SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: WeishauptCoordinator, device: Device, choice: Choice) -> None:
-        super().__init__(coordinator, device, choice.key, choice.name)
+        super().__init__(coordinator, device, choice.key)
         self.choice = choice
         self._attr_options = list(choice.options.values())
 
@@ -33,7 +33,7 @@ class WeishauptSelect(WeishauptEntity, SelectEntity):
         return None if raw is None else self.choice.options.get(int(UNIT.decode(raw)))
 
     async def async_select_option(self, option: str) -> None:
-        """ÉCRITURE: through the guard of the coordinator."""
+        """WRITE: through the guard of the coordinator."""
         value = next(k for k, v in self.choice.options.items() if v == option)
         keys = list(self.choice.options)
         await self.coordinator.async_write(self.device, self.choice.register, UNIT.encode(value), value,

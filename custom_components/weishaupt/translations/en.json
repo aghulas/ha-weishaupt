@@ -29,6 +29,336 @@
       }
     }
   },
+  "device": {
+    "ka": {
+      "name": "System manager KA"
+    },
+    "fs": {
+      "name": "Room unit FS{number}"
+    },
+    "em": {
+      "name": "Heating module EM{number}"
+    },
+    "write_guard": {
+      "name": "Weishaupt write guard"
+    }
+  },
+  "entity": {
+    "number": {
+      "room_normal": {
+        "name": "Normal room setpoint"
+      },
+      "room_reduced": {
+        "name": "Setback room setpoint"
+      },
+      "room_frost": {
+        "name": "Frost protection room setpoint"
+      },
+      "gradient": {
+        "name": "Heating curve gradient"
+      },
+      "summer_winter": {
+        "name": "Summer/winter changeover"
+      },
+      "supply_max": {
+        "name": "Maximum flow temperature"
+      },
+      "supply_min": {
+        "name": "Minimum flow temperature"
+      },
+      "dhw_setpoint": {
+        "name": "Hot water setpoint"
+      },
+      "room_factor_curve": {
+        "name": "Room influence factor (P)"
+      },
+      "boiler_mc_boost": {
+        "name": "Mixed circuit boost"
+      },
+      "switch_on_runtime": {
+        "name": "Switch-on lead time (anticipation)"
+      },
+      "frost_protection_limit": {
+        "name": "Frost protection limit temperature"
+      },
+      "modulation_max": {
+        "name": "Maximum modulation"
+      },
+      "modulation_min": {
+        "name": "Minimum modulation"
+      },
+      "regulation_p": {
+        "name": "Controller P (cascade)"
+      },
+      "regulation_i": {
+        "name": "Controller I (cascade)"
+      },
+      "legionella_setup_temp": {
+        "name": "Legionella protection: hot water setpoint"
+      },
+      "dhw_load_time": {
+        "name": "Maximum hot water charging time"
+      },
+      "dhw_switch_diff": {
+        "name": "Hot water switching differential"
+      },
+      "legionella_circ_time": {
+        "name": "Legionella protection: hot water circulation time"
+      },
+      "cascade_change_time": {
+        "name": "Cascade: change-over time"
+      },
+      "cascade_blocking_time": {
+        "name": "Cascade: blocking time"
+      },
+      "decouple_min": {
+        "name": "Hydraulic separator: minimum temperature"
+      },
+      "calorifier_switch_diff": {
+        "name": "Buffer: switching differential"
+      }
+    },
+    "date": {
+      "holiday_from": {
+        "name": "Holiday: start"
+      },
+      "holiday_to": {
+        "name": "Holiday: end"
+      }
+    },
+    "select": {
+      "holiday_level": {
+        "name": "Holiday: temperature level",
+        "state": {
+          "frost": "Frost protection",
+          "reduced": "Setback"
+        }
+      },
+      "adaption": {
+        "name": "Adaption",
+        "state": {
+          "off": "Off",
+          "on": "On"
+        }
+      },
+      "control_variation": {
+        "name": "Control variant",
+        "state": {
+          "constant": "Constant",
+          "weather": "Weather",
+          "weather_room": "Weather + room",
+          "room": "Room"
+        }
+      },
+      "hc_type": {
+        "name": "Heating circuit type",
+        "state": {
+          "floor": "Underfloor",
+          "floor_2": "Underfloor 2",
+          "radiator_60": "Radiator 60°",
+          "radiator_75": "Radiator 75°",
+          "convector": "Convector",
+          "universal": "Universal"
+        }
+      },
+      "dhw_legionella_day": {
+        "name": "Legionella protection: day",
+        "state": {
+          "off": "Off",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
+      },
+      "circ_with_legionella": {
+        "name": "Legionella protection: hot water circulation",
+        "state": {
+          "off": "Off",
+          "on": "On"
+        }
+      },
+      "boiler_seq_1": {
+        "name": "Cascade: start order #1",
+        "state": {
+          "a": "A",
+          "b": "B",
+          "off": "— (off)"
+        }
+      },
+      "boiler_seq_2": {
+        "name": "Cascade: start order #2",
+        "state": {
+          "a": "A",
+          "b": "B",
+          "off": "— (off)"
+        }
+      }
+    },
+    "sensor": {
+      "program_heating_1": {
+        "name": "Heating program 1",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "program_heating_2": {
+        "name": "Heating program 2",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "program_heating_3": {
+        "name": "Heating program 3",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "program_dhw": {
+        "name": "Hot water program",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "program_circulation": {
+        "name": "Circulation program",
+        "state_attributes": {
+          "monday": {
+            "name": "Monday"
+          },
+          "tuesday": {
+            "name": "Tuesday"
+          },
+          "wednesday": {
+            "name": "Wednesday"
+          },
+          "thursday": {
+            "name": "Thursday"
+          },
+          "friday": {
+            "name": "Friday"
+          },
+          "saturday": {
+            "name": "Saturday"
+          },
+          "sunday": {
+            "name": "Sunday"
+          }
+        }
+      },
+      "room_factor_i": {
+        "name": "Room influence factor (I)"
+      },
+      "h1_demand": {
+        "name": "Boiler demand (H1 relay)",
+        "state": {
+          "idle": "Idle",
+          "demand": "Demand"
+        }
+      }
+    },
+    "switch": {
+      "writes_enabled": {
+        "name": "Boiler writes"
+      }
+    }
+  },
+  "selector": {
+    "day": {
+      "options": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    }
+  },
   "services": {
     "set_time_program": {
       "name": "Set a time program day",
@@ -57,6 +387,53 @@
           "description": "Wait for the top of the next minute for a clock accurate to about a second (send immediately if off)."
         }
       }
+    }
+  },
+  "exceptions": {
+    "writes_disabled": {
+      "message": "Write refused: writes are disabled (integration options or write switch)."
+    },
+    "out_of_bounds": {
+      "message": "Write refused: {value} is outside the bounds [{minimum}, {maximum}]."
+    },
+    "hourly_limit": {
+      "message": "Write refused: more than {limit} writes within the hour."
+    },
+    "register_interval": {
+      "message": "Write refused: this register was written less than {seconds} s ago."
+    },
+    "clock_interval": {
+      "message": "Write refused: the clock was broadcast less than {seconds} s ago."
+    },
+    "log_unreadable": {
+      "message": "Write refused: the telegram log cannot be read ({reason}), so a write from ff is not allowed."
+    },
+    "log_stale": {
+      "message": "Write refused: the telegram log is not being fed (no recent telegram), so a write from ff is not allowed."
+    },
+    "service_tool_active": {
+      "message": "Write refused: WCM-Diagnose seems to be connected (recent telegram from ff), so a write from ff is not allowed."
+    },
+    "write_failed": {
+      "message": "Write failed: {error}"
+    },
+    "write_not_retained": {
+      "message": "Write not retained by {device} (read back {read_back})."
+    },
+    "clock_failed": {
+      "message": "Clock broadcast failed: {error}"
+    },
+    "single_entry_required": {
+      "message": "Exactly one Weishaupt integration must be loaded."
+    },
+    "not_a_program_sensor": {
+      "message": "Choose a Weishaupt time program sensor."
+    },
+    "invalid_slots": {
+      "message": "Invalid slots: {error}"
+    },
+    "year_out_of_range": {
+      "message": "The year must be within 2000-2099."
     }
   }
 }

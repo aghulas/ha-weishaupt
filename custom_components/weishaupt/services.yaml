@@ -10,7 +10,8 @@ set_time_program:
       required: true
       selector:
         select:
-          options: [lundi, mardi, mercredi, jeudi, vendredi, samedi, dimanche]
+          translation_key: day
+          options: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
     slots:
       required: true
       example: "06:30-18:00"

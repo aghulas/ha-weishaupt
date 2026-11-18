@@ -22,6 +22,12 @@ PROGRAM_INTERVAL = 3600.0  # time programs change rarely: read them once an hour
 type WeishauptConfigEntry = ConfigEntry[WeishauptCoordinator]
 
 
+def _refused(err: WriteRefused) -> HomeAssistantError:
+    """The refusal of the guard as a translated Home Assistant error (key = reason code)."""
+    return HomeAssistantError(translation_domain=DOMAIN, translation_key=err.code,
+                              translation_placeholders=err.placeholders)
+
+
 class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | None]]]):
     """Data: device key -> register -> raw 2 bytes (None = register not used on that device)."""
 
@@ -43,14 +49,14 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
                     values.update(await self.client.read_registers(device.zz, program_registers()))
                 data[device.key] = values
         except (OSError, TimeoutError, EbusdError) as err:
-            raise UpdateFailed(f"lecture ebusd : {err}") from err
+            raise UpdateFailed(f"ebusd read: {err}") from err
         if read_programs:
             self._programs_read = time.monotonic()
         return data
 
     async def async_write(self, device: Device, register: str, raw: bytes, value: float,
                           minimum: float, maximum: float, source: str | None, message: str | None = None) -> None:
-        """ÉCRITURE: guarded write of one register, read back; raises HomeAssistantError if refused or not taken.
+        """WRITE: guarded write of one register, read back; raises HomeAssistantError if refused or not taken.
 
         With `message` (ebusd message name) the write goes through the definition (ebusd computes the runtime CRC and
         enforces the range); without it, the raw `5023` hex frame is sent. Either way the register is read back in hex
@@ -65,8 +71,8 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         try:
             self.guard.check(register_id, value, minimum, maximum, source, service_tool)
         except WriteRefused as err:
-            _LOGGER.warning("ÉCRITURE refusée %s = %s : %s", register_id, value, err)
-            raise HomeAssistantError(f"Écriture refusée : {err}") from err
+            _LOGGER.warning("WRITE refused %s = %s: %s", register_id, value, err)
+            raise _refused(err) from err
         self.guard.record(register_id, source)
         before = (self.data or {}).get(device.key, {}).get(register)
         try:
@@ -76,9 +82,10 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
                 await self.client.write_register(device.zz, register, raw, source)
             after = (await self.client.read_registers(device.zz, [register]))[register]
         except (OSError, TimeoutError, EbusdError) as err:
-            _LOGGER.error("ÉCRITURE en échec %s = %s depuis %s : %s", register_id, value, source or "31", err)
-            raise HomeAssistantError(f"Écriture en échec : {err}") from err
-        _LOGGER.info("ÉCRITURE %s = %s (brut %s, avant %s, relu %s) depuis %s", register_id, value, raw.hex(),
+            _LOGGER.error("WRITE failed %s = %s from %s: %s", register_id, value, source or "31", err)
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="write_failed",
+                                     translation_placeholders={"error": str(err)}) from err
+        _LOGGER.info("WRITE %s = %s (raw %s, before %s, read back %s) from %s", register_id, value, raw.hex(),
                      before.hex() if before else None, after.hex() if after else None, source or "31")
         self.hass.bus.async_fire(f"{DOMAIN}_write", {
             "device": device.key, "register": register, "value": value, "source": source or "31",
@@ -87,10 +94,12 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
             self.data[device.key][register] = after
             self.async_update_listeners()
         if after != raw:
-            raise HomeAssistantError(f"Écriture non retenue par {device.name} (relu {after.hex() if after else None})")
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="write_not_retained",
+                                     translation_placeholders={"device": device.label,
+                                                               "read_back": after.hex() if after else "-"})
 
     async def async_set_clock(self, align: bool = True) -> None:
-        """ÉCRITURE (diffusion): set the regulators' clock from Home Assistant's time, by broadcasting `fe 0700`.
+        """WRITE (broadcast): set the regulators' clock from Home Assistant's time, by broadcasting `fe 0700`.
 
         Sets the clock master f1 (hour and minute); f1 restarts its seconds at 00 and redistributes the date to every
         module within about two minutes. `align` waits for the top of the next minute (sent at second 00) so the clock
@@ -98,8 +107,8 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         try:
             self.guard.check_broadcast()
         except WriteRefused as err:
-            _LOGGER.warning("ÉCRITURE horloge refusée : %s", err)
-            raise HomeAssistantError(f"Écriture refusée : {err}") from err
+            _LOGGER.warning("WRITE clock refused: %s", err)
+            raise _refused(err) from err
         outside = await self.client.last_outside_raw() or b"\x00\x00"
         if align:
             now = dt_util.now()
@@ -113,9 +122,10 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         try:
             await self.client.broadcast_datetime(command)
         except (OSError, TimeoutError, EbusdError) as err:
-            _LOGGER.error("ÉCRITURE horloge en échec : %s", err)
-            raise HomeAssistantError(f"Écriture horloge en échec : {err}") from err
-        _LOGGER.info("ÉCRITURE horloge diffusée %s (temp ext %s) : %s",
+            _LOGGER.error("WRITE clock failed: %s", err)
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="clock_failed",
+                                     translation_placeholders={"error": str(err)}) from err
+        _LOGGER.info("WRITE clock broadcast %s (outside temp %s): %s",
                      when.strftime("%Y-%m-%d %H:%M:%S"), outside.hex(), command)
         self.hass.bus.async_fire(f"{DOMAIN}_set_clock", {
             "when": when.isoformat(), "outside": outside.hex(), "command": command})

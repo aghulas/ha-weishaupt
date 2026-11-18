@@ -97,4 +97,4 @@ def test_parse_last_outside_raw():
     grab = ("f1fe500a0d01000000ff34ff52000d4d0a0e = 2487: ka KaStatus\n"
             "f1fe070009000d04551830100526 = 419: sc InfoStatus\n")
     assert parse_last_outside_raw(grab) == bytes.fromhex("000d")
-    assert parse_last_outside_raw("rien de pertinent") is None
+    assert parse_last_outside_raw("nothing relevant") is None

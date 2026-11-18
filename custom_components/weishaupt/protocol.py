@@ -58,7 +58,7 @@ _BROADCAST_OUTSIDE = re.compile(rf"f1fe{DATETIME_BROADCAST}[0-9a-f]{{2}}([0-9a-f
 def _bcd(value: int) -> str:
     """Two BCD digits of 0..99 as the ebusd hex byte (the decimal digits read straight as the byte, e.g. 30 -> 0x30)."""
     if not 0 <= value <= 99:
-        raise ValueError(f"valeur BCD hors de 0..99 : {value}")
+        raise ValueError(f"BCD value outside 0..99: {value}")
     return f"{value:02d}"
 
 
@@ -71,9 +71,9 @@ def datetime_broadcast_command(second: int, minute: int, hour: int, day: int, mo
     Sent as a broadcast from ebusd's own address, without `-s ff`. Validated on the test installation bus
     (30/10/2026: `fe070009000d00591730100526` sent at 17:59:00 reset the whole installation to 30/10/2026 17:59)."""
     if len(outside_raw) != 2:
-        raise ValueError("la température extérieure fait 2 octets")
+        raise ValueError("the outside temperature is 2 bytes")
     if not 1 <= weekday <= 7:
-        raise ValueError("jour de semaine 1..7 (1 = lundi)")
+        raise ValueError("weekday 1..7 (1 = Monday)")
     data = (outside_raw.hex() + _bcd(second) + _bcd(minute) + _bcd(hour)
             + _bcd(day) + _bcd(month) + _bcd(weekday) + _bcd(year))
     payload = bytes.fromhex(data)
@@ -200,13 +200,13 @@ class EbusdClient:
         return values
 
     async def write_register(self, zz: str, register: str, raw: bytes, source: str | None = None) -> None:
-        """ÉCRITURE: one register with 5023; the caller reads it back (an acknowledge does not prove the value)."""
+        """WRITE: one register with 5023; the caller reads it back (an acknowledge does not prove the value)."""
         answer = await self.command(write_command(zz, register, raw, source))
         if answer != "00":
             raise EbusdError(f"write {zz} {register}: answer {answer!r}")
 
     async def write_definition(self, circuit: str, message: str, value: float, source: str | None = None) -> None:
-        """ÉCRITURE via définition: ebusd computes the runtime CRC and checks the range; answers "done" on success.
+        """WRITE through a definition: ebusd computes the runtime CRC and checks the range; answers "done" on success.
 
         An out-of-range value or an unknown message makes `command` raise EbusdError (ebusd answers `ERR: ...`)."""
         answer = await self.command(write_definition_command(circuit, message, value, source))
@@ -221,7 +221,7 @@ class EbusdClient:
             return None
 
     async def broadcast_datetime(self, command: str) -> None:
-        """ÉCRITURE (diffusion): send a prebuilt `fe 0700` telegram; ebusd answers "done broadcast"."""
+        """WRITE (broadcast): send a prebuilt `fe 0700` telegram; ebusd answers "done broadcast"."""
         answer = await self.command(command)
         if "done" not in answer:
             raise EbusdError(f"broadcast {command}: answer {answer!r}")

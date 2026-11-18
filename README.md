@@ -7,13 +7,17 @@ fault memory, settings and weekly programs.
 
 Not affiliated with Weishaupt or with the ebusd project.
 
-**This version is read-only.** It sends nothing to the heating system but read requests: no
-setting can be changed from Home Assistant, there is no action, and its ebusd client refuses every
-command other than `info`, `find` and `read`. Changing settings is planned for a later version, for
-the settings whose write is proven on a bus.
+**Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
+read requests. With writes enabled in its options, it can change **the settings a release of the
+definitions proves writable** — 22 with definitions 0.5.2 — and nothing else, through a write
+guard, with a confirmation for the settings that change the regulation
+([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
+`find`, `read` and one form of register write.
 
-Version 0.2 is a pre-release: it has been tested against a simulated ebusd, against a real ebusd
-without a bus, and once on a heating system, read-only, for twelve minutes (see [Tests](#tests)).
+Version 0.3 is a pre-release. Reading was tested against a simulated ebusd, a real ebusd without a
+bus, and once on a heating system for twelve minutes. **Writing was tested against a simulated
+ebusd and a real ebusd without a bus only: no write of this version has been sent to a bus yet**
+(see [Tests](#tests)).
 
 ## What it needs
 
@@ -26,10 +30,21 @@ without a bus, and once on a heating system, read-only, for twelve minutes (see 
 
 No MQTT broker, no `--enablehex`, no HTTP port.
 
+To **write** settings, in addition:
+
+- an ebusd build that computes the **run-time checksum** of the Weishaupt register writes
+  (john30/ebusd#1825, not merged yet): the build of `aghulas/ebusd`. The integration checks it
+  itself, without sending anything to the bus, and refuses every write on another build;
+- for the settings written from the address of the vendor service tool (`ff`, 20 of the 22), the
+  **telegram log** the ebusd add-on keeps (an SQLite file), readable by Home Assistant: a write
+  from `ff` is refused while the service tool may be connected, and whenever the log cannot be read
+  or is not fed.
+
 ### Compatibility
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
+| 0.3 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
@@ -82,7 +97,7 @@ broadcast. On each of them, only entities:
 | Live values (temperatures, burner load, ionisation, pump speed…) | sensors | yes |
 | States (operating phase, flame, pumps, valves, fault…) | sensors with a list of states, binary sensors | yes |
 | Operating counters (hours, burner starts, hours since service) | diagnostic sensors | yes |
-| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, **read-only** | no |
+| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, read-only; with writes enabled, also a number entity for each proven setting | no (numbers: comfort settings yes, regulation settings no) |
 | Weekly programs | one diagnostic sensor per program: the state is today's switch times (`06:30-18:00, 19:00-21:00`), one attribute per day | no |
 | Fault memory of a boiler | one diagnostic sensor: the state is the most recent entry (`W12`, `F11`), the attribute `entries` lists all of them with the values the boiler stored | yes |
 | One counter per fault number, software versions, clock, system fault log, raw status bytes | diagnostic sensors | no |
@@ -141,24 +156,92 @@ while logging.
 If ebusd itself is configured to poll (`--pollinterval`, poll priorities in the CSV), both loads
 add up; the definitions release sets no poll priority.
 
+## Writing settings
+
+Off by default. To turn it on: *Devices & services → Weishaupt → Configure*, tick **Enable writes
+of the proven settings**, check the path of the telegram log, save. The integration reloads and
+adds:
+
+- a **number entity** (configuration section of its device) for each setting the definitions
+  prove writable, with the range, step and unit of the definitions;
+- a **write switch** on the ebusd device, **off**. Writes are refused while it is off; turning it
+  off also withdraws every change waiting for a confirmation.
+
+What is writable is decided by the definitions, not by the integration: a setting gets a number
+entity only when the metadata of the release gives it **write conditions** (a lot of the
+definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
+definition as the release has it. Structural settings (circuit type, control variant, boiler
+sequence…) never have write conditions. With definitions 0.5.2:
+
+| Device | Settings | Class |
+|---|---|---|
+| System manager | cascade blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier switching differential, hot-water switching differential, maximum hot-water loading time, legionella setpoint, legionella circulation time | regulation |
+| Heating module 2 | normal and setback room temperature | **comfort** |
+| Heating module 2 | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature | regulation |
+| Heating module 3 | heating curve gradient | regulation |
+| Room unit 1 | optimised switch-on lead time, frost protection limit, boiler boost offset, frost protection room temperature | regulation |
+
+**Risk classes** (from the metadata):
+
+- **comfort**: written as soon as you set the number;
+- **regulation**: setting the number writes nothing. A repair appears in *Settings → Repairs*
+  ("Confirm: … to …"), showing the setting, its current value, the new value and the range; the
+  value is written when you open it and confirm. It expires after 15 minutes. Repairs are shown to
+  administrators only and cannot be confirmed by an automation: a regulation setting is never
+  written without a person;
+- **structural**: never writable.
+
+**Each write**, in this order, stops at the first refusal and tells you why:
+
+1. write switch on; the setting writable; ebusd known to compute the run-time checksum; ebusd
+   reachable; for the two flow limits of the heating module, which are proven written from
+   ebusd's own address `31` only, ebusd's address is `31`; the value in the range and on a step;
+2. the setting read from the device, and the setting it is linked to: setback room temperature at
+   or below the normal one, minimum flow temperature at or below the maximum;
+3. for a write from `ff`, the telegram log: no telegram from `ff` that is not ours in the last 10
+   minutes, a telegram of any source in the last 2 minutes; then at most one write per register
+   every 10 s and 30 writes an hour;
+4. the telegram is built by the integration and handed to ebusd with
+   `write [-s ff] -c <circuit> -h <bytes>`: ebusd sends it only if it matches the write definition
+   it loaded for that circuit, checksum included;
+5. the setting is read back from the device. A value not taken over is an error.
+
+A value equal to the current one is not written. Every write sent gives a log line (`WRITE …`), an
+event `weishaupt_write` (setting, register, source, value before, requested, read back, result,
+telegram, user) and an entry in the diagnostics download (the last 50).
+
+**How the run-time checksum is checked.** Today's builds do not announce it, and the version
+string of the fork's build is the same as a stock one's. At start-up (only when writes are
+enabled) the integration hands ebusd one write telegram twice under a circuit name no message has,
+once with the correct checksum and once with the checksum byte of the definition: the fork's build
+matches the first and refuses it for its circuit; a stock ebusd matches only the second. Both are
+refused by ebusd before sending: nothing reaches the bus. The result is the attribute
+`run_time_checksum` of the write switch (`present`, `absent`, `unknown`); anything but `present`
+refuses every write.
+
 ## Diagnostics
 
 *Devices & services → Weishaupt → ⋮ → Download diagnostics* gives the ebusd version, the scan
 results (address, identification, software and hardware version; the bus carries no serial
 number), the result of the comparison with the definitions, the counters of the reader (requests,
-failed and dropped readings) and the last readings. The address of ebusd is redacted. It is the
+failed and dropped readings), the last readings and, with writes enabled, the writable settings, the
+result of the checksum probe and the last writes. The address of ebusd is redacted. It is the
 file to attach to a report about another boiler model or software version.
 
 ## Coming from 0.1
 
-0.1 read and wrote registers with raw telegrams from its own table. 0.2 is a different
+0.1 read and wrote registers with raw telegrams from its own table. 0.2 and 0.3 are a different
 integration under the same name:
 
-- **Nothing can be written any more**: the `number`, `select`, `date` and `switch` entities and
-  the actions `weishaupt.set_time_program` and `weishaupt.set_clock` are gone. Automations that
-  call them stop working. If you rely on them, stay on 0.1 until a version with settings exists.
+- **Only the proven settings can be written** (22 with definitions 0.5.2, against 71 numeric
+  settings, choices, holiday dates, weekly programs and the clock in 0.1). The `select` and `date`
+  entities and the actions `weishaupt.set_time_program` and `weishaupt.set_clock` are gone;
+  automations that call them, or that set a number of 0.1 that has no proof yet, stop working. If
+  you rely on them, stay on 0.1 until the definitions prove them.
+- Writes are off after the update, even if they were on in 0.1: enable them again in the options.
 - **ebusd must load a definitions release.** 0.1 worked with any configuration and `--enablehex`;
-  0.2 needs the release (and no longer needs `--enablehex` or the telegram log).
+  0.3 needs the release and no longer needs `--enablehex`; writes still need the fork's ebusd and
+  the telegram log.
 - **Every entity is new.** Unique ids are built differently, so the entities and devices of 0.1
   stay in the registry as unavailable; delete the old devices by hand once you no longer need
   their history. New entities get new entity ids.
@@ -174,11 +257,11 @@ integration under the same name:
   `scripts/vendor_metadata.py --release-dir <folder with the release files> --version <x.y.z>`,
   which verifies the checksums. Never edit `translations/*.json` by hand; a test fails if they
   differ from what the script generates.
-- `ebusd.py` (client) and `model.py` (metadata) have no Home Assistant dependency.
+- `ebusd.py` (client), `model.py` (metadata), `writes.py` (what is writable, the bytes of a write)
+  and `guard.py` (the write guard of 0.1, proven in service) have no Home Assistant dependency;
+  `writer.py` runs a write, `number.py`, `switch.py` and `repairs.py` are its interface.
 - `brand/` holds the images Home Assistant and HACS show; they are drawn by `scripts/make_brand.py`
   (an own mark, no vendor logo).
-- `guard.py` is the write guard of 0.1, kept with its tests for the version that will write
-  settings. Nothing imports it.
 
 ### Tests
 
@@ -204,6 +287,16 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
   fails if ebusd answers anything else than the fixtures say.
 - The integration runs inside a Home Assistant test instance against a **simulated ebusd**
   (`tests/fake_ebusd.py`), a TCP server that replays those answers. It makes up no value.
+- **Writes.** The telegram built for each of the 22 settings equals, byte for byte, the 24 write
+  telegrams captured on the bus (fixtures of the release) and the 22 changes of the telegram log of
+  the installation (`tests/test_writes.py`). The recording also holds the answers of a real ebusd,
+  the fork's build and a stock 26.1, to 96 write commands (the checksum probes, each captured
+  write, the same with a wrong checksum), recorded without a bus; the simulated ebusd matches
+  writes as ebusd does and gives each of these answers. Inside Home Assistant
+  (`tests/test_ha_writes.py`): entities, the comfort path, the confirmation of a regulation
+  setting, the sources `ff` and `31`, every refusal (switch, range, step, linked bound, rate,
+  service tool, telegram log, run-time checksum absent or unknown, not writable), a value not taken
+  over, a write ebusd does not send.
 - `tests/test_packaging.py` applies the rules of HACS to `hacs.json`, the manifest and the brand
   images.
 - hassfest, the validation of Home Assistant:
@@ -226,6 +319,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3 (pre-release): writes of the settings the definitions prove, behind the guard of 0.1, risk
+  classes and a check of the run-time checksum of ebusd.
 - 0.2 (pre-release): read-only integration built from the metadata of the definitions.
 - 0.1.0 (2026-10-30) and `main` until 2026-11-18: settings of the WCM controllers read and written
   as raw telegrams from a register table, write guard, time programs, clock.

@@ -14,7 +14,8 @@ https://github.com/aghulas/ebusd-configuration/releases (tag `weishaupt-<version
 
 The translation files are built from two sources: `scripts/translations/<lang>.json` (the texts of the
 integration itself: configuration, repair issues, day names) and the metadata (device names, entity names, value
-lists). Only `scripts/translations/` is edited by hand.
+lists; the number entities of the writable settings take the names of their sensors). Only `scripts/translations/`
+is edited by hand.
 """
 from __future__ import annotations
 
@@ -61,14 +62,17 @@ def translations(model_module, language: str) -> dict:
         raise SystemExit(f"the metadata has no language {language!r}")
     source = json.loads((SOURCES / f"{language}.json").read_text(encoding="utf-8"))
     weekdays, attributes = source.pop("weekdays"), source.pop("attributes")
+    switch_name = source.pop("switch_name")
     result = dict(source)
     result["device"] = {key: {"name": device.label[language]} for key, device in sorted(model.devices.items())}
-    entity: dict[str, dict] = {"binary_sensor": {}, "sensor": {}}
+    entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "sensor": {}, "switch": {"writes": {"name": switch_name}}}
     for description in model.value_entities:
         item = {"name": description.name[language]}
         if description.options:
             item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
+        if description.message.writable:  # the number entity of a writable setting has the name of its sensor
+            entity["number"][description.translation_key] = {"name": description.name[language]}
     for description in model.group_entities:
         item = {"name": description.name[language]}
         if description.group.family == "program":

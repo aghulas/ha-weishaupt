@@ -1,8 +1,9 @@
-"""Weishaupt WTC boilers and WCM controllers through ebusd — unofficial, read-only.
+"""Weishaupt WTC boilers and WCM controllers through ebusd — unofficial.
 
 Devices, entities and names come from the metadata file of a release of the Weishaupt definitions for ebusd
 (`metadata.json`). At start-up what ebusd loaded is compared with it; a difference raises a repair issue and the
-messages concerned get no entity.
+messages concerned get no entity. Reading is all it does unless writes are enabled in the options: then the
+settings the definitions prove writable become number entities, written through the guard (`writer.py`).
 """
 from __future__ import annotations
 
@@ -12,13 +13,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er, issue_registry as ir
 
-from .const import DOCUMENTATION_URL, DOMAIN
+from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
 from .model import ACCEPTED_DEFINITIONS, Model
+from .writer import Writer
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.NUMBER, Platform.SENSOR, Platform.SWITCH]
 EXAMPLES = 8  # messages named in the repair issue
 
 
@@ -30,6 +32,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     except EbusdError as err:
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                   translation_placeholders={"error": str(err)}) from err
+    if entry.options.get(CONF_WRITES_ENABLED):
+        hub.writer = Writer(hass, hub, dict(entry.options))
+        try:
+            await hub.writer.async_setup()
+        except EbusdError as err:
+            raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
+                                      translation_placeholders={"error": str(err)}) from err
     entry.runtime_data = hub
     assert hub.info is not None
     hub.device_id = dr.async_get(hass).async_get_or_create(
@@ -84,6 +93,8 @@ def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
+    if entry.runtime_data.writer is not None:
+        entry.runtime_data.writer.drop_all_pending()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
@@ -93,7 +104,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Version 1 (0.1.x) kept the options of the write path: they have no meaning in a read-only version."""
+    """Version 1 (0.1.x) kept the options of the write path of 0.1. They are dropped: writes are enabled again only
+    by a decision in the options of this version."""
     if entry.version == 1:
         hass.config_entries.async_update_entry(entry, options={}, version=2)
     return entry.version <= 2

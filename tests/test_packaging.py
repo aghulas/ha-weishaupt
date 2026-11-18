@@ -49,7 +49,9 @@ def test_brand_images():
         assert struct.unpack(">II", data[16:24]) == (size, size), name
 
 
-def test_no_file_of_a_write_platform_is_shipped():
+def test_only_the_write_platforms_of_the_proven_settings_are_shipped():
+    """Numbers for the settings and the write switch; no select (no proven setting has a value list), no action."""
     shipped = {p.name for p in PACKAGE.iterdir()}
-    assert not shipped & {"services.yaml", "number.py", "select.py", "switch.py", "button.py", "date.py"}
+    assert {"number.py", "switch.py", "repairs.py", "writer.py", "writes.py", "guard.py"} <= shipped
+    assert not shipped & {"services.yaml", "select.py", "button.py", "date.py", "time.py", "text.py"}
     assert {"manifest.json", "metadata.json", "translations", "brand", "quality_scale.yaml"} <= shipped

@@ -81,7 +81,8 @@ async def test_options(hass, fake):
         result["flow_id"], {CONF_REQUEST_GAP: 5, CONF_CYCLIC_INTERVAL: 600})
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert entry.options == {CONF_REQUEST_GAP: 5, CONF_CYCLIC_INTERVAL: 600}
+    assert entry.options == {CONF_REQUEST_GAP: 5, CONF_CYCLIC_INTERVAL: 600, "writes_enabled": False,
+                             "telegram_db": "/share/ebusd/telegrams.db"}
     hub = entry.runtime_data  # reloaded with the new options
     assert (hub.request_gap, hub.cyclic_interval) == (5, 600)
 

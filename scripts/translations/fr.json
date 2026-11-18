@@ -3,8 +3,11 @@
     "step": {
       "user": {
         "title": "ebusd",
-        "description": "Adresse de l'ebusd relié à l'installation de chauffage. ebusd doit avoir chargé une version des définitions Weishaupt. Rien n'est écrit vers l'installation de chauffage.",
-        "data": {"host": "Hôte", "port": "Port"},
+        "description": "Adresse de l'ebusd relié à l'installation de chauffage. ebusd doit avoir chargé une version des définitions Weishaupt. Rien n'est écrit vers l'installation de chauffage tant que les écritures ne sont pas activées dans les options.",
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        },
         "data_description": {
           "host": "Nom d'hôte ou adresse IP d'ebusd.",
           "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
@@ -13,25 +16,40 @@
       "reconfigure": {
         "title": "ebusd",
         "description": "Nouvelle adresse du même ebusd.",
-        "data": {"host": "Hôte", "port": "Port"},
+        "data": {
+          "host": "Hôte",
+          "port": "Port"
+        },
         "data_description": {
           "host": "Nom d'hôte ou adresse IP d'ebusd.",
           "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
         }
       }
     },
-    "error": {"cannot_connect": "Aucun ebusd ne répond à cette adresse."},
-    "abort": {"already_configured": "Cet ebusd est déjà configuré."}
+    "error": {
+      "cannot_connect": "Aucun ebusd ne répond à cette adresse."
+    },
+    "abort": {
+      "already_configured": "Cet ebusd est déjà configuré."
+    }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Charge sur le bus",
-        "data": {"request_gap": "Délai entre deux requêtes", "cyclic_interval": "Intervalle des valeurs instantanées"},
+        "title": "Charge sur le bus et écritures",
+        "data": {
+          "request_gap": "Délai entre deux requêtes",
+          "cyclic_interval": "Intervalle des valeurs instantanées",
+          "writes_enabled": "Activer l'écriture des réglages prouvés",
+          "telegram_db": "Journal des télégrammes d'ebusd"
+        },
         "data_description": {
           "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
-          "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent."
-        }
+          "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
+          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "telegram_db": "Chemin du journal SQLite des télégrammes que tient le module complémentaire ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté."
+        },
+        "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés."
       }
     }
   },
@@ -43,14 +61,101 @@
     "no_devices": {
       "title": "Aucun appareil Weishaupt trouvé sur le bus",
       "description": "ebusd répond, mais aucune des adresses décrites par les définitions Weishaupt n'est sur son bus. Autres adresses vues : {addresses}.\n\nVérifiez qu'ebusd a un signal et a scanné le bus, puis rechargez l'intégration."
+    },
+    "confirm_write": {
+      "title": "À confirmer : {setting} de {device} à {requested}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Confirmer la modification de {setting}",
+            "description": "{device} : {setting} de {current} à {requested} (plage {minimum} à {maximum}).\n\nLa valeur est écrite dans le régulateur depuis l'adresse de l'outil de service du fabricant ou d'ebusd, puis relue. Elle modifie la régulation du chauffage."
+          }
+        },
+        "abort": {
+          "expired": "Cette demande a expiré ou a été retirée. Modifiez de nouveau la valeur pour en créer une autre.",
+          "refused": "L'écriture a été refusée : {reason}",
+          "failed": "L'écriture a échoué : {reason}"
+        }
+      }
     }
   },
   "exceptions": {
-    "cannot_connect": {"message": "ebusd ne peut pas être interrogé : {error}"}
+    "cannot_connect": {
+      "message": "ebusd ne peut pas être interrogé : {error}"
+    },
+    "writes_disabled": {
+      "message": "Les écritures sont désactivées : activez-les dans les options de l'intégration et allumez l'interrupteur d'écriture."
+    },
+    "not_writable": {
+      "message": "{setting} n'est pas inscriptible : {reason}"
+    },
+    "capability_absent": {
+      "message": "Cet ebusd ne calcule pas le checksum à l'exécution (john30/ebusd#1825) : écritures refusées."
+    },
+    "capability_unknown": {
+      "message": "On ne sait pas si ebusd calcule le checksum à l'exécution ({reason}) : écritures refusées."
+    },
+    "source_not_own": {
+      "message": "{setting} n'est prouvé écrit que depuis l'adresse 31, et l'adresse de cet ebusd est {own}."
+    },
+    "off_step": {
+      "message": "{value} n'est pas sur un pas de {step} depuis {minimum}."
+    },
+    "out_of_bounds": {
+      "message": "{value} est hors de la plage autorisée {minimum} à {maximum}."
+    },
+    "linked_unknown": {
+      "message": "{other} n'a pas pu être lu : écriture refusée."
+    },
+    "hourly_limit": {
+      "message": "Plus de {limit} écritures dans l'heure : écriture refusée."
+    },
+    "register_interval": {
+      "message": "Ce réglage a été écrit il y a moins de {seconds} s."
+    },
+    "log_unreadable": {
+      "message": "Le journal des télégrammes ne peut être lu ({reason}) : écriture depuis ff refusée."
+    },
+    "log_stale": {
+      "message": "Le journal des télégrammes n'est plus alimenté : écriture depuis ff refusée."
+    },
+    "service_tool_active": {
+      "message": "L'outil de service du fabricant semble connecté (télégramme récent depuis ff) : écriture refusée."
+    },
+    "read_failed": {
+      "message": "{setting} n'a pas pu être lu avant l'écriture ({reason}) : écriture refusée."
+    },
+    "unavailable": {
+      "message": "ebusd est injoignable : écriture refusée."
+    },
+    "confirmation_pending": {
+      "message": "{setting} : la modification à {requested} attend votre confirmation dans Paramètres > Réparations."
+    },
+    "write_failed": {
+      "message": "L'écriture de {setting} a échoué : {reason}"
+    },
+    "no_read_back": {
+      "message": "{setting} a été écrit mais n'a pas pu être relu ({reason})."
+    },
+    "not_taken": {
+      "message": "{setting} : {requested} a été envoyé, le régulateur relit {read_back}. La valeur n'a pas été prise en compte."
+    },
+    "expired": {
+      "message": "La demande a expiré après {minutes} minutes."
+    }
   },
   "weekdays": {
-    "monday": "Lundi", "tuesday": "Mardi", "wednesday": "Mercredi", "thursday": "Jeudi",
-    "friday": "Vendredi", "saturday": "Samedi", "sunday": "Dimanche"
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
   },
-  "attributes": {"entries": "Entrées", "ordered": "Plus récente en premier"}
+  "attributes": {
+    "entries": "Entrées",
+    "ordered": "Plus récente en premier"
+  },
+  "switch_name": "Écritures"
 }

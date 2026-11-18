@@ -15,7 +15,7 @@ from homeassistant.core import HomeAssistant
 from .hub import WeishauptConfigEntry
 from .model import ACCEPTED_DEFINITIONS
 
-TO_REDACT = {CONF_HOST, "unique_id", "title"}
+TO_REDACT = {CONF_HOST, "unique_id", "title", "telegram_db"}
 
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]:
@@ -41,5 +41,6 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Weishau
         "devices": sorted(hub.devices),
         "slaves_without_definitions": [a.address for a in hub.unknown_slaves],
         "reader": hub.snapshot() | asdict(hub.statistics),
+        "writes": hub.writer.snapshot() if hub.writer is not None else {"enabled_in_options": False},
         "readings": {key: ";".join(reading.values) for key, reading in sorted(hub.readings.items())},
     }

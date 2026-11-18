@@ -1,8 +1,9 @@
 """Connection to ebusd, start-up checks and the paced reader.
 
-The hub reads only: it owns the one `EbusdClient`, which refuses every command that is not `info`, `find` or
-`read`. It keeps one queue for all messages and sends one request at a time, never closer together than the
-configured gap. A message is requested only while an enabled entity listens to it.
+The hub reads: it owns the one `EbusdClient`, which refuses every command that is not `info`, `find`, `read` or
+the one register write of `writes.py` (sent by `writer.py`, never by the hub). It keeps one queue for all messages
+and sends one request at a time, never closer together than the configured gap; the writer takes its requests
+from the same pacing. A message is requested only while an enabled entity listens to it.
 """
 from __future__ import annotations
 
@@ -91,6 +92,7 @@ class Hub:
         self._failures: dict[str, int] = {}
         self._last_request = 0.0
         self._wake = asyncio.Event()
+        self.writer = None  # writer.Writer, when writes are enabled in the options
 
     # ---- start-up -------------------------------------------------------------------------------------------
 
@@ -113,6 +115,28 @@ class Hub:
         bad = {m.key for m in self.mismatches}
         self.usable = {key for key, message in self.model.messages.items()
                        if message.circuit in circuits and key not in bad}
+
+    @property
+    def own_address(self) -> str | None:
+        """Master address of ebusd itself, from `info`."""
+        if self.info is None:
+            return None
+        return next((a.address for a in self.info.addresses.values() if a.own and a.role == "master"), None)
+
+    async def async_bus_slot(self) -> None:
+        """Wait until a request may go to the bus without breaking the gap, and take that slot. The reader and the
+        writer share it."""
+        wait = self._last_request + self.request_gap - time.monotonic()
+        if wait > 0:
+            await asyncio.sleep(wait)
+        self._last_request = time.monotonic()
+        self.statistics.bus_requests += 1
+
+    def store(self, key: str, values: tuple[str, ...]) -> None:
+        """A reading obtained outside the reader (the read-back of a write): keep it and tell the listeners."""
+        self.readings[key] = Reading(values, time.time())
+        self._failures.pop(key, None)
+        self._notify(key)
 
     def address_of(self, device: Device) -> BusAddress | None:
         """Scan result of the first circuit of the device that answers."""

@@ -1,4 +1,5 @@
-"""Configuration: where ebusd listens, with a connection test; options: the load put on the bus."""
+"""Configuration: where ebusd listens, with a connection test; options: the load put on the bus, and writes
+(off unless enabled here; the write switch then turns them on and off)."""
 from __future__ import annotations
 
 from typing import Any
@@ -13,8 +14,11 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_CYCLIC_INTERVAL,
     CONF_REQUEST_GAP,
+    CONF_TELEGRAM_DB,
+    CONF_WRITES_ENABLED,
     DEFAULT_CYCLIC_INTERVAL,
     DEFAULT_REQUEST_GAP,
+    DEFAULT_TELEGRAM_DB,
     DOMAIN,
     MAX_CYCLIC_INTERVAL,
     MAX_REQUEST_GAP,
@@ -81,12 +85,19 @@ def _seconds(minimum: int, maximum: int) -> selector.NumberSelector:
 class WeishauptOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
-            return self.async_create_entry(data={key: int(value) for key, value in user_input.items()})
+            data = {CONF_REQUEST_GAP: int(user_input[CONF_REQUEST_GAP]),
+                    CONF_CYCLIC_INTERVAL: int(user_input[CONF_CYCLIC_INTERVAL]),
+                    CONF_WRITES_ENABLED: bool(user_input.get(CONF_WRITES_ENABLED, False))}
+            if user_input.get(CONF_TELEGRAM_DB):
+                data[CONF_TELEGRAM_DB] = str(user_input[CONF_TELEGRAM_DB]).strip()
+            return self.async_create_entry(data=data)
         options = self.config_entry.options
         schema = vol.Schema({
             vol.Required(CONF_REQUEST_GAP, default=options.get(CONF_REQUEST_GAP, DEFAULT_REQUEST_GAP)):
                 _seconds(MIN_REQUEST_GAP, MAX_REQUEST_GAP),
             vol.Required(CONF_CYCLIC_INTERVAL, default=options.get(CONF_CYCLIC_INTERVAL, DEFAULT_CYCLIC_INTERVAL)):
                 _seconds(MIN_CYCLIC_INTERVAL, MAX_CYCLIC_INTERVAL),
+            vol.Required(CONF_WRITES_ENABLED, default=options.get(CONF_WRITES_ENABLED, False)): bool,
+            vol.Optional(CONF_TELEGRAM_DB, default=options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)): str,
         })
         return self.async_show_form(step_id="init", data_schema=schema)

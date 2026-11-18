@@ -150,24 +150,25 @@ async def test_a_failing_message_does_not_stop_the_others(hass, fake, monkeypatc
     assert hub.statistics.last_error.startswith("bc1/SupplyTemp")
 
 
-async def test_no_write_path(hass, fake):
-    """Phase 1 exposes nothing that writes: no platform that sets a value, no action, no import of the guard."""
+async def test_read_only_unless_writes_are_enabled(hass, fake):
+    """Without the write option: no entity that sets a value, no action, and no write command of any form sent to
+    ebusd, not even the probe or the write definitions. Writing goes through the writer only."""
     import ast
     from pathlib import Path
 
     from custom_components import weishaupt
     entry = make_entry(hass, fake)
     await setup(hass, entry)
+    await settled(hass, entry)
+    assert entry.runtime_data.writer is None
     assert hass.services.async_services().get(DOMAIN) is None
-    assert {p.value for p in weishaupt.PLATFORMS} == {"sensor", "binary_sensor"}
+    assert hass.states.async_entity_ids("number") == [] and hass.states.async_entity_ids("switch") == []
+    assert [c for _, c in fake.commands if c.split()[0] not in ("info", "find", "read") or "-w" in c] == []
     package = Path(weishaupt.__file__).parent
     assert not (package / "services.yaml").exists()
     for path in package.glob("*.py"):
         tree = ast.parse(path.read_text())
-        imported = {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module} | {
-            a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
-        if path.name != "guard.py":
-            assert "guard" not in {name.split(".")[-1] for name in imported}, path.name
-        # no platform file of an entity type that can be set
-        assert path.stem not in ("number", "select", "switch", "button", "date", "time", "text", "climate",
-                                 "water_heater"), path.name
+        calls = {n.func.attr for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+        if path.name != "writer.py":  # the only module that sends a write
+            assert not calls & {"write_register", "probe_write"}, path.name
+        assert path.stem not in ("select", "button", "date", "time", "text", "climate", "water_heater"), path.name

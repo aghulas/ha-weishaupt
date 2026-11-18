@@ -3,8 +3,11 @@
     "step": {
       "user": {
         "title": "ebusd",
-        "description": "Address of the ebusd that is connected to the heating system. ebusd must have loaded a release of the Weishaupt definitions. Nothing is written to the heating system.",
-        "data": {"host": "Host", "port": "Port"},
+        "description": "Address of the ebusd that is connected to the heating system. ebusd must have loaded a release of the Weishaupt definitions. Nothing is written to the heating system unless writes are enabled later in the options.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        },
         "data_description": {
           "host": "Host name or IP address of ebusd.",
           "port": "TCP command port of ebusd, 8888 unless it was changed."
@@ -13,25 +16,40 @@
       "reconfigure": {
         "title": "ebusd",
         "description": "New address of the same ebusd.",
-        "data": {"host": "Host", "port": "Port"},
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        },
         "data_description": {
           "host": "Host name or IP address of ebusd.",
           "port": "TCP command port of ebusd, 8888 unless it was changed."
         }
       }
     },
-    "error": {"cannot_connect": "No ebusd answers at this address."},
-    "abort": {"already_configured": "This ebusd is already configured."}
+    "error": {
+      "cannot_connect": "No ebusd answers at this address."
+    },
+    "abort": {
+      "already_configured": "This ebusd is already configured."
+    }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Load on the bus",
-        "data": {"request_gap": "Time between two requests", "cyclic_interval": "Interval of the live values"},
+        "title": "Bus load and writes",
+        "data": {
+          "request_gap": "Time between two requests",
+          "cyclic_interval": "Interval of the live values",
+          "writes_enabled": "Enable writes of the proven settings",
+          "telegram_db": "Telegram log of ebusd"
+        },
         "data_description": {
           "request_gap": "The integration never sends two requests closer together than this.",
-          "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often."
-        }
+          "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
+          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "telegram_db": "Path of the SQLite telegram log the ebusd add-on keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed."
+        },
+        "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set."
       }
     }
   },
@@ -43,14 +61,101 @@
     "no_devices": {
       "title": "No Weishaupt device found on the bus",
       "description": "ebusd answers, but none of the addresses the Weishaupt definitions describe is on its bus. Other addresses seen: {addresses}.\n\nCheck that ebusd has a signal and has scanned the bus, then reload the integration."
+    },
+    "confirm_write": {
+      "title": "Confirm: {setting} of {device} to {requested}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Confirm the change of {setting}",
+            "description": "{device}: {setting} from {current} to {requested} (range {minimum} to {maximum}).\n\nThe value is written to the controller from the address of the vendor service tool or of ebusd, then read back. It changes how the heating is regulated."
+          }
+        },
+        "abort": {
+          "expired": "This request has expired or was withdrawn. Set the value again to create a new one.",
+          "refused": "The write was refused: {reason}",
+          "failed": "The write failed: {reason}"
+        }
+      }
     }
   },
   "exceptions": {
-    "cannot_connect": {"message": "ebusd cannot be asked: {error}"}
+    "cannot_connect": {
+      "message": "ebusd cannot be asked: {error}"
+    },
+    "writes_disabled": {
+      "message": "Writes are disabled: enable them in the options of the integration and turn the write switch on."
+    },
+    "not_writable": {
+      "message": "{setting} is not writable: {reason}"
+    },
+    "capability_absent": {
+      "message": "This ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused."
+    },
+    "capability_unknown": {
+      "message": "Whether ebusd computes the run-time checksum is not known ({reason}): writes refused."
+    },
+    "source_not_own": {
+      "message": "{setting} is proven written from address 31 only, and the address of this ebusd is {own}."
+    },
+    "off_step": {
+      "message": "{value} is not on a step of {step} from {minimum}."
+    },
+    "out_of_bounds": {
+      "message": "{value} is outside the allowed range {minimum} to {maximum}."
+    },
+    "linked_unknown": {
+      "message": "{other} could not be read: write refused."
+    },
+    "hourly_limit": {
+      "message": "More than {limit} writes within the hour: write refused."
+    },
+    "register_interval": {
+      "message": "This setting was written less than {seconds} s ago."
+    },
+    "log_unreadable": {
+      "message": "The telegram log cannot be read ({reason}): write from ff refused."
+    },
+    "log_stale": {
+      "message": "The telegram log is not being fed: write from ff refused."
+    },
+    "service_tool_active": {
+      "message": "The vendor service tool seems to be connected (recent telegram from ff): write refused."
+    },
+    "read_failed": {
+      "message": "{setting} could not be read before the write ({reason}): write refused."
+    },
+    "unavailable": {
+      "message": "ebusd cannot be reached: write refused."
+    },
+    "confirmation_pending": {
+      "message": "{setting}: the change to {requested} waits for your confirmation in Settings > Repairs."
+    },
+    "write_failed": {
+      "message": "The write of {setting} failed: {reason}"
+    },
+    "no_read_back": {
+      "message": "{setting} was written but could not be read back ({reason})."
+    },
+    "not_taken": {
+      "message": "{setting}: {requested} was sent, the controller reads back {read_back}. The value was not taken over."
+    },
+    "expired": {
+      "message": "The request expired after {minutes} minutes."
+    }
   },
   "weekdays": {
-    "monday": "Monday", "tuesday": "Tuesday", "wednesday": "Wednesday", "thursday": "Thursday",
-    "friday": "Friday", "saturday": "Saturday", "sunday": "Sunday"
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
   },
-  "attributes": {"entries": "Entries", "ordered": "Most recent first"}
+  "attributes": {
+    "entries": "Entries",
+    "ordered": "Most recent first"
+  },
+  "switch_name": "Writes"
 }

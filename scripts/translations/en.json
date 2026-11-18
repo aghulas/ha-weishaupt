@@ -41,13 +41,15 @@
           "request_gap": "Time between two requests",
           "cyclic_interval": "Interval of the live values",
           "writes_enabled": "Enable writes of the proven settings",
-          "telegram_db": "Telegram log of ebusd"
+          "telegram_db": "Telegram log of ebusd",
+          "max_writes_per_hour": "Maximum writes per hour"
         },
         "data_description": {
           "request_gap": "The integration never sends two requests closer together than this.",
           "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
           "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
-          "telegram_db": "Path of the SQLite telegram log the ebusd add-on keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed."
+          "telegram_db": "Path of the SQLite telegram log the ebusd add-on keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed.",
+          "max_writes_per_hour": "Writes accepted within any sliding hour (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
         },
         "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set."
       }

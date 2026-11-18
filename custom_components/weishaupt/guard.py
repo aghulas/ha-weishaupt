@@ -3,7 +3,9 @@
 Carried over from version 0.1, where it was proven in service. Rules:
 - writes are refused unless enabled (integration options and the write switch);
 - the value must lie within the bounds of the setting, narrowed by the linked settings;
-- at most one write per register every MIN_INTERVAL seconds and MAX_PER_HOUR writes in all per hour;
+- at most one write per register every MIN_INTERVAL seconds, and at most `max_per_hour` writes in all per hour:
+  the option `max_writes_per_hour` of the entry, MAX_PER_HOUR by default, accepted within MAX_PER_HOUR_RANGE (as in
+  0.1.2). The limit spares the memory of the devices; a high value is for a supervised test campaign;
 - a write from the address of the vendor service tool (ff) is refused when the tool may be connected: a telegram
   from ff was logged during the last SERVICE_TOOL_QUIET seconds, outside of our own writes, or the telegram log
   cannot be read. Two masters with the same address would collide on the bus;
@@ -26,6 +28,7 @@ from dataclasses import dataclass
 
 MIN_INTERVAL = 10.0
 MAX_PER_HOUR = 30
+MAX_PER_HOUR_RANGE = (1, 200)
 SERVICE_TOOL_QUIET = 600.0
 OWN_WRITE_MARGIN = 5.0
 LOG_FRESH_MAX = 120.0
@@ -62,6 +65,20 @@ class WriteRefused(Exception):
         super().__init__(REASONS[code].format(**self.placeholders))
 
 
+def hourly_limit(value: object) -> int:
+    """The hourly write limit from the option value: MAX_PER_HOUR when unset, a valid integer as is.
+
+    Raises ValueError for anything else (not an integer, or outside MAX_PER_HOUR_RANGE)."""
+    if value is None:
+        return MAX_PER_HOUR
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or int(value) != value:
+        raise ValueError(f"not an integer: {value!r}")
+    low, high = MAX_PER_HOUR_RANGE
+    if not low <= int(value) <= high:
+        raise ValueError(f"{value} is outside {low} to {high}")
+    return int(value)
+
+
 def read_service_tool_state(db_path: str) -> "ServiceToolState":
     """Read the telegram log: time of the last ff telegram, and of the newest telegram of any source.
 
@@ -87,8 +104,10 @@ class ServiceToolState:
 
 
 class WriteGuard:
-    def __init__(self, enabled: bool, clock: Callable[[], float] = time.time) -> None:
+    def __init__(self, enabled: bool, clock: Callable[[], float] = time.time,
+                 max_per_hour: int = MAX_PER_HOUR) -> None:
         self.enabled = enabled
+        self.max_per_hour = hourly_limit(max_per_hour)
         self._clock = clock
         self._writes: deque[float] = deque()
         self._last_by_register: dict[str, float] = {}
@@ -103,8 +122,8 @@ class WriteGuard:
         now = self._clock()
         while self._writes and now - self._writes[0] > 3600:
             self._writes.popleft()
-        if len(self._writes) >= MAX_PER_HOUR:
-            raise WriteRefused("hourly_limit", limit=MAX_PER_HOUR)
+        if len(self._writes) >= self.max_per_hour:
+            raise WriteRefused("hourly_limit", limit=self.max_per_hour)
         last = self._last_by_register.get(register_id)
         if last is not None and now - last < MIN_INTERVAL:
             raise WriteRefused("register_interval", seconds=f"{MIN_INTERVAL:.0f}")

@@ -37,6 +37,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
 from .const import (
+    CONF_MAX_WRITES_PER_HOUR,
     CONF_TELEGRAM_DB,
     DEFAULT_TELEGRAM_DB,
     DOMAIN,
@@ -45,7 +46,7 @@ from .const import (
     PENDING_TTL,
 )
 from .ebusd import EbusdConnectionError, EbusdError
-from .guard import ServiceToolState, WriteGuard, WriteRefused, read_service_tool_state
+from .guard import MAX_PER_HOUR, ServiceToolState, WriteGuard, WriteRefused, hourly_limit, read_service_tool_state
 from .writes import WriteSpec, capability, linked, write_specs
 
 _LOGGER = logging.getLogger(__name__)
@@ -89,7 +90,12 @@ class Writer:
         self.hass, self.hub = hass, hub
         self.telegram_db: str = options.get(CONF_TELEGRAM_DB) or DEFAULT_TELEGRAM_DB
         self.switch_on = False
-        self.guard = WriteGuard(enabled=False)
+        try:
+            limit = hourly_limit(options.get(CONF_MAX_WRITES_PER_HOUR))
+        except ValueError as err:  # only possible by editing the stored entry: the safe side
+            _LOGGER.warning("option %s ignored (%s): %s writes per hour", CONF_MAX_WRITES_PER_HOUR, err, MAX_PER_HOUR)
+            limit = MAX_PER_HOUR
+        self.guard = WriteGuard(enabled=False, max_per_hour=limit)
         self.specs: dict[str, WriteSpec] = {}
         self.not_writable: dict[str, str] = {}
         self.placeholders: dict[str, str] = {}
@@ -307,6 +313,7 @@ class Writer:
             "writable": {key: {k: v for k, v in asdict(spec).items() if k not in ("circuit", "name")}
                          for key, spec in sorted(self.specs.items())},
             "not_writable": self.not_writable, "writes_last_hour": self.guard.writes_last_hour(),
+            "max_writes_per_hour": self.guard.max_per_hour,
             "pending": [{"key": p.key, "value": p.value, "age": round(time.time() - p.created)}
                         for p in self.pending.values()],
             "journal": list(self.journal),

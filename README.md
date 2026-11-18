@@ -221,7 +221,8 @@ attributes.
    or below the normal one, minimum flow temperature at or below the maximum;
 3. for a write from `ff`, the telegram log: no telegram from `ff` that is not ours in the last 10
    minutes, a telegram of any source in the last 2 minutes; then at most one write per register
-   every 10 s and 30 writes an hour;
+   every 10 s and 30 writes an hour (option *Maximum writes per hour*, 1 to 200: keep 30 in
+   service, a higher value is for a supervised test campaign);
 4. the telegram is built by the integration and handed to ebusd with
    `write [-s ff] -c <circuit> -h <bytes>`: ebusd sends it only if it matches the write definition
    it loaded for that circuit, checksum included;
@@ -262,7 +263,8 @@ integration under the same name:
   `weishaupt.set_clock` are gone, and automations that call them stop working. If you rely on
   them, stay on 0.1 until the definitions prove them.
 - Regulation settings need a confirmation in *Repairs* for every change: an automation that sets
-  one of them in 0.1 cannot do so any more. The hourly write limit is 30, not an option.
+  one of them in 0.1 cannot do so any more. The hourly write limit is an option again, 30 by default
+  (1 to 200), as in 0.1.2; it is not carried over from 0.1 by the update.
 - Writes are off after the update, even if they were on in 0.1: enable them again in the options.
 - **ebusd must load a definitions release.** 0.1 worked with any configuration and `--enablehex`;
   0.3 needs the release and no longer needs `--enablehex`; writes still need the fork's ebusd and

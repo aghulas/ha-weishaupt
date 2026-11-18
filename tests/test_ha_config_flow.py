@@ -1,4 +1,5 @@
 """Config flow (with its connection test), reconfiguration, options, migration of a 0.1 entry."""
+import pytest
 from homeassistant.config_entries import SOURCE_USER, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.data_entry_flow import FlowResultType
@@ -82,7 +83,7 @@ async def test_options(hass, fake):
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert entry.options == {CONF_REQUEST_GAP: 5, CONF_CYCLIC_INTERVAL: 600, "writes_enabled": False,
-                             "telegram_db": "/share/ebusd/telegrams.db"}
+                             "telegram_db": "/share/ebusd/telegrams.db", "max_writes_per_hour": 30}
     hub = entry.runtime_data  # reloaded with the new options
     assert (hub.request_gap, hub.cyclic_interval) == (5, 600)
 
@@ -99,3 +100,20 @@ async def test_entry_of_version_0_1_is_migrated(hass, fake):
     assert entry.state is ConfigEntryState.LOADED
     assert entry.runtime_data.request_gap == 2 and entry.runtime_data.cyclic_interval == 300
     await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_hourly_write_limit_option(hass, fake):
+    """As in 0.1.2: 30 by default, 1 to 200, anything else refused by the form."""
+    import voluptuous as vol
+    entry = make_entry(hass, fake)
+    await setup(hass, entry)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    schema = result["data_schema"]
+    assert schema({CONF_REQUEST_GAP: 2, CONF_CYCLIC_INTERVAL: 300})["max_writes_per_hour"] == 30
+    for bad in (0, 201, "x"):
+        with pytest.raises(vol.Invalid):
+            schema({CONF_REQUEST_GAP: 2, CONF_CYCLIC_INTERVAL: 300, "max_writes_per_hour": bad})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_REQUEST_GAP: 2, CONF_CYCLIC_INTERVAL: 300, "max_writes_per_hour": 200})
+    await hass.async_block_till_done()
+    assert entry.options["max_writes_per_hour"] == 200

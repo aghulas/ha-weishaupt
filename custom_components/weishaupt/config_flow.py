@@ -13,6 +13,7 @@ from homeassistant.helpers import selector
 
 from .const import (
     CONF_CYCLIC_INTERVAL,
+    CONF_MAX_WRITES_PER_HOUR,
     CONF_REQUEST_GAP,
     CONF_TELEGRAM_DB,
     CONF_WRITES_ENABLED,
@@ -26,6 +27,7 @@ from .const import (
     MIN_REQUEST_GAP,
 )
 from .ebusd import DEFAULT_PORT, EbusdClient, EbusdError
+from .guard import MAX_PER_HOUR, MAX_PER_HOUR_RANGE
 
 
 def _schema(defaults: dict[str, Any]) -> vol.Schema:
@@ -87,7 +89,8 @@ class WeishauptOptionsFlow(OptionsFlow):
         if user_input is not None:
             data = {CONF_REQUEST_GAP: int(user_input[CONF_REQUEST_GAP]),
                     CONF_CYCLIC_INTERVAL: int(user_input[CONF_CYCLIC_INTERVAL]),
-                    CONF_WRITES_ENABLED: bool(user_input.get(CONF_WRITES_ENABLED, False))}
+                    CONF_WRITES_ENABLED: bool(user_input.get(CONF_WRITES_ENABLED, False)),
+                    CONF_MAX_WRITES_PER_HOUR: int(user_input.get(CONF_MAX_WRITES_PER_HOUR, MAX_PER_HOUR))}
             if user_input.get(CONF_TELEGRAM_DB):
                 data[CONF_TELEGRAM_DB] = str(user_input[CONF_TELEGRAM_DB]).strip()
             return self.async_create_entry(data=data)
@@ -99,5 +102,7 @@ class WeishauptOptionsFlow(OptionsFlow):
                 _seconds(MIN_CYCLIC_INTERVAL, MAX_CYCLIC_INTERVAL),
             vol.Required(CONF_WRITES_ENABLED, default=options.get(CONF_WRITES_ENABLED, False)): bool,
             vol.Optional(CONF_TELEGRAM_DB, default=options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)): str,
+            vol.Required(CONF_MAX_WRITES_PER_HOUR, default=options.get(CONF_MAX_WRITES_PER_HOUR, MAX_PER_HOUR)):
+                vol.All(vol.Coerce(int), vol.Range(min=MAX_PER_HOUR_RANGE[0], max=MAX_PER_HOUR_RANGE[1])),
         })
         return self.async_show_form(step_id="init", data_schema=schema)

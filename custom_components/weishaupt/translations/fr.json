@@ -41,13 +41,15 @@
           "request_gap": "Délai entre deux requêtes",
           "cyclic_interval": "Intervalle des valeurs instantanées",
           "writes_enabled": "Activer l'écriture des réglages prouvés",
-          "telegram_db": "Journal des télégrammes d'ebusd"
+          "telegram_db": "Journal des télégrammes d'ebusd",
+          "max_writes_per_hour": "Écritures par heure au maximum"
         },
         "data_description": {
           "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
           "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
           "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
-          "telegram_db": "Chemin du journal SQLite des télégrammes que tient le module complémentaire ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté."
+          "telegram_db": "Chemin du journal SQLite des télégrammes que tient le module complémentaire ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté.",
+          "max_writes_per_hour": "Écritures acceptées sur toute heure glissante (1 à 200, 30 par défaut). La limite protège la mémoire des régulateurs de l'usure : gardez 30 en service normal. Une valeur plus haute est réservée à une campagne d'essais surveillée ; remettez 30 à la fin de la campagne. La modifier recharge l'intégration, ce qui remet le compte à zéro."
         },
         "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés."
       }

@@ -25,13 +25,17 @@ WCRC_MARKER = "[WCRC]"
 # fractional), quoted from the evidence record `settings-writes.md` of the definitions, which takes them from the
 # vendor's installation manual of the room unit and heating circuit (WCM-FS 2.0) and states them for heating module
 # 2; the record gives the other heating circuits and room units "as on em2". Step 0.5 as every other temperature
-# of the lot and the changes proven on the bus. A contract gap: to be carried by the metadata.
+# of the lot and the changes proven on the bus. Held here for this beta: the definitions will carry them in their
+# metadata in a later release, and a range of the metadata always wins (these apply only where `min`/`max` are
+# absent, see `_spec`).
 FALLBACK_RANGES: dict[str, tuple[float, float, float]] = {
     "RoomSetbackTemp": (10.0, 21.5, 0.5),
     "GradientCurve": (2.5, 40.0, 0.5),
 }
-# Linked bounds, which no record of the definitions states: on one circuit the setback room temperature stays at
-# or below the normal one, the minimum flow temperature at or below the maximum. (lower, upper) message names.
+# Linked bounds, which no record of the definitions states yet (the contract, docs/companion-contract.md of the
+# workbench, says so; the ranges are those of evidence/settings-writes.md): on one circuit the setback room
+# temperature stays at or below the normal one, the minimum flow temperature at or below the maximum. (lower,
+# upper) message names. Held here for this beta: when the metadata carries linked bounds, they replace these.
 LINKED: tuple[tuple[str, str], ...] = (
     ("RoomSetbackTemp", "RoomNormalTemp"),
     ("SupplyMinTemp", "SupplyMaxTemp"),

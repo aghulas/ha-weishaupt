@@ -7,6 +7,7 @@ CONF_REQUEST_GAP = "request_gap"
 CONF_CYCLIC_INTERVAL = "cyclic_interval"
 CONF_WRITES_ENABLED = "writes_enabled"
 CONF_TELEGRAM_DB = "telegram_db"
+CONF_MAX_WRITES_PER_HOUR = "max_writes_per_hour"
 DEFAULT_TELEGRAM_DB = "/share/ebusd/telegrams.db"  # the telegram log of the ebusd add-on of the test installation
 
 # Load on the bus. No interval is established by a record: these are choices, explained in the README.

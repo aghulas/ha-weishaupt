@@ -361,3 +361,25 @@ async def test_a_setting_written_through_the_own_circuit_of_the_manager(hass, fa
     assert entity_id is not None and number_id(hass, entry, "ka/RoomNormalTemp") is None
     assert er.async_get(hass).async_get(entity_id).translation_key == "manager_roomnormaltemp"
     assert number_id(hass, entry, "em1/SupplyMaxTemp") is None and number_id(hass, entry, "ka/SupplyMaxTemp")
+
+
+async def test_writer_takes_the_hourly_limit_of_the_options(hass, fake, log):
+    entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log, max_writes_per_hour=1)
+    await setup(hass, entry)
+    writer = entry.runtime_data.writer
+    assert writer.guard.max_per_hour == 1
+    writer.set_switch(True)
+    await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
+    with pytest.raises(WriteRefused) as err:
+        await writer.async_write("em2/RoomNormalTemp", 22.0, None)
+    assert err.value.code == "hourly_limit" and len(fake.writes) == 1
+
+
+@pytest.mark.parametrize("stored,expected", [(None, 30), (500, 30), ("x", 30), (60, 60)])
+async def test_hourly_limit_default_and_a_stored_value_out_of_bounds(hass, fake, log, stored, expected):
+    options = {"writes_enabled": True, "telegram_db": log}
+    if stored is not None:
+        options["max_writes_per_hour"] = stored
+    entry = make_entry(hass, fake, **options)
+    await setup(hass, entry)
+    assert entry.runtime_data.writer.guard.max_per_hour == expected

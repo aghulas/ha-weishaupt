@@ -3,6 +3,8 @@ import pytest
 from weishaupt_core.guard import (
     LOG_FRESH_MAX,
     MAX_PER_HOUR,
+    MAX_PER_HOUR_RANGE,
+    hourly_limit,
     ServiceToolState,
     WriteGuard,
     WriteRefused,
@@ -98,3 +100,22 @@ def test_unreadable_log_file(tmp_path):
     with pytest.raises(WriteRefused) as err:
         g.check("15:2500", 2, 0, 30, "ff", state)
     assert err.value.code == "log_unreadable"
+
+
+def test_hourly_limit_option_values():
+    assert hourly_limit(None) == MAX_PER_HOUR == 30 and MAX_PER_HOUR_RANGE == (1, 200)
+    assert hourly_limit(1) == 1 and hourly_limit(200) == 200 and hourly_limit(45.0) == 45
+    for bad in (0, 201, 2.5, "30", True):
+        with pytest.raises(ValueError):
+            hourly_limit(bad)
+
+
+def test_the_guard_uses_the_configured_limit():
+    clock = Clock()
+    g = WriteGuard(True, clock=clock, max_per_hour=2)
+    for register in ("a", "b"):
+        g.check(register, 1, 0, 2, None)
+        g.record(register, None)
+    with pytest.raises(WriteRefused) as err:
+        g.check("c", 1, 0, 2, None)
+    assert err.value.code == "hourly_limit" and err.value.placeholders == {"limit": "2"}

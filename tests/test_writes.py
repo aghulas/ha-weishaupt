@@ -187,3 +187,14 @@ def test_the_probe_of_the_run_time_checksum(golden, specs, build, expected):
     simple = {"ERR: invalid argument": "matched", "ERR: element not found": "not found"}
     assert capability(simple[answers[correct]], simple[answers[other]]) == expected
     assert capability("matched", "matched") == capability("error", "not found") == "unknown"
+
+
+def test_a_range_of_the_metadata_wins_over_the_evidence_bounds(model, loaded):
+    """The evidence bounds are held only while the metadata has no range: once it carries one, it is used."""
+    import dataclasses
+    message = model.messages["em2/RoomSetbackTemp"]
+    fld = dataclasses.replace(message.fields[0], minimum=12, maximum=20, step=0.5)
+    changed = dataclasses.replace(message, fields=(fld,))
+    specs, _, _ = write_specs(dataclasses.replace(model, messages=model.messages | {message.key: changed}), loaded)
+    spec = specs["em2/RoomSetbackTemp"]
+    assert (spec.minimum, spec.maximum, spec.bounds_from) == (12, 20, "definitions")

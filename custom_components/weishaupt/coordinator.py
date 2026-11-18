@@ -14,7 +14,8 @@ from homeassistant.util import dt as dt_util
 from .const import CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB, DOMAIN, SCAN_INTERVAL
 from .guard import ServiceToolState, WriteRefused, guard_from_options, read_service_tool_state
 from .protocol import EbusdClient, EbusdError, datetime_broadcast_command
-from .registers import DEVICES, Device, polls_programs, program_registers, registers_of
+from .polling import ReadBackStamps, poll
+from .registers import DEVICES, Device
 
 _LOGGER = logging.getLogger(__name__)
 PROGRAM_INTERVAL = 3600.0  # time programs change rarely: read them once an hour
@@ -37,17 +38,13 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
         self._db_path = entry.options.get(CONF_TELEGRAM_DB, DEFAULT_TELEGRAM_DB)
         self.guard = guard_from_options(entry.options)  # a reload (options changed) builds a new guard
         self._programs_read = 0.0
+        self._read_backs = ReadBackStamps()
 
     async def _async_update_data(self) -> dict[str, dict[str, bytes | None]]:
         read_programs = time.monotonic() - self._programs_read > PROGRAM_INTERVAL or not self.data
-        data = {}
         try:
-            for device in DEVICES:
-                values = dict((self.data or {}).get(device.key, {}))
-                values.update(await self.client.read_registers(device.zz, registers_of(device)))
-                if read_programs and polls_programs(device):
-                    values.update(await self.client.read_registers(device.zz, program_registers()))
-                data[device.key] = values
+            # a register written during the poll keeps its read-back (polling.py)
+            data = await poll(self.client, DEVICES, lambda: self.data, self._read_backs, read_programs)
         except (OSError, TimeoutError, EbusdError) as err:
             raise UpdateFailed(f"ebusd read: {err}") from err
         if read_programs:
@@ -91,7 +88,7 @@ class WeishauptCoordinator(DataUpdateCoordinator[dict[str, dict[str, bytes | Non
             "device": device.key, "register": register, "value": value, "source": source or "31",
             "before": before.hex() if before else None, "after": after.hex() if after else None})
         if self.data is not None:
-            self.data[device.key][register] = after
+            self._read_backs.store(self.data, device.key, register, after)
             self.async_update_listeners()
         if after != raw:
             raise HomeAssistantError(translation_domain=DOMAIN, translation_key="write_not_retained",

@@ -30,11 +30,11 @@ No MQTT broker, no `--enablehex`, no HTTP port.
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.2 | 0.4.3 | 0.4.2 and later 0.4.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
+| 0.2 | 0.5.0 | 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.4.3.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.5.0.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -42,6 +42,14 @@ that file:
 - a message that ebusd did not load, or loaded with other fields, types or units, gets **no
   entity**, and one repair issue names the messages and the release expected. Load a release of
   the accepted range in ebusd, then reload the integration.
+
+Why 0.5.x only: the second number of a definitions version changes when a message is renamed,
+removed or retyped, the third when messages are only added. 0.5.0 renamed one message of the
+system manager (`DHWOperationMode` became `DHWLoadingPriority`) and made a message of the heating
+modules decodable. With definitions 0.4.x in ebusd the integration still starts, shows a repair
+issue naming the renamed message, and the exchange values of a module without outside sensor stay
+unknown. An entity created under a former message name keeps its entity id and history when the
+name changes: the metadata says which name it had.
 
 Checked on one installation only (see the definitions): two WTC boilers in cascade, a system
 manager, three heating circuits. Other models and software versions may differ.
@@ -88,8 +96,10 @@ Things to know:
 - Every memory read of the boilers starts with a byte that is 0 in a valid answer. A reading whose
   first byte is not 0 is dropped whole and the previous value is kept.
 - A register that two messages of one device read is shown once.
-- Entries of value lists (operating phases, hot-water mode) are shown with the name the
-  definitions give them, in English in every language for now.
+- The same holds on a heating module or the system manager, where an outside sensor that is not
+  fitted reads −100 °C. Nothing in the telegram marks these values, so they are shown as they are.
+- States of value lists (operating phases, hot-water loading priority) are translated; in
+  automations their values are keys in English (`burner_in_operation`, `priority`).
 
 ### Names, languages and entity ids
 
@@ -187,12 +197,12 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
 
 - The client, the model and the comparison are tested against **recorded answers of a real
   ebusd** (`tests/data/ebusd-golden.json`): the release loaded in ebusd 26.1 in a container,
-  without a bus, with telegrams injected as already seen. The bytes of those telegrams are those
-  quoted in the evidence records of the definitions (`tests/data/telegrams.json`). It is recorded
-  with `scripts/capture_ebusd.py`.
+  without a bus, with one telegram of every message injected as already seen. The telegrams are
+  those of the fixtures file of the definitions release (`tests/data/fixtures.json`): captured on
+  a bus, 566 of them for all 528 messages. It is recorded with `scripts/capture_ebusd.py`, which
+  fails if ebusd answers anything else than the fixtures say.
 - The integration runs inside a Home Assistant test instance against a **simulated ebusd**
-  (`tests/fake_ebusd.py`), a TCP server that replays those answers and makes up values for the
-  messages without a recording.
+  (`tests/fake_ebusd.py`), a TCP server that replays those answers. It makes up no value.
 - `tests/test_packaging.py` applies the rules of HACS to `hacs.json`, the manifest and the brand
   images.
 - hassfest, the validation of Home Assistant:

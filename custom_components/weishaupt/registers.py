@@ -22,6 +22,12 @@ Bounds are the setting ranges of the Weishaupt manuals: WCM-FS 2.0 (83277701, 20
 display examples. `min_ref`/`max_ref` name a setting of the same device whose current value also bounds this one,
 as the manuals describe (e.g. reduced room setpoint <= normal room setpoint).
 
+Writes of numeric settings (0.1.1): raw `5023` telegrams, with the checksum computed by `protocol.py`, so that they
+do not depend on the message names of the configuration ebusd loads. From 15/11/2026 to 0.1.0 they went through
+ebusd message names; the raw telegram is byte for byte the one ebusd built from those definitions (same register,
+encoding, source address and checksum). The bounds below are the only range check: the definitions of the older
+configuration had none beyond the 16-bit type, and a release may not define the write at all.
+
 Names shown to the user are not here: every `key` is a translation key of `strings.json` (entity names, and for
 choices the option labels), translated in `translations/`.
 """
@@ -67,7 +73,10 @@ class Setting:
     source: str | None
     min_ref: str | None = None
     max_ref: str | None = None
-    message: str | None = None  # ebusd message name (write via definition instead of raw hex); None -> hex
+    # ebusd message name: write through the definition (`write -c`) instead of the raw 5023 frame; None -> raw hex.
+    # Since 0.1.1 only the settings whose definition in the older configuration is a value list keep a name (see
+    # NAMED_WRITES below); every other setting goes out raw, with the bytes ebusd built from its definition in 0.1.0.
+    message: str | None = None
 
 
 @dataclass(frozen=True)
@@ -93,34 +102,28 @@ DEVICES = [
 FS_SETTINGS = [
     # FS 112, 113, 118, 117 (range of the "Universal" circuit type), 119
     Setting("room_normal", "0500", TEMP10, "°C", 16, 35, 0.5, "ff",
-            min_ref="room_reduced", message="RoomNormalTemp"),
+            min_ref="room_reduced"),
     Setting("room_reduced", "0800", TEMP10, "°C", 10, 21.5, 0.5, "ff",
-            max_ref="room_normal", message="RoomSetbackTemp"),
-    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff",
-            message="RoomFrostProtectionTemp"),
-    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff",
-            message="GradientCurve"),
-    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff",
-            message="SummerWinterChangeOverTemp"),
+            max_ref="room_normal"),
+    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff"),
+    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff"),
+    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff"),
     # circuit flow limits, KA 342/341 (not in the FS manual): max up to 82 °C for the "Universal" type
     Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, "ff",
-            min_ref="supply_min", message="SupplyMaxTemp"),
+            min_ref="supply_min"),
     Setting("supply_min", "2b01", TEMP10, "°C", 8, 82, 0.5, "ff",
-            max_ref="supply_max", message="SupplyMinTemp"),
+            max_ref="supply_max"),
     # FS 132
-    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff",
-            message="DHWSetpoint"),
+    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff"),
     # Lot 1 (fine regulation): WCM-FS bounds / ebusd codecs; source ff by hypothesis, AWAITING BUS VALIDATION
+    # Still written by name (see NAMED_WRITES): P508, default 5
     Setting("room_factor_curve", "0f01", UNIT, None, 1, 20, 1, "ff",
-            message="RoomFactorCurve"),                                            # P508, default 5
-    Setting("boiler_mc_boost", "1101", TEMP10, "K", 0, 20, 0.5, "ff",
-            message="BoilerMCBoostTemp"),                                          # P424, default 2.0 K
+            message="RoomFactorCurve"),
+    Setting("boiler_mc_boost", "1101", TEMP10, "K", 0, 20, 0.5, "ff"),  # P424, default 2.0 K
     # Validated writable on the bus on 15/11. Maximum found by a bus sweep (10 kept, 20 rejected) -> 0..10 min.
-    Setting("switch_on_runtime", "1001", UNIT, "min", 0, 10, 1, "ff",
-            message="SwitchOnRuntime"),
+    Setting("switch_on_runtime", "1001", UNIT, "min", 0, 10, 1, "ff"),
     # Lot 2 (15/11): frost protection limit (WCM-FS §6.5.28: off + -20..0 °C); bus-validated 0.0->-0.5->0.0 from ff.
-    Setting("frost_protection_limit", "be02", TEMP10, "°C", -20, 0, 0.5, "ff",
-            message="FrostProtectionLimitTemp"),
+    Setting("frost_protection_limit", "be02", TEMP10, "°C", -20, 0, 0.5, "ff"),
 ]
 FS_DATES = [
     DateSetting("holiday_from", ("1b01", "1c01", "1d01"), "ff"),
@@ -176,40 +179,29 @@ FS_READ_PARAMS = [
 
 KA_SETTINGS = [
     # KA 342 (82 °C = value read, the maximum of the "Universal" type), 536, 535, 572 (max = 574 WW Maximal, 60 °C)
-    Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, "ff",
-            message="SupplyMaxTemp"),
+    Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, "ff"),
+    # Still written by name (see NAMED_WRITES)
     Setting("modulation_max", "eafd", UNIT, "%", 30, 100, 1, "ff", min_ref="modulation_min",
             message="ModulationMax"),
     Setting("modulation_min", "ebfd", UNIT, "%", 30, 100, 1, "ff", max_ref="modulation_max",
             message="ModulationMin"),
-    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff",
-            message="DHWSetpoint"),
+    Setting("dhw_setpoint", "1300", TEMP10, "°C", 40, 60, 0.5, "ff"),
     # Lot 1: cascade power controller (WCM-KA); source ff by hypothesis, AWAITING BUS VALIDATION
-    Setting("regulation_p", "9f02", UNIT, None, 10, 300, 1, "ff",
-            message="RegulationP"),                                                # P539, default 100
-    Setting("regulation_i", "9e02", UNIT, None, 10, 200, 1, "ff",
-            message="RegulationI"),                                                # P540, default 100
+    Setting("regulation_p", "9f02", UNIT, None, 10, 300, 1, "ff"),  # P539, default 100
+    Setting("regulation_i", "9e02", UNIT, None, 10, 200, 1, "ff"),  # P540, default 100
     # Lot 2 hot water (15/11, WCM-KA §6.7.34/6.7.37): bus-validated from ff; DHWMaxLoad left out (no write definition).
-    Setting("legionella_setup_temp", "8705", TEMP10, "°C", 40, 80, 0.5, "ff",
-            message="LegionellaSetupTemp"),                                        # default 60 °C
-    Setting("dhw_load_time", "8001", UNIT, "min", 0, 180, 10, "ff",
-            message="DHWLoadTime"),                                                # 0 = off; 10..180
+    Setting("legionella_setup_temp", "8705", TEMP10, "°C", 40, 80, 0.5, "ff"),  # default 60 °C
+    Setting("dhw_load_time", "8001", UNIT, "min", 0, 180, 10, "ff"),  # 0 = off; 10..180
     # Lot 2b (15/11): bus-validated from ff (WCM-KA §6.7.32 / §6.7.40).
-    Setting("dhw_switch_diff", "4001", TEMP10, "K", -10, -1, 0.5, "ff",
-            message="DHWSwitchDiff"),                                              # -10..-1 K, default -3
-    Setting("legionella_circ_time", "b109", UNIT, "s", 180, 1200, 60, "ff",
-            message="LegionellaCirculationTime"),                                 # 3:00..20:00 min (in s)
+    Setting("dhw_switch_diff", "4001", TEMP10, "K", -10, -1, 0.5, "ff"),  # -10..-1 K, default -3
+    Setting("legionella_circ_time", "b109", UNIT, "s", 180, 1200, 60, "ff"),  # 3:00..20:00 min (in s)
     # Cascade (15/11): bus-validated from ff. Change-over time = rotation interval (h); blocking = anti-short-cycle.
-    Setting("cascade_change_time", "ecfd", TEMP1, "h", 0, 250, 1, "ff",
-            message="ChangeOverTime"),                                            # 50 h; provisional range
-    Setting("cascade_blocking_time", "2500", UNIT, "min", 0, 30, 1, "ff",
-            message="BlockingTime"),                                              # anti-short-cycle, 1 min; provisional range
+    Setting("cascade_change_time", "ecfd", TEMP1, "h", 0, 250, 1, "ff"),  # 50 h; provisional range
+    Setting("cascade_blocking_time", "2500", UNIT, "min", 0, 30, 1, "ff"),  # anti-short-cycle, 1 min; provisional range
     # Hydraulic separator / buffer (15/11, after the ebusd codec fix, x10). Validated writable from ff.
     # DeCoupleMax left out (not writable on the bus). Provisional bounds (the manual gives no clear range).
-    Setting("decouple_min", "e7fd", TEMP10, "°C", 0, 50, 0.5, "ff",
-            message="DeCoupleMin"),                                               # 8.0 °C
-    Setting("calorifier_switch_diff", "e2fd", TEMP10, "K", 1, 20, 0.5, "ff",
-            message="CalorfierSwitchDifference"),                                 # 2.0 K
+    Setting("decouple_min", "e7fd", TEMP10, "°C", 0, 50, 0.5, "ff"),  # 8.0 °C
+    Setting("calorifier_switch_diff", "e2fd", TEMP10, "K", 1, 20, 0.5, "ff"),  # 2.0 K
 ]
 
 # Lot 2 hot water: legionella protection modes (WCM-KA §6.7.36/6.7.39); bus-validated as no-op writes from ff.
@@ -229,24 +221,28 @@ KA_CHOICES = [
 # from 31 (None). Driven by an external boiler demand (relay on the H1 input).
 EM_SETTINGS = [
     Setting("room_normal", "0500", TEMP10, "°C", 16, 35, 0.5, "ff",
-            min_ref="room_reduced", message="RoomNormalTemp"),
+            min_ref="room_reduced"),
     Setting("room_reduced", "0800", TEMP10, "°C", 10, 21.5, 0.5, "ff",
-            max_ref="room_normal", message="RoomSetbackTemp"),
-    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff",
-            message="RoomFrostProtectionTemp"),
-    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff",
-            message="GradientCurve"),
-    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff",
-            message="SummerWinterChangeOverTemp"),
+            max_ref="room_normal"),
+    Setting("room_frost", "140a", TEMP10, "°C", 4, 16, 0.5, "ff"),
+    Setting("gradient", "0e01", TEMP10, None, 2.5, 40, 0.5, "ff"),
+    Setting("summer_winter", "1601", TEMP10, "°C", 8, 30, 0.5, "ff"),
     Setting("supply_max", "2800", TEMP10, "°C", 8, 82, 0.5, None,
-            min_ref="supply_min", message="SupplyMaxTemp"),     # source 31
+            min_ref="supply_min"),     # source 31
     Setting("supply_min", "2b01", TEMP10, "°C", 8, 82, 0.5, None,
-            max_ref="supply_max", message="SupplyMinTemp"),     # source 31
+            max_ref="supply_max"),     # source 31
 ]
 # Boiler demand (external relay), read-only: H1Status (290a), value in the low byte.
 EM_READ_PARAMS = [
     ReadParam("h1_demand", "290a", UNIT, options={0: "idle", 1: "demand"}),
 ]
+
+
+# Settings left on the named write of 0.1.0 (`write -c <circuit> <Message>`). Their definition in the older
+# configuration is a value list (`32768=Na`), so ebusd accepts only that entry and answers "element not found" to a
+# number: the named write sends nothing, today and after a switch to a release (which has no such message). The
+# telegram ebusd would send cannot be established from a definition or a capture, so they are not moved to raw hex.
+NAMED_WRITES = {"ModulationMax", "ModulationMin", "RoomFactorCurve"}
 
 
 def effective_bounds(setting: Setting, settings: list[Setting], raw: dict[str, bytes | None]) -> tuple[float, float]:

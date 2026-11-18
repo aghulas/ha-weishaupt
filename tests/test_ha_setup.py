@@ -54,44 +54,77 @@ async def test_devices_and_entities(hass, fake, entity_registry_enabled_by_defau
     assert flow.state == "50.0" and flow.attributes["unit_of_measurement"] == "°C"
     assert flow.attributes["device_class"] == "temperature" and flow.attributes["state_class"] == "measurement"
     assert flow.entity_id == "sensor.boiler_1_flow_temperature_i35"
-    assert state_of(hass, entry, "bc1/Temperatures/supplytemp").state == "65"
-    assert state_of(hass, entry, "bc1/Operation/load").state == "23"
+    assert state_of(hass, entry, "bc1/Temperatures/supplytemp").state == "63"
+    assert state_of(hass, entry, "bc1/Operation/load").state == "0"
     assert state_of(hass, entry, "bc1/Operation/ionisation").state == "0.0"
     hours = state_of(hass, entry, "bc1/Counters/operatinghours")
-    assert hours.state == "87132" and hours.attributes["state_class"] == "total_increasing"
+    assert hours.state == "87175" and hours.attributes["state_class"] == "total_increasing"
     assert state_of(hass, entry, "bc1/BurnerServiceHours/value").state == "440"
     # settings, read-only
     assert state_of(hass, entry, "ka/BlockingTime/value").state == "1"
     assert state_of(hass, entry, "ka/DHWSwitchDiff/value").attributes["device_class"] == "temperature_delta"
-    mode = state_of(hass, entry, "ka/DHWOperationMode/value")
+    mode = state_of(hass, entry, "ka/DHWLoadingPriority/value")
     assert mode.state == "priority" and mode.attributes["options"] == ["priority", "sliding", "parallel"]
     # passive messages, from ebusd's cache
     assert state_of(hass, entry, "ka/Boiler1Status/operatingphase").state == "burner_in_operation"
     assert state_of(hass, entry, "ka/Boiler1Status/flame", "binary_sensor").state == STATE_ON
     assert state_of(hass, entry, "ka/Boiler2Status/flame", "binary_sensor").state == STATE_OFF
     assert state_of(hass, entry, "ka/Boiler1Power/currentload").state == "54"
-    assert state_of(hass, entry, "broadcast/KaStatus/dhwtemp").state == "44.5"
+    assert state_of(hass, entry, "broadcast/KaStatus/dhwtemp").state == "25.5"
     # the replacement value of ebusd ("-") is no value
     assert state_of(hass, entry, "ka/Boiler2Status/outsidetemp").state == STATE_UNKNOWN
     assert state_of(hass, entry, "em1/HcMode/dhw", "binary_sensor").state == STATE_ON
+    # a heating module without outside sensor: the message decodes since 0.5.0, the sensor reads the value the
+    # module gives for "not fitted"
+    assert state_of(hass, entry, "em2/HcMode/supplyhctemp").state == "25.0"
+    assert state_of(hass, entry, "em2/HcMode/outsidetemp").state == "-100.0"
 
 
-async def test_first_byte_guard(hass, fake):
-    """A memory read whose first byte is not 0 carries no valid value (notice of the definitions release)."""
+async def test_first_byte_guard(hass, fake, entity_registry_enabled_by_default):
+    """A memory read whose first byte is not 0 carries no valid value (notice of the definitions release). The
+    invalid answers are the two captured on a bus, from the fixtures file."""
+    import json
+    from pathlib import Path
+    readings = json.loads((Path(__file__).parent / "data" / "fixtures.json").read_text())["readings"]
+    invalid = {f"{r['circuit']}/{r['message']}": r["text"] for r in readings
+               if r.get("case") == "first-byte-not-zero"}
+    assert invalid == {"bc1/FaultCounters6": "10;0;0;0;0;0", "bc1/FaultCounters7": "6;0;0;0"}
+    valid = fake.reads["bc1/FaultCounters6"]
+    fake.reads.update(invalid)
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     hub = entry.runtime_data
     await settled(hass, entry)
-    assert fake.reads["bc2/Counters"] == "8;0;0;0"
-    assert state_of(hass, entry, "bc2/Counters/operatinghours").state == STATE_UNKNOWN
-    assert "bc2/Counters" not in hub.readings
-    assert hub.statistics.invalid_by_message == {"bc2/Counters": 1}
-    assert state_of(hass, entry, "bc1/Counters/burnerstarts").state == "187226"
+    # the counters read 0 in the invalid answer although they are not: no value is shown
+    assert state_of(hass, entry, "bc1/FaultCounters6/code22").state == STATE_UNKNOWN
+    assert "bc1/FaultCounters6" not in hub.readings and "bc1/FaultCounters7" not in hub.readings
+    assert hub.statistics.invalid_by_message == {"bc1/FaultCounters6": 1, "bc1/FaultCounters7": 1}
+    assert state_of(hass, entry, "bc1/FaultCounters5/code32").state != STATE_UNKNOWN
+    fake.reads["bc1/FaultCounters6"] = valid
+    await hub._read(hub.model.messages["bc1/FaultCounters6"])
+    assert valid == "0;17;24;0;0;1" and state_of(hass, entry, "bc1/FaultCounters6/code22").state == "17"
     # a later invalid reading does not replace a valid value
-    fake.reads["bc1/Counters"] = "9;0;0;0"
-    await hub._read(hub.model.messages["bc1/Counters"])
-    assert state_of(hass, entry, "bc1/Counters/burnerstarts").state == "187226"
-    assert hub.statistics.invalid_first_byte == 2
+    fake.reads["bc1/FaultCounters6"] = invalid["bc1/FaultCounters6"]
+    await hub._read(hub.model.messages["bc1/FaultCounters6"])
+    assert state_of(hass, entry, "bc1/FaultCounters6/code22").state == "17"
+    assert hub.statistics.invalid_first_byte == 3
+
+
+async def test_entity_of_a_renamed_message_keeps_its_registry_entry(hass, fake):
+    """`DHWOperationMode` became `DHWLoadingPriority` in definitions 0.5.0: an entity created under the former
+    name keeps its entity id (and so its history and the user's settings) and gets the new unique id."""
+    entry = make_entry(hass, fake)
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_ka/DHWOperationMode/value", config_entry=entry,
+        suggested_object_id="system_manager_hot_water_operating_mode")
+    await setup(hass, entry)
+    await settled(hass, entry)
+    assert registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/DHWOperationMode/value") is None
+    new = registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/DHWLoadingPriority/value")
+    assert new == old.entity_id == "sensor.system_manager_hot_water_operating_mode"
+    state = hass.states.get(new)  # the user had it enabled: it stays enabled and is read
+    assert state.state == "priority" and state.attributes["friendly_name"].endswith("Hot water loading priority")
 
 
 async def test_weekly_program_and_fault_history(hass, fake, monkeypatch, entity_registry_enabled_by_default):
@@ -143,7 +176,7 @@ async def test_definitions_mismatch_raises_a_repair_issue(hass, fake):
     issue = ir.async_get(hass).async_get_issue(DOMAIN, f"definitions_mismatch_{entry.entry_id}")
     assert issue is not None and issue.severity is ir.IssueSeverity.WARNING and not issue.is_fixable
     assert issue.translation_placeholders == {
-        "count": "2", "missing": "1", "different": "1", "version": "0.4.3", "accepted": ">=0.4.2, <0.5",
+        "count": "2", "missing": "1", "different": "1", "version": "0.5.0", "accepted": ">=0.5.0, <0.6",
         "messages": "bc1/SupplyTemp, ka/BlockingTime"}
     registry = er.async_get(hass)
     # no broken entity for the two messages, the others are there
@@ -226,9 +259,9 @@ async def test_diagnostics_hold_nothing_of_the_site(hass, fake):
     text = json.dumps(data, default=str)
     assert "127.0.0.1" not in text and str(fake.port) in text  # the host is redacted, the port is not a secret
     assert data["entry"]["data"]["host"] == "**REDACTED**"
-    assert data["definitions"]["metadata_version"] == "0.4.3" and data["definitions"]["mismatches"] == []
+    assert data["definitions"]["metadata_version"] == "0.5.0" and data["definitions"]["mismatches"] == []
     assert not [key for key in data["readings"] if "Program" in key or key == "ka/BlockingTime"]  # disabled, not read
     assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 10
-    assert data["reader"]["invalid_first_byte"] == 1
-    assert data["readings"]["bc1/Temperatures"] == "0;64;61;65;12"
+    assert data["reader"]["invalid_first_byte"] == 0 and data["reader"]["failed"] == 0
+    assert data["readings"]["bc1/Temperatures"] == "0;60;52;63;15"
     assert len(data["ebusd"]["addresses"]) == 17

@@ -67,7 +67,7 @@ async def test_client_against_the_simulated_ebusd(fake):
     assert info.signal and info.slave("15") is not None
     assert len(await client.definitions("ka")) == 29
     assert await client.definitions("nothing") == []
-    assert await client.read("bc1", "Temperatures", 300) == ("0", "64", "61", "65", "12")
+    assert await client.read("bc1", "Temperatures", 300) == ("0", "60", "52", "63", "15")
     assert await client.read("ka", "Boiler1Power", 900) == ("54", "23", "100")
     with pytest.raises(EbusdNotFound):
         await client.read("ka", "NoSuchMessage", 300)

@@ -1,9 +1,9 @@
 """A simulated ebusd: a TCP server that answers `info`, `find -f -c` and `read` like ebusd does.
 
 What it answers comes from tests/data/ebusd-golden.json, the text a real ebusd gave for the same commands (see
-scripts/capture_ebusd.py): `info`, the definitions of every circuit, and the decoded values of the telegrams of
-tests/data/telegrams.json. For a message without a recorded telegram it makes up a value of the right shape from
-the definition (0, the first entry of a value list, 00:00).
+scripts/capture_ebusd.py): `info`, the definitions of every circuit, and for every message of the definitions the
+values of one telegram captured on a bus (the fixtures file of the definitions release). No value is made up: a
+message without a recording answers an error.
 
 It is a simulation: no bus, no timing of a bus, no arbitration. Every command received is kept in `commands`
 with its time, so that a test can check what was asked, how often and how far apart.
@@ -102,25 +102,5 @@ class FakeEbusd:
             return recorded or "ERR: no data stored"
         if not self.signal:
             return "ERR: no signal"
-        return recorded or ";".join(_made_up(row[8:]))
+        return recorded or "ERR: no recorded answer for this message"
 
-
-def _made_up(cells: list[str]) -> list[str]:
-    values = []
-    for i in range(0, len(cells), 6):
-        _name, _part, kind, divisor_or_values, _unit = (cells[i:i + 5] + [""] * 5)[:5]
-        if kind.startswith("IGN"):
-            continue
-        if "=" in divisor_or_values:
-            values.append(divisor_or_values.split(";")[0].split("=")[1])
-        elif kind.startswith("TTQ"):
-            values.append("00:00")
-        elif kind.startswith("HEX"):
-            values.append("00 00")
-        elif kind in ("D2B", "D2C"):
-            values.append("0.000")
-        elif divisor_or_values.isdigit() and int(divisor_or_values) > 1:
-            values.append("0.0")
-        else:
-            values.append("0")
-    return values

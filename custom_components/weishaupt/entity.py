@@ -12,6 +12,7 @@ TEXT_TYPES = ("HEX", "STR", "NTS", "TTM", "TTH", "TTQ", "BTI", "HTI", "VTI", "BT
 NOT_AVAILABLE = "-"  # what ebusd answers for the replacement value of a type
 
 
+
 def hub_identifier(hub: Hub) -> tuple[str, str]:
     return (DOMAIN, hub.entry.entry_id)
 

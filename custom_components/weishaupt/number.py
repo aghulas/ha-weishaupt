@@ -2,7 +2,12 @@
 options of the entry; every change goes through the writer and its guard (`writer.py`).
 
 A comfort setting is written when it is set. A regulation setting is not: setting it opens a confirmation in
-Settings > Repairs, which shows the current value, the new value and the range, and writes only once confirmed."""
+Settings > Repairs, which shows the current value, the new value and the range, and writes only once confirmed. The
+request is not an error: a notification says where to confirm, and the attribute `pending` shows the change
+waiting for it.
+
+Every number is enabled when created (writes are enabled by a decision in the options already); its name is the
+name of the sensor of the same register with " (setting)" after it, so that the two can be told apart."""
 from __future__ import annotations
 
 from typing import Any
@@ -50,8 +55,7 @@ class SettingNumber(WeishauptEntity, NumberEntity):
         self._attr_native_step = spec.step
         unit, device_class = UNITS.get(spec.unit or "", (spec.unit, None))
         self._attr_native_unit_of_measurement = unit
-        # regulation settings are created disabled: they are not for a dashboard
-        self._attr_entity_registry_enabled_default = spec.risk == "comfort"
+
 
     @property
     def native_value(self) -> float | None:
@@ -62,18 +66,19 @@ class SettingNumber(WeishauptEntity, NumberEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         spec = self._spec
+        pending = self.hub.writer.pending_for(spec.key) if self.hub.writer else None
         return {"risk": spec.risk, "proof": spec.proof, "open_questions": list(spec.open),
                 "source": spec.source, "bounds_from": spec.bounds_from,
-                "range_source": spec.range_source}
+                "range_source": spec.range_source,
+                "pending": None if pending is None else pending.placeholders["requested"]}
 
     async def async_set_native_value(self, value: float) -> None:
         writer = self.hub.writer
         user_id = self._context.user_id if self._context else None
         try:
             await writer.async_request(self._spec.key, value, user_id)
-        except ConfirmationPending as pending:
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="confirmation_pending",
-                                         translation_placeholders=pending.placeholders) from None
+        except ConfirmationPending:
+            pass  # not an error: the repair and a notification ask for the confirmation
         except WriteRefused as err:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key=err.code,
                                          translation_placeholders=err.placeholders) from err

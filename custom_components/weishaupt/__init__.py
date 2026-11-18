@@ -27,6 +27,7 @@ EXAMPLES = 8  # messages named in the repair issue
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
     model = await hass.async_add_executor_job(Model.load)
     hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), model)
+    hub.previously_listened = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     try:
         await hub.async_setup()
     except EbusdError as err:
@@ -93,12 +94,15 @@ def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
+    # what was read before the reload: a message missing from it after the reload is read first
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.runtime_data.listened()
     if entry.runtime_data.writer is not None:
         entry.runtime_data.writer.drop_all_pending()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     for issue in ("no_devices", "definitions_mismatch"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 

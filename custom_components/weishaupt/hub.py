@@ -92,6 +92,10 @@ class Hub:
         self._failures: dict[str, int] = {}
         self._last_request = 0.0
         self._wake = asyncio.Event()
+        self._urgent: set[str] = set()  # messages of an entity just enabled: read first
+        # messages listened to when the entry was last unloaded (None at the first set-up since Home Assistant
+        # started): kept by __init__.py across a reload
+        self.previously_listened: set[str] | None = None
         self.writer = None  # writer.Writer, when writes are enabled in the options
 
     # ---- start-up -------------------------------------------------------------------------------------------
@@ -147,10 +151,16 @@ class Hub:
 
     @callback
     def async_listen(self, keys: tuple[str, ...], update: CALLBACK_TYPE) -> CALLBACK_TYPE:
-        """Call `update` after each reading of one of the messages; they are read while someone listens."""
+        """Call `update` after each reading of one of the messages; they are read while someone listens.
+
+        A message nobody listened to before the last reload of the entry belongs to an entity the user has just
+        enabled (Home Assistant reloads the entry for it): it is read before any other, once, instead of after the
+        whole first fill."""
         for key in keys:
             self._listeners.setdefault(key, []).append(update)
             self._due.setdefault(key, 0.0)
+            if self.previously_listened is not None and key not in self.previously_listened:
+                self._urgent.add(key)
         self._availability_listeners.append(update)
         self._wake.set()
 
@@ -195,7 +205,8 @@ class Hub:
             if when <= now:
                 message = self.model.messages[key]
                 poll = "passive" if message.passive else message.poll
-                due.append((_PRIORITY.get(poll, 2), self.interval(message), when, key))
+                priority = -1 if key in self._urgent else _PRIORITY.get(poll, 2)
+                due.append((priority, self.interval(message), when, key))
             elif soonest is None or when < soonest:
                 soonest = when
         if due:
@@ -225,6 +236,7 @@ class Hub:
     async def _read(self, message: Message) -> float:
         """Read one message and tell its listeners. Returns the seconds to stay quiet afterwards."""
         key, interval, now = message.key, self.interval(message), time.monotonic()
+        self._urgent.discard(key)
         max_age = PASSIVE_MAX_AGE if message.passive else interval
         if message.passive:
             self.statistics.cache_reads += 1
@@ -280,6 +292,10 @@ class Hub:
         if self._failures[key] == FAILURES_BEFORE_UNKNOWN and self.readings.pop(key, None) is not None:
             self._notify(key)
 
+    def notify(self, key: str) -> None:
+        """Tell the listeners of a message that something about it changed (a pending change withdrawn)."""
+        self._notify(key)
+
     def _notify(self, key: str) -> None:
         for update in list(self._listeners.get(key, ())):
             update()
@@ -294,6 +310,9 @@ class Hub:
             _LOGGER.warning("%s; the values are unavailable until it answers", reason)
         for update in list(self._availability_listeners):
             update()
+
+    def listened(self) -> set[str]:
+        return set(self._listeners)
 
     def snapshot(self) -> dict[str, object]:
         """State of the reader, for the diagnostics download."""

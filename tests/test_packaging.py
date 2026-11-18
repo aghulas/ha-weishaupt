@@ -32,7 +32,7 @@ def test_manifest():
     assert (manifest["integration_type"], manifest["iot_class"]) == ("hub", "local_polling")
     assert manifest["requirements"] == []  # nothing installed from outside
     assert manifest["documentation"].startswith("https://") and manifest["issue_tracker"].startswith("https://")
-    assert re.fullmatch(r"\d+\.\d+\.\d+(b\d+)?", manifest["version"])
+    assert re.fullmatch(r"\d+\.\d+\.\d+((b|rc)\d+)?", manifest["version"])
     assert json.loads((ROOT / "hacs.json").read_text())["name"] == manifest["name"]
 
 

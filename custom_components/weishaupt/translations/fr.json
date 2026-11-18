@@ -69,14 +69,19 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Confirmer la modification de {setting}",
-            "description": "{device} : {setting} de {current} à {requested} (plage {minimum} à {maximum}).\n\nLa valeur est écrite dans le régulateur depuis l'adresse de l'outil de service du fabricant ou d'ebusd, puis relue. Elle modifie la régulation du chauffage."
+            "title": "{setting} — {device}",
+            "description": "- Valeur actuelle : {current}\n- Nouvelle valeur : **{requested}**\n- Plage autorisée : {minimum} à {maximum}, pas de {step}\n- Écrit à l'adresse de bus `{address}`, registre `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nLe régulateur est relu juste après l'écriture. Ce réglage modifie la régulation du chauffage.",
+            "submit": "Écrire dans le régulateur"
           }
         },
         "abort": {
-          "expired": "Cette demande a expiré ou a été retirée. Modifiez de nouveau la valeur pour en créer une autre.",
-          "refused": "L'écriture a été refusée : {reason}",
-          "failed": "L'écriture a échoué : {reason}"
+          "expired": "Cette demande a expiré ou a été retirée : rien n'a été écrit. Modifiez de nouveau la valeur pour en créer une autre.",
+          "refused": "Rien n'a été écrit : {reason}",
+          "written": "C'est fait. {setting} de {device} : {requested} écrit et relu dans le régulateur ({read_back}). Télégramme `{telegram}`.",
+          "unchanged": "{setting} de {device} vaut déjà {requested} : rien n'a été écrit.",
+          "not_taken": "{setting} de {device} : {requested} a été envoyé et acquitté, mais le régulateur relit {read_back}. La valeur n'a pas été prise en compte.",
+          "write_failed": "{setting} de {device} : l'écriture n'a pas été envoyée ({reason}).",
+          "no_read_back": "{setting} de {device} : {requested} a été envoyé mais n'a pas pu être relu ({reason}). Vérifiez la valeur avant de réessayer."
         }
       }
     }
@@ -129,9 +134,6 @@
     },
     "unavailable": {
       "message": "ebusd est injoignable : écriture refusée."
-    },
-    "confirmation_pending": {
-      "message": "{setting} : la modification à {requested} attend votre confirmation dans Paramètres > Réparations."
     },
     "write_failed": {
       "message": "L'écriture de {setting} a échoué : {reason}"
@@ -309,112 +311,112 @@
     },
     "number": {
       "manager_blockingtime": {
-        "name": "Temps de blocage"
+        "name": "Temps de blocage (réglage)"
       },
       "manager_calorifierswitchdiff": {
-        "name": "Différentiel de commutation du stock tampon"
+        "name": "Différentiel de commutation du stock tampon (réglage)"
       },
       "manager_changeovertime": {
-        "name": "Temps de marche avant changement de l'ordre des chaudières"
+        "name": "Temps de marche avant changement de l'ordre des chaudières (réglage)"
       },
       "manager_decouplemintemp": {
-        "name": "Température minimale de bouteille casse-pression"
+        "name": "Température minimale de bouteille casse-pression (réglage)"
       },
       "manager_dhwloadtime": {
-        "name": "Temps de charge maximal ECS"
+        "name": "Temps de charge maximal ECS (réglage)"
       },
       "manager_dhwsetpoint": {
-        "name": "Consigne de température ECS"
+        "name": "Consigne de température ECS (réglage)"
       },
       "manager_dhwswitchdiff": {
-        "name": "Différentiel de commutation ECS"
+        "name": "Différentiel de commutation ECS (réglage)"
       },
       "manager_gradientcurve": {
-        "name": "Pente de la courbe de chauffe"
+        "name": "Pente de la courbe de chauffe (réglage)"
       },
       "manager_legionellacirculationtime": {
-        "name": "Temps de circulation anti-légionelle"
+        "name": "Temps de circulation anti-légionelle (réglage)"
       },
       "manager_legionellasetpoint": {
-        "name": "Consigne de température anti-légionelle"
+        "name": "Consigne de température anti-légionelle (réglage)"
       },
       "manager_regulationi": {
-        "name": "Régulateur de puissance, facteur I"
+        "name": "Régulateur de puissance, facteur I (réglage)"
       },
       "manager_regulationp": {
-        "name": "Régulateur de puissance, facteur 1/P"
+        "name": "Régulateur de puissance, facteur 1/P (réglage)"
       },
       "manager_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel"
+        "name": "Température ambiante hors-gel (réglage)"
       },
       "manager_roomnormaltemp": {
-        "name": "Température ambiante normale"
+        "name": "Température ambiante normale (réglage)"
       },
       "manager_roomsetbacktemp": {
-        "name": "Température ambiante réduite"
+        "name": "Température ambiante réduite (réglage)"
       },
       "manager_summerwinterchangeovertemp": {
-        "name": "Commutation été/hiver"
+        "name": "Commutation été/hiver (réglage)"
       },
       "manager_supplymaxtemp": {
-        "name": "Température de départ maximale"
+        "name": "Température de départ maximale (réglage)"
       },
       "manager_supplymintemp": {
-        "name": "Température de départ minimale"
+        "name": "Température de départ minimale (réglage)"
       },
       "module_gradientcurve": {
-        "name": "Pente de la courbe de chauffe"
+        "name": "Pente de la courbe de chauffe (réglage)"
       },
       "module_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel"
+        "name": "Température ambiante hors-gel (réglage)"
       },
       "module_roomnormaltemp": {
-        "name": "Température ambiante normale"
+        "name": "Température ambiante normale (réglage)"
       },
       "module_roomsetbacktemp": {
-        "name": "Température ambiante réduite"
+        "name": "Température ambiante réduite (réglage)"
       },
       "module_summerwinterchangeovertemp": {
-        "name": "Commutation été/hiver"
+        "name": "Commutation été/hiver (réglage)"
       },
       "module_supplymaxtemp": {
-        "name": "Température de départ maximale"
+        "name": "Température de départ maximale (réglage)"
       },
       "module_supplymintemp": {
-        "name": "Température de départ minimale"
+        "name": "Température de départ minimale (réglage)"
       },
       "room_boilermcboosttemp": {
-        "name": "Surélévation de température chaudière"
+        "name": "Surélévation de température chaudière (réglage)"
       },
       "room_dhwsetpoint": {
-        "name": "Consigne de température ECS"
+        "name": "Consigne de température ECS (réglage)"
       },
       "room_frostprotectionlimittemp": {
-        "name": "Température limite hors-gel"
+        "name": "Température limite hors-gel (réglage)"
       },
       "room_gradientcurve": {
-        "name": "Pente de la courbe de chauffe"
+        "name": "Pente de la courbe de chauffe (réglage)"
       },
       "room_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel"
+        "name": "Température ambiante hors-gel (réglage)"
       },
       "room_roomnormaltemp": {
-        "name": "Température ambiante normale"
+        "name": "Température ambiante normale (réglage)"
       },
       "room_roomsetbacktemp": {
-        "name": "Température ambiante réduite"
+        "name": "Température ambiante réduite (réglage)"
       },
       "room_summerwinterchangeovertemp": {
-        "name": "Commutation été/hiver"
+        "name": "Commutation été/hiver (réglage)"
       },
       "room_supplymaxtemp": {
-        "name": "Température de départ maximale"
+        "name": "Température de départ maximale (réglage)"
       },
       "room_supplymintemp": {
-        "name": "Température de départ minimale"
+        "name": "Température de départ minimale (réglage)"
       },
       "room_switchonruntime": {
-        "name": "Durée d'anticipation de l'optimisation au démarrage"
+        "name": "Durée d'anticipation de l'optimisation au démarrage (réglage)"
       }
     },
     "sensor": {

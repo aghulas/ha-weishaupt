@@ -62,11 +62,8 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     registry = er.async_get(hass)
     numbers = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "number"]
     assert len(numbers) == 65
-    # comfort enabled (16 settings, 16 numbers: the room temperatures of the manager are written through em1),
-    # regulation created disabled
-    enabled = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in numbers if not e.disabled_by}
-    assert len(enabled) == 16 and {key.split("/")[1] for key in enabled} == {
-        "RoomNormalTemp", "RoomSetbackTemp", "DHWSetpoint"}
+    # every number enabled when created: writes are enabled by a decision in the options already
+    assert not [e for e in numbers if e.disabled_by]
     assert all(e.entity_category == "config" for e in numbers)
     assert hass.states.get(switch_id(hass, entry)).state == "off"
     assert writer.capability == "present" and writer.not_writable == {}
@@ -118,16 +115,20 @@ async def test_comfort_setting_written_directly(hass, fake, log):
 
 
 async def test_regulation_setting_needs_a_confirmation(hass, fake, log, entity_registry_enabled_by_default):
-    """ka blocking time 1 -> 2: setting it sends nothing and opens a repair; confirming it writes the telegram of
-    the write test of 2026-11-17 (`cc 25 00 02 00` from ff)."""
+    """ka blocking time 1 -> 2: setting it sends nothing and is no error; a notification says where to confirm,
+    the repair shows the details; confirming it writes the telegram of the write test of 2026-11-17
+    (`cc 25 00 02 00` from ff) and ends with what was written and read back."""
     entry, writer = await writing(hass, fake, log)
     await settled(hass, entry)
     fake.commands.clear()
     entity_id = number_id(hass, entry, "ka/BlockingTime")
-    with pytest.raises(ServiceValidationError) as err:
-        await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": 2}, blocking=True)
-    assert err.value.translation_key == "confirmation_pending"
+    await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": 2}, blocking=True)
     assert fake.writes == [] and sent(fake) == []
+    assert hass.states.get(entity_id).attributes["pending"] == "2 min"
+    notifications = [n for n in hass.states.async_all("persistent_notification")] or None
+    from homeassistant.components.persistent_notification import _async_get_or_create_notifications
+    notes = _async_get_or_create_notifications(hass)
+    assert len(notes) == 1 and "/config/repairs" in next(iter(notes.values()))["message"]
     issues = [i for i in ir.async_get(hass).issues.values() if i.translation_key == "confirm_write"]
     assert len(issues) == 1 and issues[0].is_fixable
     placeholders = issues[0].translation_placeholders
@@ -141,13 +142,19 @@ async def test_regulation_setting_needs_a_confirmation(hass, fake, log, entity_r
     manager = repairs_flow_manager(hass)
     result = await manager.async_init(DOMAIN, data={"issue_id": issues[0].issue_id})
     assert result["type"] == "form" and result["step_id"] == "confirm"
-    assert result["description_placeholders"]["requested"] == "2 min"
+    shown = result["description_placeholders"]
+    assert (shown["requested"], shown["address"], shown["register"], shown["source"], shown["step"]) == (
+        "2 min", "15", "25 00", "ff", "1")
+    assert shown["source_text"] == "address of the vendor service tool"
     assert fake.writes == []  # nothing before the confirmation
     result = await manager.async_configure(result["flow_id"], {})
-    assert result["type"] == "create_entry"
+    assert result["type"] == "abort" and result["reason"] == "written"
+    assert (result["description_placeholders"]["read_back"], result["description_placeholders"]["telegram"]) == (
+        "2 min", "15502305cc25000200")
     assert fake.writes == [("ff", "ka", "15502305cc25000200")]
-    assert hass.states.get(entity_id).state == "2.0"
+    assert hass.states.get(entity_id).state == "2.0" and hass.states.get(entity_id).attributes["pending"] is None
     assert not [i for i in ir.async_get(hass).issues.values() if i.translation_key == "confirm_write"]
+    assert _async_get_or_create_notifications(hass) == {}
 
 
 async def test_an_automation_cannot_confirm(hass, fake, log):
@@ -389,3 +396,63 @@ async def test_hourly_limit_default_and_a_stored_value_out_of_bounds(hass, fake,
     entry = make_entry(hass, fake, **options)
     await setup(hass, entry)
     assert entry.runtime_data.writer.guard.max_per_hour == expected
+
+
+async def test_values_shown_with_the_decimals_of_the_step(hass, fake, log):
+    """8.0 °C, not 8 °C: the frost protection room temperature of room unit 1, as on the installation."""
+    entry, writer = await writing(hass, fake, log)
+    fake.reads["fs1/RoomFrostProtectionTemp"] = "8.0"
+    entry.runtime_data.store("fs1/RoomFrostProtectionTemp", ("8.0",))
+    with pytest.raises(ConfirmationPending) as pending:
+        await writer.async_request("fs1/RoomFrostProtectionTemp", 8.5, None)
+    shown = pending.value.placeholders
+    assert (shown["current"], shown["requested"], shown["minimum"], shown["maximum"]) == (
+        "8.0 °C", "8.5 °C", "4.0 °C", "16.0 °C")
+    assert (shown["address"], shown["register"], shown["source"]) == ("35", "14 0a", "ff")
+
+
+async def test_the_confirmation_ends_with_what_happened(hass, fake, log):
+    """Not taken over, and unchanged: the last dialog says so, with the values."""
+    from homeassistant.components.repairs import repairs_flow_manager
+    from homeassistant.setup import async_setup_component
+    entry, writer = await writing(hass, fake, log)
+    assert await async_setup_component(hass, "repairs", {})
+    manager = repairs_flow_manager(hass)
+    fake.not_taken.add("ka/BlockingTime")
+    for value, reason in ((2, "not_taken"), (1, "unchanged")):
+        with pytest.raises(ConfirmationPending) as pending:
+            await writer.async_request("ka/BlockingTime", value, None)
+        result = await manager.async_init(DOMAIN, data={"issue_id": pending.value.issue_id})
+        result = await manager.async_configure(result["flow_id"], {})
+        assert result["type"] == "abort" and result["reason"] == reason
+        if reason == "not_taken":
+            assert result["description_placeholders"]["read_back"] == "1 min"
+        await hass.async_block_till_done()
+        # a second write of the register within 10 s would be refused: let the guard forget it
+        writer.guard._last_by_register.clear()
+
+
+async def test_number_and_sensor_have_distinct_names(hass, fake, log):
+    entry, writer = await writing(hass, fake, log)
+    registry = er.async_get(hass)
+    number = registry.async_get(number_id(hass, entry, "em2/RoomNormalTemp"))
+    assert number.entity_id.endswith("_setting")
+    assert hass.states.get(number.entity_id).attributes["friendly_name"].endswith("Normal room temperature (setting)")
+
+
+async def test_an_entity_just_enabled_is_read_first(hass, fake, log):
+    """Enabling an entity reloads the entry; its message is then read before the whole first fill."""
+    entry = make_entry(hass, fake, gap=0.05)
+    await setup(hass, entry)
+    registry = er.async_get(hass)
+    entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value")
+    registry.async_update_entity(entity_id, disabled_by=None)
+    fake.commands.clear()
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    from ha_common import wait_until
+    await wait_until(lambda: any("ka BlockingTime" in c for _, c in fake.reads_of()))
+    reads = [c for _, c in fake.reads_of()]
+    first = next(i for i, c in enumerate(reads) if "ka BlockingTime" in c)
+    before = [c for c in reads[:first] if " -m 30 " not in c and " -m 900 " not in c]
+    assert len(before) <= 3, before  # read among the very first requests after the reload, not after ~60 others

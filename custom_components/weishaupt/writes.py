@@ -71,6 +71,12 @@ class WriteSpec:
     range_source: str | None = None  # where the metadata took a range of the write conditions from
 
     @property
+    def decimals(self) -> int:
+        """Decimals of a value of this setting: those of its step (0.5 -> 1, 1 or 10 -> 0)."""
+        text = f"{self.step:g}"
+        return len(text.split(".")[1]) if "." in text else 0
+
+    @property
     def ebusd_source(self) -> str | None:
         """The `-s` of the write command: "ff" for a setting proven from the address of the vendor service tool,
         None (ebusd's own address) for one proven from 31. Taken from the metadata, never decided here."""

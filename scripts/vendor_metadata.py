@@ -63,6 +63,7 @@ def translations(model_module, language: str) -> dict:
     source = json.loads((SOURCES / f"{language}.json").read_text(encoding="utf-8"))
     weekdays, attributes = source.pop("weekdays"), source.pop("attributes")
     switch_name = source.pop("switch_name")
+    number_suffix = source.pop("number_suffix")
     result = dict(source)
     result["device"] = {key: {"name": device.label[language]} for key, device in sorted(model.devices.items())}
     entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "sensor": {}, "switch": {"writes": {"name": switch_name}}}
@@ -71,8 +72,8 @@ def translations(model_module, language: str) -> dict:
         if description.options:
             item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
-    for description in model.number_entities:  # a number has the name of the sensor of its register
-        entity["number"][description.translation_key] = {"name": description.name[language]}
+    for description in model.number_entities:  # the name of the sensor of its register, marked as the setting
+        entity["number"][description.translation_key] = {"name": description.name[language] + number_suffix}
     for description in model.group_entities:
         item = {"name": description.name[language]}
         if description.group.family == "program":

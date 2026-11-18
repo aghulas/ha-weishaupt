@@ -69,14 +69,19 @@
       "fix_flow": {
         "step": {
           "confirm": {
-            "title": "Confirm the change of {setting}",
-            "description": "{device}: {setting} from {current} to {requested} (range {minimum} to {maximum}).\n\nThe value is written to the controller from the address of the vendor service tool or of ebusd, then read back. It changes how the heating is regulated."
+            "title": "{setting} — {device}",
+            "description": "- Current value: {current}\n- New value: **{requested}**\n- Allowed range: {minimum} to {maximum}, step {step}\n- Written to bus address `{address}`, register `{register}`, from source address `{source}` ({source_text})\n\nThe controller is read back right after the write. This setting changes how the heating is regulated.",
+            "submit": "Write to the controller"
           }
         },
         "abort": {
-          "expired": "This request has expired or was withdrawn. Set the value again to create a new one.",
-          "refused": "The write was refused: {reason}",
-          "failed": "The write failed: {reason}"
+          "expired": "This request has expired or was withdrawn: nothing was written. Set the value again to create a new one.",
+          "refused": "Nothing was written: {reason}",
+          "written": "Done. {setting} of {device}: {requested} written and read back from the controller ({read_back}). Telegram `{telegram}`.",
+          "unchanged": "{setting} of {device} already holds {requested}: nothing was written.",
+          "not_taken": "{setting} of {device}: {requested} was sent and acknowledged, but the controller reads back {read_back}. The value was not taken over.",
+          "write_failed": "{setting} of {device}: the write was not sent ({reason}).",
+          "no_read_back": "{setting} of {device}: {requested} was sent, but could not be read back ({reason}). Check the value before trying again."
         }
       }
     }
@@ -130,9 +135,6 @@
     "unavailable": {
       "message": "ebusd cannot be reached: write refused."
     },
-    "confirmation_pending": {
-      "message": "{setting}: the change to {requested} waits for your confirmation in Settings > Repairs."
-    },
     "write_failed": {
       "message": "The write of {setting} failed: {reason}"
     },
@@ -159,5 +161,6 @@
     "entries": "Entries",
     "ordered": "Most recent first"
   },
-  "switch_name": "Writes"
+  "switch_name": "Writes",
+  "number_suffix": " (setting)"
 }

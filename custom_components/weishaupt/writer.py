@@ -33,6 +33,7 @@ from collections import deque
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
@@ -82,7 +83,23 @@ class Pending:
 
 
 def _text(spec: WriteSpec, value: float) -> str:
-    return f"{value:g}" + (f" {spec.unit}" if spec.unit else "")
+    """A value as the device holds it: the decimals of the step (8.0 °C, not 8 °C), and the unit."""
+    return f"{value:.{spec.decimals}f}" + (f" {spec.unit}" if spec.unit else "")
+
+
+# What the source address of a write is, in the words of the confirmation and of the notification.
+SOURCE_TEXT = {
+    "en": {"ff": "address of the vendor service tool", "31": "ebusd's own address"},
+    "fr": {"ff": "adresse de l'outil de service du fabricant", "31": "adresse propre d'ebusd"},
+}
+NOTIFICATION = {
+    "en": ("Confirmation needed", "{setting} of {device}: change from {current} to {requested} waits for your "
+           "confirmation in [Settings → Repairs](/config/repairs). Nothing has been written. The request expires "
+           "after {minutes} minutes."),
+    "fr": ("Confirmation demandée", "{setting} de {device} : la modification de {current} à {requested} attend "
+           "votre confirmation dans [Paramètres → Réparations](/config/repairs). Rien n'a été écrit. La demande "
+           "expire après {minutes} minutes."),
+}
 
 
 class Writer:
@@ -188,7 +205,7 @@ class Writer:
         pending = Pending(uuid.uuid4().hex[:12], spec.key, value, user_id, time.time())
         reading = self.hub.reading(spec.key)
         message = self.hub.model.messages[spec.key]
-        language = "fr" if self.hass.config.language.startswith("fr") else "en"
+        language = self._language()
         device = self.hub.model.devices[message.device]
         pending.placeholders = {
             "setting": message.label.get(language, message.label["en"]),
@@ -196,6 +213,9 @@ class Writer:
             "current": _text(spec, float(reading[0])) if reading and reading[0] not in ("", "-") else "-",
             "requested": _text(spec, value),
             "minimum": _text(spec, spec.minimum), "maximum": _text(spec, spec.maximum),
+            "step": f"{spec.step:g}",
+            "address": spec.zz, "register": f"{spec.register[:2]} {spec.register[2:]}",
+            "source": spec.source, "source_text": SOURCE_TEXT[language][spec.source],
             "minutes": str(PENDING_TTL // 60),
         }
         self.pending[pending.id] = pending
@@ -204,15 +224,30 @@ class Writer:
             self.hass, DOMAIN, issue_id, is_fixable=True, is_persistent=False, severity=ir.IssueSeverity.WARNING,
             translation_key="confirm_write", translation_placeholders=pending.placeholders,
             data={"entry_id": self.hub.entry.entry_id, "pending": pending.id})
+        title, text = NOTIFICATION[language]
+        persistent_notification.async_create(self.hass, text.format(**pending.placeholders), title,
+                                             self._notification_id(spec.key))
         _LOGGER.info("change of %s to %s waits for its confirmation (repair %s)", spec.key, value, issue_id)
         raise ConfirmationPending(issue_id, pending.placeholders)
+
+    def _language(self) -> str:
+        return "fr" if self.hass.config.language.startswith("fr") else "en"
+
+    def _notification_id(self, key: str) -> str:
+        return f"{DOMAIN}_confirm_{self.hub.entry.entry_id}_{key.replace('/', '_')}"
+
+    def pending_for(self, key: str) -> Pending | None:
+        return next((p for p in self.pending.values() if p.key == key), None)
 
     def issue_id(self, pending_id: str) -> str:
         return f"confirm_write_{self.hub.entry.entry_id}_{pending_id}"
 
     def _drop_pending(self, pending_id: str) -> None:
-        if self.pending.pop(pending_id, None) is not None:
+        pending = self.pending.pop(pending_id, None)
+        if pending is not None:
             ir.async_delete_issue(self.hass, DOMAIN, self.issue_id(pending_id))
+            persistent_notification.async_dismiss(self.hass, self._notification_id(pending.key))
+            self.hub.notify(pending.key)
 
     def drop_all_pending(self) -> None:
         for pending_id in list(self.pending):
@@ -222,6 +257,8 @@ class Writer:
         """The confirmation of a regulation setting, from the repair flow."""
         pending = self.pending.pop(pending_id, None)
         ir.async_delete_issue(self.hass, DOMAIN, self.issue_id(pending_id))
+        if pending is not None:
+            persistent_notification.async_dismiss(self.hass, self._notification_id(pending.key))
         if pending is None or time.time() - pending.created > PENDING_TTL:
             raise WriteFailed("expired", minutes=PENDING_TTL // 60)
         return await self.async_write(pending.key, pending.value, user_id or pending.user_id, confirmed=True)
@@ -294,7 +331,8 @@ class Writer:
         entry["result"] = "ok" if back == raw else ("not taken" if back == before else "different")
         self._trace(spec, entry)
         if back != raw:
-            raise WriteFailed("not_taken", setting=key, requested=f"{value:g}", read_back=f"{spec.value_of(back):g}")
+            raise WriteFailed("not_taken", setting=key, requested=_text(spec, value),
+                             read_back=_text(spec, spec.value_of(back)))
         return entry
 
     def _trace(self, spec: WriteSpec, entry: dict[str, Any]) -> None:

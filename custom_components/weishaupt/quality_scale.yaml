@@ -68,7 +68,9 @@ rules:
   diagnostics: done
   entity-category: done
   entity-device-class: done
-  entity-disabled-by-default: done
+  entity-disabled-by-default:
+    status: done
+    comment: 156 of 338 entities are enabled when created; settings, weekly programs and diagnostics are not.
   entity-translations: done
   reconfiguration-flow: done
   repair-issues: done

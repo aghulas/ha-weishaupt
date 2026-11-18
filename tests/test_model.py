@@ -85,7 +85,10 @@ def test_entities(model):
     assert "em1/RoomNormalTemp/value" not in by_key and "ka/RoomNormalTemp/value" in by_key
     groups = {e.key: e for e in model.group_entities}
     assert len(groups) == 19  # 17 weekly programs, 2 fault histories
-    assert groups["fs1/group/heating1"].enabled_default and not groups["fs1/group/dhw_stored"].enabled_default
+    assert not groups["fs1/group/heating1"].enabled_default and groups["bc1/group/fault_history"].enabled_default
+    assert not by_key["ka/BlockingTime/value"].enabled_default and by_key["bc1/Counters/burnerstarts"].enabled_default
+    enabled = [e for e in list(model.value_entities) + list(model.group_entities) if e.enabled_default]
+    assert len(enabled) == 156  # of 338: live values, states, operating counters, fault histories
 
 
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):

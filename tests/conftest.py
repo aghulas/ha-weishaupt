@@ -57,6 +57,14 @@ if HAVE_HA:
     @pytest.fixture(autouse=True)
     def _custom_integrations(enable_custom_integrations):
         yield
+
+    @pytest.fixture
+    def entity_registry_enabled_by_default():
+        """Create every entity enabled, for the tests about entities that are disabled when created."""
+        from unittest.mock import PropertyMock, patch
+        with patch("homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
+                   new_callable=PropertyMock, return_value=True):
+            yield
 else:
     import inspect
 

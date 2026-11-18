@@ -7,7 +7,24 @@ from custom_components.weishaupt.const import DOMAIN
 from ha_common import make_entry, settled, setup, state_of
 
 
-async def test_devices_and_entities(hass, fake):
+async def test_entities_enabled_when_created(hass, fake):
+    """Live values, states, operating counters and the fault histories; not the settings, the weekly programs
+    and the other diagnostics."""
+    entry = make_entry(hass, fake)
+    await setup(hass, entry)
+    registry = er.async_get(hass)
+    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
+    enabled = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in entities if not e.disabled_by}
+    assert (len(entities), len(enabled)) == (338, 156)
+    assert {"bc1/SupplyTemp/value", "ka/Boiler1Status/flame", "bc1/Counters/burnerstarts",
+            "bc1/group/fault_history"} <= enabled
+    assert not enabled & {"ka/BlockingTime/value", "fs1/group/heating1", "em1/group/dhw",
+                          "bc1/FaultCounters1/code57", "bc1/SoftwareVersionCPU/value"}
+    setting = registry.async_get(registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value"))
+    assert setting.entity_category is EntityCategory.DIAGNOSTIC
+
+
+async def test_devices_and_entities(hass, fake, entity_registry_enabled_by_default):
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     hub = entry.runtime_data
@@ -30,10 +47,6 @@ async def test_devices_and_entities(hass, fake):
     assert len(entities) == len(hub.model.value_entities) + len(hub.model.group_entities) == 338
     assert {e.domain for e in entities} == {"sensor", "binary_sensor"}  # nothing that can be set
     assert len({e.unique_id for e in entities}) == len(entities)
-    disabled = [e for e in entities if e.disabled_by]
-    assert len(disabled) == 100  # diagnostics, per-fault counters, programs a room unit only stores
-    setting = registry.async_get(registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value"))
-    assert setting.entity_category is EntityCategory.DIAGNOSTIC and not setting.disabled_by
 
     await settled(hass, entry)
     # live values, decoded by a real ebusd from the bytes of the evidence records
@@ -81,7 +94,7 @@ async def test_first_byte_guard(hass, fake):
     assert hub.statistics.invalid_first_byte == 2
 
 
-async def test_weekly_program_and_fault_history(hass, fake, monkeypatch):
+async def test_weekly_program_and_fault_history(hass, fake, monkeypatch, entity_registry_enabled_by_default):
     import datetime
     from custom_components.weishaupt import sensor
     # a Tuesday (freezing the clock would also freeze the reader, which runs on real time)
@@ -138,7 +151,7 @@ async def test_definitions_mismatch_raises_a_repair_issue(hass, fake):
     assert registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_bc1/SupplyTemp/value") is None
     assert registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_bc1/ReturnTemp/value") is not None
     await settled(hass, entry)
-    assert not [c for _, c in fake.reads_of() if "BlockingTime" in c or "bc1 SupplyTemp" in c]
+    assert not [c for _, c in fake.reads_of() if "bc1 SupplyTemp" in c]
     # the issue goes when ebusd has the definitions again
     fake.definitions = dict(fake._golden_definitions)
     await hass.config_entries.async_reload(entry.entry_id)
@@ -214,6 +227,7 @@ async def test_diagnostics_hold_nothing_of_the_site(hass, fake):
     assert "127.0.0.1" not in text and str(fake.port) in text  # the host is redacted, the port is not a secret
     assert data["entry"]["data"]["host"] == "**REDACTED**"
     assert data["definitions"]["metadata_version"] == "0.4.3" and data["definitions"]["mismatches"] == []
+    assert not [key for key in data["readings"] if "Program" in key or key == "ka/BlockingTime"]  # disabled, not read
     assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 10
     assert data["reader"]["invalid_first_byte"] == 1
     assert data["readings"]["bc1/Temperatures"] == "0;64;61;65;12"

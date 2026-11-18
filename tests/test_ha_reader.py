@@ -38,12 +38,13 @@ async def test_only_reading_commands_reach_ebusd(hass, fake):
     expected |= {"bc1/FaultHistoryPointer", "bc2/FaultHistoryPointer"}  # read for the fault history sensors
     assert set(asked) == expected
     # disabled by default, so never requested: per-fault counters, programs a room unit only stores, the clock
-    assert not [k for k in asked if "FaultCounters" in k or "DHWProgram" in k and k.startswith("fs")
-                or k.startswith("em1/System")]
+    assert not [k for k in asked if "FaultCounters" in k or "Program" in k or k.startswith("em1/System")
+                or hub.model.messages[k].kind == "setting"]
+    assert len(asked) == 69 and hub.statistics.bus_requests == 61  # 8 passive messages come from the cache
     assert hub.statistics.bus_requests + hub.statistics.cache_reads == len(asked)
 
 
-async def test_order_and_max_age(hass, fake):
+async def test_order_and_max_age(hass, fake, entity_registry_enabled_by_default):
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     await settled(hass, entry)
@@ -141,7 +142,7 @@ async def test_a_failing_message_does_not_stop_the_others(hass, fake, monkeypatc
     await setup(hass, entry)
     hub = entry.runtime_data
     await wait_until(lambda: hub._failures.get("bc1/SupplyTemp", 0) >= 3)
-    await wait_until(lambda: "bc1/ReturnTemp" in hub.readings and "ka/BlockingTime" in hub.readings)
+    await wait_until(lambda: "bc1/ReturnTemp" in hub.readings and "bc1/Counters" in hub.readings)
     await hass.async_block_till_done()
     assert hub.available
     assert state_of(hass, entry, "bc1/ReturnTemp/value").state == "57.0"

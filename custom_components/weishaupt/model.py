@@ -150,11 +150,11 @@ class ValueEntity:
 
     @property
     def enabled_default(self) -> bool:
-        """Enabled when created: live values, states, settings and the operating counters. Diagnostics and the
+        """Enabled when created: live values, states and the operating counters. Settings, diagnostics and the
         per-fault counters are created disabled; a disabled entity is never requested from the bus."""
         if self.message.family == "fault_counter":
             return False
-        return self.kind in ("live", "state", "setting", "counter")
+        return self.kind in ("live", "state", "counter")
 
 
 @dataclass(frozen=True)
@@ -171,8 +171,8 @@ class GroupEntity:
 
     @property
     def enabled_default(self) -> bool:
-        """The programs a room unit only stores (the installation follows the system manager's) start disabled."""
-        return not self.group.id.endswith("_stored")
+        """The fault history of a boiler is enabled when created; the weekly programs are not."""
+        return self.group.family == "fault_history"
 
 
 @dataclass(frozen=True)

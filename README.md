@@ -73,10 +73,13 @@ broadcast. On each of them, only entities:
 | Live values (temperatures, burner load, ionisation, pump speed…) | sensors | yes |
 | States (operating phase, flame, pumps, valves, fault…) | sensors with a list of states, binary sensors | yes |
 | Operating counters (hours, burner starts, hours since service) | diagnostic sensors | yes |
-| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, **read-only** | yes |
-| Weekly programs | one diagnostic sensor per program: the state is today's switch times (`06:30-18:00, 19:00-21:00`), one attribute per day | yes, except the programs a room unit only stores |
+| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, **read-only** | no |
+| Weekly programs | one diagnostic sensor per program: the state is today's switch times (`06:30-18:00, 19:00-21:00`), one attribute per day | no |
 | Fault memory of a boiler | one diagnostic sensor: the state is the most recent entry (`W12`, `F11`), the attribute `entries` lists all of them with the values the boiler stored | yes |
 | One counter per fault number, software versions, clock, system fault log, raw status bytes | diagnostic sensors | no |
+
+Settings and weekly programs are created disabled to keep the list short: enable those you want
+on the device page (*entities not shown*), they are then read like the others.
 
 Things to know:
 
@@ -93,7 +96,8 @@ Things to know:
 The interface is in English and French; names of devices and entities come from the metadata of
 the definitions (`translations/*.json` are generated, see [Development](#development)).
 
-Home Assistant builds an entity id from the name **in the language of the server** when the entity
+This is the normal behaviour of Home Assistant, not a choice of this integration: it builds an
+entity id from the name **in the language of the server** when the entity
 is first created: the same sensor is `sensor.boiler_1_flow_temperature_i35` on an English server
 and `sensor.chaudiere_1_temperature_de_depart_i35` on a French one. The unique id does not depend
 on the language (it is built from the ebusd circuit, message and field), so renaming or changing
@@ -116,9 +120,11 @@ what it does:
   restart of Home Assistant;
 - no request while ebusd reports that it has no signal.
 
-With the default entities of a two-boiler, three-circuit installation this is about 45 requests
-every 5 minutes in steady state, and about 15 minutes of one request every 2 s after a first
-start. For comparison, the vendor's service tool was seen to send about two requests per second
+With the entities enabled when created on a two-boiler, three-circuit installation, 156 of 338
+entities are enabled and 61 messages are requested: about 45 requests every 5 minutes in steady
+state, and two minutes of one request every 2 s after a first start. Enabling the settings and the
+weekly programs adds about 300 messages, read once (some ten minutes at that pace) and then every
+6 hours for the settings and once a day for the programs. For comparison, the vendor's service tool was seen to send about two requests per second
 while logging.
 
 If ebusd itself is configured to poll (`--pollinterval`, poll priorities in the CSV), both loads

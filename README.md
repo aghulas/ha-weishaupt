@@ -12,8 +12,8 @@ setting can be changed from Home Assistant, there is no action, and its ebusd cl
 command other than `info`, `find` and `read`. Changing settings is planned for a later version, for
 the settings whose write is proven on a bus.
 
-Version 0.2 is a pre-release: it has been tested against a simulated ebusd and against a real
-ebusd without a bus, not yet on a heating system (see [Tests](#tests)).
+Version 0.2 is a pre-release: it has been tested against a simulated ebusd, against a real ebusd
+without a bus, and once on a heating system, read-only, for twelve minutes (see [Tests](#tests)).
 
 ## What it needs
 
@@ -213,8 +213,16 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
 - `custom_components/weishaupt/quality_scale.yaml` is the quality-scale checklist of Home
   Assistant, rule by rule.
 
-What this does not prove: timing and load on a real bus, the behaviour of the devices, and the
-values of an installation other than the one the definitions were established on.
+**On a real bus.** The integration ran for twelve minutes, read-only, from a throwaway Home
+Assistant test instance against the ebusd of the installation the definitions were established on
+(definitions 0.5.2, ebusd 26.1 also serving its own polling and MQTT): the nine devices found by
+the scan, no definitions mismatch, the first fill in about two minutes (61 messages), then about
+eight requests a minute, never two closer than 2 s, of which a third were answered from the cache
+of ebusd. No bus error, no lost signal, no reconnection of ebusd; the values equal those ebusd
+published to its other clients at the same time.
+
+What this does not prove: behaviour over days, while a boiler fires (the passive load messages of
+the boilers are only sent then), and the values of an installation other than that one.
 
 ## History
 

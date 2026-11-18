@@ -22,7 +22,9 @@ def device_identifier(hub: Hub, device: Device) -> tuple[str, str]:
 
 def _version(raw: str | None) -> str | None:
     """`1104` of the scan -> `11.04`."""
-    return f"{raw[:2]}.{raw[2:]}" if raw and len(raw) == 4 and raw.isdigit() else raw
+    if not raw or raw == NOT_AVAILABLE:
+        return None
+    return f"{raw[:2]}.{raw[2:]}" if len(raw) == 4 and raw.isdigit() else raw
 
 
 def parse_number(text: str | None) -> int | float | None:

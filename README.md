@@ -9,7 +9,7 @@ Not affiliated with Weishaupt or with the ebusd project.
 
 **Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
 read requests. With writes enabled in its options, it can change **the settings a release of the
-definitions proves writable** — 66 with definitions 0.5.4 — and nothing else, through a write
+definitions proves writable** — 66 with definitions 0.5.5 — and nothing else, through a write
 guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
@@ -44,12 +44,12 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.3 | 0.5.4 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
+| 0.3 | 0.5.5 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.5.4.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.5.5.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -66,7 +66,8 @@ heating modules decodable, so definitions 0.4.x are not accepted. 0.5.1 and 0.5.
 ebusd those messages are missing and the comparison names them in a repair issue, the other
 entities work. 0.5.4 differs from 0.5.3 only by the write definitions of the two flow limits of the
 system manager's own circuit: with 0.5.3 in ebusd everything is read, and those two settings stay
-read-only (64 writable instead of 66). An entity
+read-only (64 writable instead of 66). 0.5.5 changes only the metadata (write ranges, risk
+classes), which the integration ships itself: an ebusd with 0.5.3 or 0.5.4 behaves the same. An entity
 created under a former message name keeps its entity id and history when the name changes: the
 metadata says which name it had.
 
@@ -174,18 +175,15 @@ What is writable is decided by the definitions, not by the integration: a settin
 entity only when the metadata of the release gives it **write conditions** (a lot of the
 definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
 definition as the release has it. Structural settings (circuit type, control variant, boiler
-sequence…) never have write conditions. With definitions 0.5.4, 66 settings:
+sequence…) never have write conditions. With definitions 0.5.5, 66 settings, 16 of them comfort:
 
-| Device | Settings | Source | Class |
+| Device | Comfort | Regulation | Source |
 |---|---|---|---|
-| System manager (`ka`, 12) | blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier and hot-water switching differentials, maximum hot-water loading time, legionella setpoint and circulation time, maximum flow temperature, hot-water setpoint | `ff` | regulation |
-| System manager, own circuit (`em1`, 7) | normal and setback room temperature, frost protection room temperature, heating curve gradient, summer / winter changeover, minimum and maximum flow temperature | `ff` | regulation |
-| Heating module 2 (`em2`, 7) | normal and setback room temperature | `ff` | **comfort** |
-| Heating module 2 | frost protection room temperature, heating curve gradient, summer / winter changeover | `ff` | regulation |
-| Heating module 2 | maximum and minimum flow temperature | `31` | regulation |
-| Heating module 3 (`em3`, 7) | the same five settings | `ff` | regulation |
-| Heating module 3 | maximum and minimum flow temperature | `31` | regulation |
-| Room units 1, 2, 3 (`fs1`–`fs3`, 11 each) | normal and setback room temperature, frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, hot-water setpoint, optimised switch-on lead time, frost protection limit, boiler boost offset | `ff` | regulation |
+| System manager (`ka`, 12) | hot-water setpoint | blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier and hot-water switching differentials, maximum hot-water loading time, legionella setpoint and circulation time, maximum flow temperature | `ff` |
+| System manager, own circuit (`em1`, 7) | normal and setback room temperature | frost protection room temperature, heating curve gradient, summer / winter changeover, minimum and maximum flow temperature | `ff` |
+| Heating modules 2 and 3 (`em2`, `em3`, 7 each) | normal and setback room temperature | frost protection room temperature, heating curve gradient, summer / winter changeover | `ff` |
+| Heating modules 2 and 3 | | maximum and minimum flow temperature | `31` |
+| Room units 1, 2, 3 (`fs1`–`fs3`, 11 each) | normal and setback room temperature, hot-water setpoint | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, optimised switch-on lead time, frost protection limit, boiler boost offset | `ff` |
 
 The source is the one the metadata gives each setting: the address the device takes the value from
 (`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
@@ -197,10 +195,13 @@ shows each register once. The maximum flow temperature, writable on both, has on
 `ka`); the normal and setback room temperatures, proven written through `em1` only, have a number
 that writes through `em1`. So 65 number entities for 66 settings.
 
-Twelve settings have no range in the definitions (setback room temperature and heating curve of
-every heating circuit and room unit): the integration uses the bounds of the evidence record of
-the definitions (10.0–21.5 °C and 2.5–40.0, step 0.5), as `bounds_from: evidence` in their
-attributes.
+Ranges and steps are those of the definitions. Twelve settings cannot carry one in the CSV
+(setback room temperature and heating curve of every heating circuit and room unit: fractional
+bounds); the metadata gives theirs in the write conditions, with its source (10.0–21.5 °C and
+2.5–40.0, step 0.5, from the room unit's manual): attributes `bounds_from: metadata` and
+`range_source`. A setting with no range anywhere is not writable. The linked bounds (setback at or
+below normal, minimum at or below maximum flow) are not in the metadata yet: the integration holds
+them until the definitions carry them.
 
 **Risk classes** (from the metadata):
 
@@ -255,7 +256,7 @@ file to attach to a report about another boiler model or software version.
 0.1 read and wrote registers with raw telegrams from its own table. 0.2 and 0.3 are a different
 integration under the same name:
 
-- **Only the proven settings can be written**: with definitions 0.5.4, the 66 numeric settings of
+- **Only the proven settings can be written**: with definitions 0.5.5, the 66 numeric settings of
   0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too). The
   choices (legionella day, circulation with legionella, boiler sequence, holiday level, adaption,
   control variation, circuit type), the holiday dates, the weekly programs and the clock are not
@@ -348,7 +349,7 @@ the boilers are only sent then), and the values of an installation other than th
 
 - 0.3 (pre-release): writes of the settings the definitions prove, behind the guard of 0.1, risk
   classes and a check of the run-time checksum of ebusd. 0.3.0b1 on definitions 0.5.2 (22
-  settings, not published), 0.3.0b2 on definitions 0.5.4 (66 settings).
+  settings, not published), 0.3.0b2 on definitions 0.5.5 (66 settings, 16 comfort).
 - 0.2 (pre-release): read-only integration built from the metadata of the definitions.
 - 0.1.0 (2026-10-30) and `main` until 2026-11-18: settings of the WCM controllers read and written
   as raw telegrams from a register table, write guard, time programs, clock.

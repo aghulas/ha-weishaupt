@@ -63,7 +63,8 @@ class SettingNumber(WeishauptEntity, NumberEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         spec = self._spec
         return {"risk": spec.risk, "proof": spec.proof, "open_questions": list(spec.open),
-                "source": spec.source, "bounds_from": spec.bounds_from}
+                "source": spec.source, "bounds_from": spec.bounds_from,
+                "range_source": spec.range_source}
 
     async def async_set_native_value(self, value: float) -> None:
         writer = self.hub.writer

@@ -24,7 +24,9 @@ METADATA_FILE = Path(__file__).parent / "metadata.json"
 # runs 0.5.0 to 0.5.2 lacks some of the messages of this metadata (0.5.3 added five reads) and the comparison would
 # name them. 0.5.4 differs from 0.5.3 only by the write lines of two settings of the system manager's own circuit:
 # the read lines the comparison looks at are the same, and with 0.5.3 those two settings stay read-only (their write
-# definition is not loaded). So the range starts at 0.5.3. A later 0.5.x only adds messages.
+# definition is not loaded). 0.5.5 changes only the metadata (write ranges, risk classes), which the integration
+# ships itself: what ebusd loads from 0.5.3 on is the same for reads and writes. So the range starts at 0.5.3. A
+# later 0.5.x only adds messages.
 ACCEPTED_DEFINITIONS = ">=0.5.3, <0.6"
 
 ON_OFF = {"0": "off", "1": "on"}
@@ -69,6 +71,11 @@ class WriteConditions:
     risk: str  # "comfort" or "regulation"
     proof: str
     open: tuple[str, ...] = ()
+    # range of a setting whose field has none in the CSV (fractional bounds), from metadata 0.5.5 on
+    minimum: float | None = None
+    maximum: float | None = None
+    step: float | None = None
+    range_source: str | None = None
 
 
 @dataclass(frozen=True)
@@ -306,7 +313,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     write = data.get("write")
     conditions = None if write is None else WriteConditions(
         write["source"], bool(write.get("runtime_checksum")), write["risk"], write.get("proof", ""),
-        tuple(write.get("open", ())))
+        tuple(write.get("open", ())), write.get("min"), write.get("max"), write.get("step"), write.get("range_source"))
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),

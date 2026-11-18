@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.5.4",
-  "commit": "970143b",
+  "version": "0.5.5",
+  "commit": "75f943f",
   "messages": 536,
   "csv_lines": 602,
   "loaded_by_ebusd": 662,
-  "sidecar_sha256": "4fa6093b867e116c205d6909d373315e7592b05bc1b927c3273b0d0bdee00935"
+  "sidecar_sha256": "cb2be18503d95d481fd92a1242acb65d4f83031df14c3625e9108d8e0c2b901c"
  },
  "languages": [
   "en",
@@ -5122,7 +5122,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": []
    },
@@ -8519,7 +8519,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -8567,11 +8567,15 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -8664,7 +8668,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -8843,7 +8851,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -19523,7 +19531,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -19572,11 +19580,15 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -19669,7 +19681,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -25093,7 +25109,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -25186,7 +25206,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -25717,7 +25741,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -25765,11 +25789,15 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -25862,7 +25890,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -26322,7 +26354,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -26370,11 +26402,15 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -26467,7 +26503,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -26646,7 +26686,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -37153,7 +37193,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -37201,11 +37241,15 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 10.0,
+    "max": 21.5,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
    },
    "fields": [
     {
@@ -37298,7 +37342,11 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "min": 2.5,
+    "max": 40.0,
+    "step": 0.5,
+    "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
    "fields": [
     {
@@ -37477,7 +37525,7 @@
    "write": {
     "source": "ff",
     "runtime_checksum": true,
-    "risk": "regulation",
+    "risk": "comfort",
     "proof": "change-observed",
     "open": [
      "copy-in-use"
@@ -48914,39 +48962,14 @@
    "bc1/BurnerServiceHours",
    "bc2/BurnerServiceHours"
   ],
-  "range": [
-   "fs1/RoomSetbackTemp",
-   "fs1/GradientCurve",
-   "em1/RoomSetbackTemp",
-   "em1/GradientCurve",
-   "em2/RoomSetbackTemp",
-   "em2/GradientCurve",
-   "em3/RoomSetbackTemp",
-   "em3/GradientCurve",
-   "fs2/RoomSetbackTemp",
-   "fs2/GradientCurve",
-   "fs3/RoomSetbackTemp",
-   "fs3/GradientCurve"
-  ],
+  "range": [],
   "step": [
    "ka/BlockingTime",
    "ka/ChangeOverTime",
    "ka/RegulationP",
    "ka/RegulationI",
-   "fs1/RoomSetbackTemp",
-   "fs1/GradientCurve",
    "fs1/SwitchOnRuntime",
-   "em1/RoomSetbackTemp",
-   "em1/GradientCurve",
-   "em2/RoomSetbackTemp",
-   "em2/GradientCurve",
-   "em3/RoomSetbackTemp",
-   "em3/GradientCurve",
-   "fs2/RoomSetbackTemp",
-   "fs2/GradientCurve",
    "fs2/SwitchOnRuntime",
-   "fs3/RoomSetbackTemp",
-   "fs3/GradientCurve",
    "fs3/SwitchOnRuntime"
   ],
   "value_labels": [

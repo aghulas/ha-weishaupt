@@ -24,7 +24,7 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.4"
+    assert model.version == "0.5.5"
     assert len(model.messages) == 536
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]

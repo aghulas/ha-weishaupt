@@ -38,17 +38,22 @@ def captured():
 def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
     marked = {key for key, message in model.messages.items() if message.writable}
     assert set(specs) == marked and len(specs) == 66
-    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 64, "comfort": 2}
-    assert {key for key, spec in specs.items() if spec.risk == "comfort"} == {"em2/RoomNormalTemp",
-                                                                             "em2/RoomSetbackTemp"}
-    # twelve settings have no range in the definitions (`open.range` of the metadata): the bounds of the evidence
-    # record, setback room temperature and heating curve of every room unit and heating circuit
-    model_open = set(json.loads((Path(__file__).parent.parent / "custom_components" / "weishaupt" /
-                                 "metadata.json").read_text())["open"]["range"])
-    fallback = {key: (s.minimum, s.maximum, s.step) for key, s in specs.items() if s.bounds_from == "evidence"}
-    assert set(fallback) == model_open and len(fallback) == 12
-    assert {v for k, v in fallback.items() if k.endswith("/RoomSetbackTemp")} == {(10.0, 21.5, 0.5)}
-    assert {v for k, v in fallback.items() if k.endswith("/GradientCurve")} == {(2.5, 40.0, 0.5)}
+    # the classes of the metadata, as they are: normal and setback room temperature and hot-water setpoint are
+    # comfort on every device (16), the rest regulation
+    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 50, "comfort": 16}
+    assert {key.split("/")[1] for key, spec in specs.items() if spec.risk == "comfort"} == {
+        "RoomNormalTemp", "RoomSetbackTemp", "DHWSetpoint"}
+    for key, spec in specs.items():
+        assert spec.risk == model.messages[key].write.risk, key
+    # twelve settings have no range in the CSV (fractional bounds): the range of their write conditions in the
+    # metadata, with its source; the integration holds no range of its own
+    from_metadata = {key: (s.minimum, s.maximum, s.step) for key, s in specs.items() if s.bounds_from == "metadata"}
+    assert len(from_metadata) == 12
+    for key, bounds in from_metadata.items():
+        conditions = model.messages[key].write
+        assert bounds == (conditions.minimum, conditions.maximum, conditions.step) and specs[key].range_source
+    assert {v for k, v in from_metadata.items() if k.endswith("/RoomSetbackTemp")} == {(10.0, 21.5, 0.5)}
+    assert {v for k, v in from_metadata.items() if k.endswith("/GradientCurve")} == {(2.5, 40.0, 0.5)}
     for spec in specs.values():  # every other bound and step is the field's
         fld = model.messages[spec.key].fields[0]
         if spec.bounds_from == "definitions":
@@ -189,12 +194,24 @@ def test_the_probe_of_the_run_time_checksum(golden, specs, build, expected):
     assert capability("matched", "matched") == capability("error", "not found") == "unknown"
 
 
-def test_a_range_of_the_metadata_wins_over_the_evidence_bounds(model, loaded):
-    """The evidence bounds are held only while the metadata has no range: once it carries one, it is used."""
+def test_a_setting_without_any_range_stays_read_only(model, loaded):
+    """Neither the field nor the write conditions give a range (a metadata older than 0.5.5): not writable. The
+    integration supplies no range of its own."""
+    import dataclasses
+    message = model.messages["em2/RoomSetbackTemp"]
+    write = dataclasses.replace(message.write, minimum=None, maximum=None, step=None, range_source=None)
+    changed = dataclasses.replace(message, write=write)
+    specs, refused, _ = write_specs(dataclasses.replace(model, messages=model.messages | {message.key: changed}),
+                                    loaded)
+    assert "em2/RoomSetbackTemp" not in specs
+    assert [(r.key, r.reason) for r in refused] == [("em2/RoomSetbackTemp", "no range")]
+
+
+def test_a_range_of_the_field_comes_before_the_write_conditions(model, loaded):
     import dataclasses
     message = model.messages["em2/RoomSetbackTemp"]
     fld = dataclasses.replace(message.fields[0], minimum=12, maximum=20, step=0.5)
     changed = dataclasses.replace(message, fields=(fld,))
     specs, _, _ = write_specs(dataclasses.replace(model, messages=model.messages | {message.key: changed}), loaded)
     spec = specs["em2/RoomSetbackTemp"]
-    assert (spec.minimum, spec.maximum, spec.bounds_from) == (12, 20, "definitions")
+    assert (spec.minimum, spec.maximum, spec.bounds_from, spec.range_source) == (12, 20, "definitions", None)

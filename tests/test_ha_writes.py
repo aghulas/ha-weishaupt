@@ -62,8 +62,11 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     registry = er.async_get(hass)
     numbers = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "number"]
     assert len(numbers) == 65
-    assert {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in numbers if not e.disabled_by} == {
-        "em2/RoomNormalTemp/value", "em2/RoomSetbackTemp/value"}  # comfort enabled, regulation created disabled
+    # comfort enabled (16 settings, 16 numbers: the room temperatures of the manager are written through em1),
+    # regulation created disabled
+    enabled = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in numbers if not e.disabled_by}
+    assert len(enabled) == 16 and {key.split("/")[1] for key in enabled} == {
+        "RoomNormalTemp", "RoomSetbackTemp", "DHWSetpoint"}
     assert all(e.entity_category == "config" for e in numbers)
     assert hass.states.get(switch_id(hass, entry)).state == "off"
     assert writer.capability == "present" and writer.not_writable == {}
@@ -80,6 +83,9 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert number.state == "21.5" and number.attributes["min"] == 16 and number.attributes["max"] == 35
     assert number.attributes["step"] == 0.5 and number.attributes["unit_of_measurement"] == "°C"
     assert number.attributes["risk"] == "comfort" and number.attributes["proof"] == "change-observed"
+    setback = hass.states.get(number_id(hass, entry, "em2/RoomSetbackTemp"))
+    assert (setback.attributes["min"], setback.attributes["max"], setback.attributes["bounds_from"]) == (
+        10.0, 21.5, "metadata") and "83277702" in setback.attributes["range_source"]
 
 
 async def test_switch_off_refuses(hass, fake, log):

@@ -21,17 +21,6 @@ from .model import Message, Model
 PBSB = "5023"
 WCRC_MARKER = "[WCRC]"
 
-# Ranges the metadata does not carry (`open.range` of the metadata: the definitions have none, the bounds are
-# fractional), quoted from the evidence record `settings-writes.md` of the definitions, which takes them from the
-# vendor's installation manual of the room unit and heating circuit (WCM-FS 2.0) and states them for heating module
-# 2; the record gives the other heating circuits and room units "as on em2". Step 0.5 as every other temperature
-# of the lot and the changes proven on the bus. Held here for this beta: the definitions will carry them in their
-# metadata in a later release, and a range of the metadata always wins (these apply only where `min`/`max` are
-# absent, see `_spec`).
-FALLBACK_RANGES: dict[str, tuple[float, float, float]] = {
-    "RoomSetbackTemp": (10.0, 21.5, 0.5),
-    "GradientCurve": (2.5, 40.0, 0.5),
-}
 # Linked bounds, which no record of the definitions states yet (the contract, docs/companion-contract.md of the
 # workbench, says so; the ranges are those of evidence/settings-writes.md): on one circuit the setback room
 # temperature stays at or below the normal one, the minimum flow temperature at or below the maximum. (lower,
@@ -78,7 +67,8 @@ class WriteSpec:
     risk: str  # "comfort" or "regulation"
     proof: str
     open: tuple[str, ...]
-    bounds_from: str  # "definitions", or "evidence" for the fallback ranges
+    bounds_from: str  # "definitions": the range of the field (CSV); "metadata": the range of the write conditions
+    range_source: str | None = None  # where the metadata took a range of the write conditions from
 
     @property
     def ebusd_source(self) -> str | None:
@@ -170,17 +160,19 @@ def _spec(message: Message, definitions: list[Definition]) -> tuple[WriteSpec | 
             or len(loaded_fields) != 1 or loaded_fields[0].type != fld.type
             or loaded_fields[0].divisor_or_values != ("" if divisor == 1 else str(divisor))):
         return None, "ebusd loaded another write definition", ""
+    # The range of the field (the CSV of the definitions); where the CSV cannot hold one (fractional bounds),
+    # the range of the write conditions (metadata from 0.5.5 on). No range: not writable. Nothing here supplies one.
     minimum, maximum, step, bounds_from = fld.minimum, fld.maximum, fld.step, "definitions"
     if minimum is None or maximum is None:
-        if message.name not in FALLBACK_RANGES:
+        if conditions.minimum is None or conditions.maximum is None:
             return None, "no range", ""
-        minimum, maximum, step = FALLBACK_RANGES[message.name]
-        bounds_from = "evidence"
+        minimum, maximum, step, bounds_from = conditions.minimum, conditions.maximum, conditions.step, "metadata"
     if step is None:
         step = 1.0 if divisor == 1 else 1.0 / divisor
     spec = WriteSpec(message.key, message.circuit, message.name, message.address.lower(), definition.id[2:].lower(),
                      fld.type, divisor, float(minimum), float(maximum), float(step), fld.unit, conditions.source,
-                     conditions.risk, conditions.proof, tuple(conditions.open), bounds_from)
+                     conditions.risk, conditions.proof, tuple(conditions.open), bounds_from,
+                     conditions.range_source if bounds_from == "metadata" else None)
     return spec, "", definition.id[:2].lower()
 
 

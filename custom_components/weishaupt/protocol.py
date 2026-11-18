@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass
+from decimal import ROUND_HALF_UP, Decimal
 
 MAX_READ_REGISTERS = 4
 NOT_AVAILABLE = b"\x00\x80"
@@ -109,7 +110,25 @@ class Codec:
         return int.from_bytes(raw, "little", signed=self.signed) / self.factor
 
     def encode(self, value: float) -> bytes:
-        return int(round(value * self.factor)).to_bytes(2, "little", signed=self.signed)
+        """The 2 bytes ebusd writes for `value` through a definition of this type (SIN/UIN, divisor `factor`).
+
+        Version 0.1.0 wrote most settings with `write -c <circuit> <Message> <value:g>`; this builds the same bytes
+        from the same text, so the raw telegram is identical for any value, not only for values on the step:
+        with a divisor, ebusd reads the text as a double, multiplies it and rounds half away from zero; without one,
+        it reads the integer part of the text (`2.7` -> 2) and refuses an exponent (`1e-05`)."""
+        text = f"{value:g}"
+        if self.factor == 1:
+            match = _INTEGER_TEXT.fullmatch(text)
+            if match is None:
+                raise ValueError(f"{text} is not a number for an integer register")
+            number = int(match.group(1))
+        else:
+            scaled = float(text) * self.factor  # the product in double precision, as ebusd computes it
+            number = int(Decimal(scaled).quantize(Decimal(1), rounding=ROUND_HALF_UP))
+        return number.to_bytes(2, "little", signed=self.signed)
+
+
+_INTEGER_TEXT = re.compile(r"([+-]?\d+)(?:\..*)?")  # ebusd stops at the first character, accepts it if "."
 
 
 TEMP10 = Codec(10)  # °C or K with one decimal

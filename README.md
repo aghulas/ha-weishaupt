@@ -97,6 +97,9 @@ value read back, source address).
 - 0.1.2: the hourly write limit is an option (default 30, 1 to 200). After a write, the entity shows the value
   read back even when a poll was running during the write (in 0.1.1 it could show the old value until the next
   poll). Telegrams unchanged.
+- 0.1.3: the flow maximum and minimum of EM1 (the system manager's direct circuit) are written from `ff`: EM1
+  acknowledged them from ebusd's own address without taking them. EM2 and EM3 are unchanged. The tests hold the
+  source of every written register in one table (`tests/test_sources.py`).
 
 ## Tests
 

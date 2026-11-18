@@ -1,4 +1,5 @@
-"""0.1.1: numeric settings written as raw 5023 frames, byte-identical to the named writes of 0.1.0.
+"""0.1.1: numeric settings written as raw 5023 frames, byte-identical to the named writes of 0.1.0 (0.1.3: except the
+source byte of the em1 flow limits, sent from ff, see SOURCE_CHANGED_0_1_3).
 
 Three sources of expected bytes, each test says which one it uses:
 - captured: `50 23` telegrams seen on the bus of the test installation (2026-11-16/17), acknowledged by the device;
@@ -111,6 +112,11 @@ def test_raw_frame_equals_captured_telegram(device_key, key, value, expected):
     assert master(device, setting, value) == expected
 
 
+# 0.1.3: em1 (the system manager's direct circuit) ignores its flow limits written from 31 and takes them from ff.
+# The CRC covers the register and value only, so the frame differs from the 0.1.0 named write by the source byte.
+SOURCE_CHANGED_0_1_3 = {("em1", "supply_max"), ("em1", "supply_min")}
+
+
 # --- ebusd ----------------------------------------------------------------------------------------------------
 def ebusd_vectors():
     with (DATA / "named-write-telegrams.csv").open(encoding="utf-8") as f:
@@ -129,7 +135,11 @@ def test_raw_frame_equals_ebusd_named_write(row):
     if setting.message:  # left on the named path: ebusd refuses every number for these definitions
         assert row["master"].startswith("ERR")
         return
-    assert master(device, setting, float(row["value"])) == row["master"]
+    expected = row["master"]
+    if (device.key, setting.key) in SOURCE_CHANGED_0_1_3:  # same frame, sent from ff instead of 31 (source byte only)
+        assert expected.startswith("31") and setting.source == "ff"
+        expected = "ff" + expected[2:]
+    assert master(device, setting, float(row["value"])) == expected
 
 
 # --- definition -----------------------------------------------------------------------------------------------

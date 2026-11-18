@@ -33,7 +33,7 @@ choices the option labels), translated in `translations/`.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .protocol import TEMP10, UNIT, Codec
 
@@ -218,7 +218,7 @@ KA_CHOICES = [
 
 # Circuits of the EM extension modules (em1, em2, em3). Same register codes as the FS (shared ebusd definitions);
 # source validated on the bus on em2 (15/11): setpoints/gradient/summer-winter/frost from ff, flow maximum/minimum
-# from 31 (None). Driven by an external boiler demand (relay on the H1 input).
+# from 31 (None) on em2 and em3; em1 takes its flow limits from ff (EM1_SETTINGS below). Driven by an external boiler demand (relay on the H1 input).
 EM_SETTINGS = [
     Setting("room_normal", "0500", TEMP10, "°C", 16, 35, 0.5, "ff",
             min_ref="room_reduced"),
@@ -232,6 +232,10 @@ EM_SETTINGS = [
     Setting("supply_min", "2b01", TEMP10, "°C", 8, 82, 0.5, None,
             max_ref="supply_max"),     # source 31
 ]
+# em1 (address 50) is the system manager's own direct circuit: it acknowledges a flow maximum or minimum written from
+# 31 but does not take it, while the same register written from ff (to 15, the system manager) was taken and 50 read
+# the new value (proof writes of 18/11/2026). So em1 writes its flow limits from ff; em2 and em3 keep 31 (proven).
+EM1_SETTINGS = [replace(s, source="ff") if s.key in ("supply_max", "supply_min") else s for s in EM_SETTINGS]
 # Boiler demand (external relay), read-only: H1Status (290a), value in the low byte.
 EM_READ_PARAMS = [
     ReadParam("h1_demand", "290a", UNIT, options={0: "idle", 1: "demand"}),
@@ -297,6 +301,8 @@ def polls_programs(device: Device) -> bool:
 def settings_of(device: Device) -> list[Setting]:
     if device.key == "ka":
         return KA_SETTINGS
+    if device.key == "em1":
+        return EM1_SETTINGS
     if _is_em(device):
         return EM_SETTINGS
     return FS_SETTINGS

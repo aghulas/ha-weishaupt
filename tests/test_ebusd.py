@@ -8,6 +8,7 @@ from weishaupt_core.ebusd import (
     EbusdNoData,
     EbusdNoSignal,
     EbusdNotFound,
+    check_command,
     check_read_only,
     parse_definitions,
     parse_info,
@@ -61,6 +62,29 @@ def test_reading_commands_pass(command):
     check_read_only(command)
 
 
+@pytest.mark.parametrize("command", [
+    "write -s ff -c ka -h 155023052825000100", "write -c em2 -h 51502305fe2800f302",
+    "write -c weishaupt-probe -h 155023052825000100"])
+def test_the_register_write_passes(command):
+    check_command(command)
+
+
+@pytest.mark.parametrize("command", [
+    "write -s ff -c ka BlockingTime 2",  # by name: ebusd would compute the checksum, or not
+    "write -c ka BlockingTime 2",
+    "write -s 10 -c ka -h 155023052825000100",  # another source address
+    "write -s ff -h 155023052825000100",  # no circuit: ebusd would not check it
+    "write -s ff -c ka -h 15502306282500010000",  # another length
+    "write -s ff -c ka -h 155022032825 00",  # a read
+    "write -s ff -c ka -h 155023052825000100 x",
+    "write -def w,ka,X,,,15,5023,2500,,,UIN 1",
+    "write -s ff -c ka -h fe5023052825000100".replace("fe", "f e"),
+    "hex -s ff 155023052825000100", "inject ff155023052825000100/00", "answer x"])
+def test_every_other_write_is_refused(command):
+    with pytest.raises(CommandRefused):
+        check_command(command)
+
+
 async def test_client_against_the_simulated_ebusd(fake):
     client = EbusdClient("127.0.0.1", fake.port)
     info = await client.info()
@@ -77,7 +101,7 @@ async def test_client_against_the_simulated_ebusd(fake):
     fake.signal = False
     with pytest.raises(EbusdNoSignal):
         await client.read("bc1", "Temperatures", 300)
-    assert client.requests == {"find": 2, "info": 1, "read": 5}
+    assert client.requests == {"find": 2, "info": 1, "read": 5, "write": 0}
 
 
 async def test_a_refused_command_is_never_sent(fake):

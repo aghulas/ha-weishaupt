@@ -1,8 +1,10 @@
 """Client of the ebusd TCP command port, without Home Assistant dependencies.
 
-Generic: nothing here knows a manufacturer. It sends the three commands that read (`info`, `find`, `read`) and
-refuses every other one, so that no code path of the integration can write to the bus or send a raw telegram.
-One connection per command, one command at a time.
+Generic: nothing here knows a manufacturer. It sends the three commands that read (`info`, `find`, `read`), and
+one narrow form of `write`: a register write given as bytes and checked by ebusd against a write definition it
+loaded (`write [-s QQ] -c <circuit> -h <ZZ PB SB NN data>`, see `REGISTER_WRITE`). Every other command is refused
+before anything is sent: no `hex`, no `write` by name, no `-def`, no other length or command bytes. One connection
+per command, one command at a time.
 
 Formats as answered by ebusd 26.1 (recorded in tests/data/ebusd-golden.json):
 
@@ -11,6 +13,10 @@ Formats as answered by ebusd 26.1 (recorded in tests/data/ebusd-golden.json):
 - `find -f -c <circuit>`: the definitions as CSV, `type,circuit,name,comment,qq,zz,pbsb,id` followed by six columns
   per field (`name,part,type,divisor/values,unit,comment`);
 - `read -m <age> -c <circuit> <name>`: the values of all fields but the ignored ones, separated by `;`;
+- `write -c <circuit> -h <bytes>`: ebusd looks for a loaded write definition whose bytes match (with the run-time
+  checksum of the fork, john30/ebusd#1825: the checksum byte too), refuses the command when none matches
+  (`ERR: element not found`) or when it belongs to another circuit (`ERR: invalid argument`), and otherwise sends
+  the telegram and answers the bytes of the acknowledgement (`00`);
 - an error is a line starting with `ERR: `.
 """
 from __future__ import annotations
@@ -22,10 +28,15 @@ import re
 from dataclasses import dataclass, field
 
 DEFAULT_PORT = 8888
+PROBE_CIRCUIT = "weishaupt-probe"  # a circuit name no definition uses
 READ_VERBS = frozenset({"info", "find", "read"})
 # Options of `read` that send something else than the read of a loaded definition: a raw telegram (-h), a
 # definition given on the command line (-def), another source or destination address (-s, -d), input data (-i).
 FORBIDDEN_READ_OPTIONS = frozenset({"-h", "-def", "-s", "-d", "-i"})
+# The only write: one 16-bit register (command 50 23, five data bytes: checksum, address, sub-address, value low,
+# value high), from the address of the vendor service tool (ff) or ebusd's own, matched by ebusd to a write
+# definition of the named circuit.
+REGISTER_WRITE = re.compile(r"^write (?:-s ff )?-c [a-z0-9_-]+ -h [0-9a-f]{2}502305[0-9a-f]{10}$")
 
 
 class EbusdError(Exception):
@@ -48,8 +59,19 @@ class EbusdNotFound(EbusdError):
     """ebusd has no message of that circuit and name."""
 
 
+class EbusdInvalidArgument(EbusdError):
+    """ebusd refused the arguments (for `write -h`: a definition matched, of another circuit)."""
+
+
 class CommandRefused(EbusdError):
-    """The command is not one of the reading commands: it was not sent."""
+    """The command is not one the client may send: it was not sent."""
+
+
+def check_command(command: str) -> None:
+    """Raise CommandRefused unless the command reads through loaded definitions or is the one register write."""
+    if command.startswith("write ") and REGISTER_WRITE.match(command):
+        return
+    check_read_only(command)
 
 
 def check_read_only(command: str) -> None:
@@ -136,6 +158,9 @@ class Definition:
     name: str
     comment: str
     fields: tuple[FieldDefinition, ...]
+    zz: str = ""  # target address
+    pbsb: str = ""  # command bytes
+    id: str = ""  # further ID bytes, in hex
 
     @property
     def is_read(self) -> bool:
@@ -155,7 +180,7 @@ def parse_definitions(text: str) -> list[Definition]:
         fields = tuple(
             FieldDefinition(*(cells[i:i + 5] + [""] * 5)[:5])
             for i in range(0, len(cells), 6) if cells[i:i + 1] and cells[i])
-        definitions.append(Definition(row[0], row[1], row[2], row[3], fields))
+        definitions.append(Definition(row[0], row[1], row[2], row[3], fields, row[5], row[6], row[7]))
     return definitions
 
 
@@ -164,22 +189,22 @@ def _raise_for(answer: str, command: str) -> None:
         return
     reason = answer.partition(":")[2].strip() or answer
     for text, error in (("no signal", EbusdNoSignal), ("no data stored", EbusdNoData),
-                        ("element not found", EbusdNotFound)):
+                        ("element not found", EbusdNotFound), ("invalid argument", EbusdInvalidArgument)):
         if text in reason:
             raise error(reason)
     raise EbusdError(f"{command}: {reason}")
 
 
 class EbusdClient:
-    """Reading client of ebusd. `requests` counts the commands sent, by verb."""
+    """Client of ebusd: reads, and the one register write. `requests` counts the commands sent, by verb."""
 
     def __init__(self, host: str, port: int = DEFAULT_PORT, timeout: float = 10.0) -> None:
         self.host, self.port, self.timeout = host, port, timeout
         self._lock = asyncio.Lock()
-        self.requests: dict[str, int] = dict.fromkeys(sorted(READ_VERBS), 0)
+        self.requests: dict[str, int] = dict.fromkeys(sorted(READ_VERBS | {"write"}), 0)
 
     async def _command(self, text: str) -> str:
-        check_read_only(text)
+        check_command(text)
         async with self._lock:
             try:
                 reader, writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), self.timeout)
@@ -213,12 +238,33 @@ class EbusdClient:
             raise EbusdError("the answer to `info` has no version: is this ebusd?")
         return info
 
-    async def definitions(self, circuit: str) -> list[Definition]:
-        """Definitions ebusd loaded for a circuit; empty when it has none."""
+    async def definitions(self, circuit: str, write: bool = False) -> list[Definition]:
+        """Definitions ebusd loaded for a circuit (read and passive ones, or the write ones); empty when none."""
         try:
-            return parse_definitions(await self._command(f"find -f -c {circuit}"))
+            return parse_definitions(await self._command(f"find -f {'-w ' if write else ''}-c {circuit}"))
         except EbusdNotFound:
             return []
+
+    async def read_from_bus(self, circuit: str, name: str) -> tuple[str, ...]:
+        """Field values of a message, asked of the device whatever ebusd holds in its cache (`read -f`)."""
+        return tuple(value.strip() for value in (await self._command(f"read -f -c {circuit} {name}")).split(";"))
+
+    async def write_register(self, circuit: str, telegram: str, source: str | None) -> str:
+        """Send a register write, `telegram` = target, command, length and data in hex. ebusd sends it only when it
+        matches a write definition of `circuit` it loaded. `source`: "ff", or None for ebusd's own address."""
+        prefix = f"-s {source} " if source else ""
+        return await self._command(f"write {prefix}-c {circuit} -h {telegram}")
+
+    async def probe_write(self, telegram: str) -> str:
+        """Ask ebusd to match a write telegram against its definitions under a circuit name no message has: it
+        answers `ERR: invalid argument` when a definition matched (refused before sending), `ERR: element not
+        found` when none did. Nothing is sent to the bus either way."""
+        try:
+            return await self._command(f"write -c {PROBE_CIRCUIT} -h {telegram}")
+        except EbusdInvalidArgument:
+            return "matched"
+        except EbusdNotFound:
+            return "not found"
 
     async def read(self, circuit: str, name: str, max_age: int) -> tuple[str, ...]:
         """Field values of a message. ebusd answers from its cache when its value is younger than `max_age`

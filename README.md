@@ -61,7 +61,10 @@ circuits in service since 15/11/2026) and the **run-time write switch** (off = e
 
 - bounds per register, taken from the manuals WCM-FS 2.0 (83277701) and WCM-KA 3.0 (83258401), narrowed by the
   linked settings (setback ≤ normal, flow minimum ≤ maximum, modulation minimum ≤ maximum);
-- at most one write per register every 10 s and 30 writes per hour;
+- at most one write per register every 10 s, and at most 30 writes in any sliding hour, clock broadcasts included.
+  The hourly limit is the option *Maximum writes per hour* (1 to 200): it spares the memory of the regulators, so
+  keep 30 in normal service; raise it only for a supervised test campaign and set it back afterwards. Changing it
+  reloads the integration, which restarts the count, the 10 s interval and the write switch (from `writes_enabled`);
 - one register per `5023` telegram, read back after the write; a value that was not retained is reported as an
   error;
 - every write goes as a `hex` telegram with the CRC computed by `protocol.py` (except the three settings named
@@ -91,6 +94,9 @@ value read back, source address).
 - 0.1.1 (18/11/2026): numeric settings written as `hex` telegrams again, byte-identical to the telegrams ebusd
   built from the definitions, so that ebusd can load a definitions release without stopping the writes. No other
   change: same entities, unique ids, options and bounds.
+- 0.1.2: the hourly write limit is an option (default 30, 1 to 200). After a write, the entity shows the value
+  read back even when a poll was running during the write (in 0.1.1 it could show the old value until the next
+  poll). Telegrams unchanged.
 
 ## Tests
 
@@ -100,8 +106,10 @@ python3 -m pytest tests
 ```
 
 Python 3.11 or later and `pytest`; Home Assistant and its test plugins are not needed. The tests load
-`protocol.py`, `guard.py` and `registers.py` alone (`tests/conftest.py`) and read the translation files. They cover
-the protocol (frames compared with those of a live bus), the write guard, the translation files, and the raw
+`const.py`, `protocol.py`, `guard.py`, `registers.py` and `polling.py` alone (`tests/conftest.py`) and read the
+translation files. They cover the protocol (frames compared with those of a live bus), the write guard and its
+hourly limit option (the options flow is run with the few Home Assistant names it uses stubbed), the order of a
+poll and the read-back of a write made during it (`tests/test_polling.py`), the translation files, and the raw
 writes of the numeric settings (`tests/test_raw_writes.py`: telegrams compared with captured ones, with those the
 ebusd library builds from the definitions, `tests/data/`, and with the definitions over each whole range). The
 Home Assistant modules (`coordinator.py`, the platforms) are not run by the tests.

@@ -101,13 +101,15 @@ broadcast. On each of them, only entities:
 | Live values (temperatures, burner load, ionisation, pump speed…) | sensors | yes |
 | States (operating phase, flame, pumps, valves, fault…) | sensors with a list of states, binary sensors | yes |
 | Operating counters (hours, burner starts, hours since service) | diagnostic sensors | yes |
-| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, read-only; with writes enabled, also a number entity for each proven setting | no (numbers: comfort settings yes, regulation settings no) |
+| Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, read-only; with writes enabled, also a number entity for each proven setting | no (the numbers: yes) |
 | Weekly programs | one diagnostic sensor per program: the state is today's switch times (`06:30-18:00, 19:00-21:00`), one attribute per day | no |
 | Fault memory of a boiler | one diagnostic sensor: the state is the most recent entry (`W12`, `F11`), the attribute `entries` lists all of them with the values the boiler stored | yes |
 | One counter per fault number, software versions, clock, system fault log, raw status bytes | diagnostic sensors | no |
 
 Settings and weekly programs are created disabled to keep the list short: enable those you want
-on the device page (*entities not shown*), they are then read like the others.
+on the device page (*entities not shown*), they are then read like the others. Home Assistant
+reloads the integration about 30 s after an entity is enabled; the integration then reads the
+newly enabled entity first, before the other values.
 
 Things to know:
 
@@ -167,7 +169,8 @@ of the proven settings**, check the path of the telegram log, save. The integrat
 adds:
 
 - a **number entity** (configuration section of its device) for each setting the definitions
-  prove writable, with the range, step and unit of the definitions;
+  prove writable, with the range, step and unit of the definitions, enabled, named like the sensor
+  of the same register with "(setting)" after it (*Normal room temperature (setting)*);
 - a **write switch** on the ebusd device, **off**. Writes are refused while it is off; turning it
   off also withdraws every change waiting for a confirmation.
 
@@ -206,12 +209,22 @@ them until the definitions carry them.
 **Risk classes** (from the metadata):
 
 - **comfort**: written as soon as you set the number;
-- **regulation**: setting the number writes nothing. A repair appears in *Settings → Repairs*
-  ("Confirm: … to …"), showing the setting, its current value, the new value and the range; the
-  value is written when you open it and confirm. It expires after 15 minutes. Repairs are shown to
+- **regulation**: setting the number writes nothing, and is not an error. A notification says that
+  the change waits for a confirmation, with a link to *Settings → Repairs*; the number's attribute
+  `pending` shows the value waiting. The repair ("Confirm: … to …") opens a dialog with the device,
+  the setting, the current and new values with the decimals of the step, the range and step, the
+  bus address, the register and the source address; **Write to the controller** writes it, reads it
+  back, and the last dialog says what happened (written and read back, with the telegram;
+  unchanged; not taken over; refused, and why). It expires after 15 minutes. Repairs are shown to
   administrators only and cannot be confirmed by an automation: a regulation setting is never
   written without a person;
 - **structural**: never writable.
+
+Clicks: a comfort setting is one change of the number. A regulation setting is the change, then
+the notification's link (or *Settings → Repairs*), the repair, *Write to the controller*, and
+*Close* on the result. Home Assistant gives an entity no way to open a dialog by itself, has no
+link to one repair's dialog, and always ends a repair with a result dialog: these steps cannot be
+merged without giving up the confirmation.
 
 **Each write**, in this order, stops at the first refusal and tells you why:
 
@@ -347,6 +360,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc1: the confirmation of a regulation setting is no error any more, says what it writes
+  (device, register, source, values with their decimals) and what it did; numbers enabled and named
+  "(setting)"; a newly enabled entity is read first.
 - 0.3 (pre-release): writes of the settings the definitions prove, behind the guard of 0.1, risk
   classes and a check of the run-time checksum of ebusd. 0.3.0b1 on definitions 0.5.2 (22
   settings, not published), 0.3.0b2 on definitions 0.5.5 (66 settings, 16 comfort).

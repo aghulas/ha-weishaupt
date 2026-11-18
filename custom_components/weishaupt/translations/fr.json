@@ -627,6 +627,12 @@
       "manager_outsideweightedtemp": {
         "name": "Température extérieure pondérée"
       },
+      "manager_regulationi": {
+        "name": "Régulateur de puissance, facteur I"
+      },
+      "manager_regulationp": {
+        "name": "Régulateur de puissance, facteur 1/P"
+      },
       "manager_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel"
       },
@@ -930,6 +936,9 @@
             "name": "Dimanche"
           }
         }
+      },
+      "room_boilermcboosttemp": {
+        "name": "Surélévation de température chaudière"
       },
       "room_frostprotectionlimittemp": {
         "name": "Température limite hors-gel"

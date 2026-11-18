@@ -65,7 +65,7 @@ async def test_client_against_the_simulated_ebusd(fake):
     client = EbusdClient("127.0.0.1", fake.port)
     info = await client.info()
     assert info.signal and info.slave("15") is not None
-    assert len(await client.definitions("ka")) == 29
+    assert len(await client.definitions("ka")) == 31
     assert await client.definitions("nothing") == []
     assert await client.read("bc1", "Temperatures", 300) == ("0", "60", "52", "63", "15")
     assert await client.read("ka", "Boiler1Power", 900) == ("54", "23", "100")

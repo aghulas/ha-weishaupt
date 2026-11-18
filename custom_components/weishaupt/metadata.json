@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.5.0",
-  "commit": "24b03d7",
-  "messages": 528,
-  "csv_lines": 545,
-  "loaded_by_ebusd": 605,
-  "sidecar_sha256": "37a50fb7ef9cac2458712d07ba71deae766197292d72078197e04b09f52634a6"
+  "version": "0.5.2",
+  "commit": "419821c",
+  "messages": 531,
+  "csv_lines": 553,
+  "loaded_by_ebusd": 613,
+  "sidecar_sha256": "a2c42c26408e4d001b4f5d087453903eb5ab83efc5ead5ff22cf1c564465312a"
  },
  "languages": [
   "en",
@@ -5057,7 +5057,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5101,7 +5101,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5147,7 +5147,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5193,7 +5193,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5239,7 +5239,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5284,7 +5284,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5330,7 +5330,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -5345,6 +5345,84 @@
       "en": "seconds",
       "fr": "secondes"
      }
+    }
+   ]
+  },
+  "ka/RegulationP": {
+   "circuit": "ka",
+   "name": "RegulationP",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Power controller, factor 1/P",
+    "fr": "Régulateur de puissance, facteur 1/P"
+   },
+   "description": {
+    "en": "factor 1/P of the power controller of the cascade",
+    "fr": "facteur 1/P du régulateur de puissance de la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "register-write-crc"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 10,
+     "max": 300
+    }
+   ]
+  },
+  "ka/RegulationI": {
+   "circuit": "ka",
+   "name": "RegulationI",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Power controller, factor I",
+    "fr": "Régulateur de puissance, facteur I"
+   },
+   "description": {
+    "en": "factor I of the power controller of the cascade",
+    "fr": "facteur I du régulateur de puissance de la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "register-write-crc"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 10,
+     "max": 200
     }
    ]
   },
@@ -8463,41 +8541,6 @@
     }
    ]
   },
-  "fs1/RoomFrostProtectionTemp": {
-   "circuit": "fs1",
-   "name": "RoomFrostProtectionTemp",
-   "address": "35",
-   "device": "room1",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Frost protection room temperature",
-    "fr": "Température ambiante hors-gel"
-   },
-   "description": {
-    "en": "room temperature setpoint of the frost protection",
-    "fr": "consigne de température ambiante hors-gel"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "room-units-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10,
-     "unit": "°C",
-     "description": {
-      "en": "temperature",
-      "fr": "température"
-     }
-    }
-   ]
-  },
   "fs1/GradientCurve": {
    "circuit": "fs1",
    "name": "GradientCurve",
@@ -8633,6 +8676,54 @@
     }
    ]
   },
+  "fs1/RoomFrostProtectionTemp": {
+   "circuit": "fs1",
+   "name": "RoomFrostProtectionTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Frost protection room temperature",
+    "fr": "Température ambiante hors-gel"
+   },
+   "description": {
+    "en": "room temperature setpoint of the frost protection",
+    "fr": "consigne de température ambiante hors-gel"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "room-units-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "min": 4,
+     "max": 16,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
   "fs1/SwitchOnRuntime": {
    "circuit": "fs1",
    "name": "SwitchOnRuntime",
@@ -8660,7 +8751,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -8704,7 +8795,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": []
    },
    "fields": [
@@ -8719,6 +8810,53 @@
      "description": {
       "en": "temperature",
       "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/BoilerMCBoostTemp": {
+   "circuit": "fs1",
+   "name": "BoilerMCBoostTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "flow",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler boost offset",
+    "fr": "Surélévation de température chaudière"
+   },
+   "description": {
+    "en": "boiler boost offset: added to the flow setpoint for the demand to the heat source",
+    "fr": "surélévation de température chaudière avec circuit mélangé : ajoutée à la consigne de température départ pour la demande au générateur de chaleur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "min": 0,
+     "max": 20,
+     "step": 0.5,
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
      }
     }
    ]
@@ -24678,7 +24816,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "comfort",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24726,7 +24864,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "comfort",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24771,7 +24909,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24819,7 +24957,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24859,7 +24997,7 @@
     "source": "ff",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24907,7 +25045,7 @@
     "source": "31",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -24955,7 +25093,7 @@
     "source": "31",
     "runtime_checksum": true,
     "risk": "regulation",
-    "proof": "captured",
+    "proof": "change-observed",
     "open": [
      "copy-in-use"
     ]
@@ -25327,6 +25465,46 @@
     }
    ]
   },
+  "em3/GradientCurve": {
+   "circuit": "em3",
+   "name": "GradientCurve",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Heating curve gradient",
+    "fr": "Pente de la courbe de chauffe"
+   },
+   "description": {
+    "en": "steepness of the heating curve",
+    "fr": "pente de la courbe de chauffe"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "settings-writes",
+    "heating-modules-reads"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "copy-in-use"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10
+    }
+   ]
+  },
   "em3/SupplyHCSetTemp": {
    "circuit": "em3",
    "name": "SupplyHCSetTemp",
@@ -25534,36 +25712,6 @@
       "en": "temperature",
       "fr": "température"
      }
-    }
-   ]
-  },
-  "em3/GradientCurve": {
-   "circuit": "em3",
-   "name": "GradientCurve",
-   "address": "52",
-   "device": "module3",
-   "menu": "settings",
-   "kind": "setting",
-   "label": {
-    "en": "Heating curve gradient",
-    "fr": "Pente de la courbe de chauffe"
-   },
-   "description": {
-    "en": "steepness of the heating curve",
-    "fr": "pente de la courbe de chauffe"
-   },
-   "read": true,
-   "passive": false,
-   "poll": "on_demand",
-   "poll_basis": "default",
-   "evidence": [
-    "heating-modules-reads"
-   ],
-   "fields": [
-    {
-     "name": "value",
-     "type": "UIN",
-     "divisor": 10
     }
    ]
   },
@@ -48059,14 +48207,18 @@
   ],
   "range": [
    "em2/RoomSetbackTemp",
-   "em2/GradientCurve"
+   "em2/GradientCurve",
+   "em3/GradientCurve"
   ],
   "step": [
    "ka/BlockingTime",
    "ka/ChangeOverTime",
+   "ka/RegulationP",
+   "ka/RegulationI",
    "fs1/SwitchOnRuntime",
    "em2/RoomSetbackTemp",
-   "em2/GradientCurve"
+   "em2/GradientCurve",
+   "em3/GradientCurve"
   ],
   "value_labels": [
    "ForcedVenting"

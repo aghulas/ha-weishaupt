@@ -627,6 +627,12 @@
       "manager_outsideweightedtemp": {
         "name": "Weighted outside temperature"
       },
+      "manager_regulationi": {
+        "name": "Power controller, factor I"
+      },
+      "manager_regulationp": {
+        "name": "Power controller, factor 1/P"
+      },
       "manager_roomfrostprotectiontemp": {
         "name": "Frost protection room temperature"
       },
@@ -930,6 +936,9 @@
             "name": "Sunday"
           }
         }
+      },
+      "room_boilermcboosttemp": {
+        "name": "Boiler boost offset"
       },
       "room_frostprotectionlimittemp": {
         "name": "Frost protection limit"

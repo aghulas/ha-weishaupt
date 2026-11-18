@@ -24,8 +24,8 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.0"
-    assert len(model.messages) == 528
+    assert model.version == "0.5.2"
+    assert len(model.messages) == 531
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
@@ -93,7 +93,7 @@ def test_entities(model):
 
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):
     writable = [e for e in model.value_entities if e.message.writable]
-    assert len(writable) == 17 and {e.platform for e in writable} == {"sensor"}
+    assert len(writable) == 22 and {e.platform for e in writable} == {"sensor"}
 
 
 def test_slug():
@@ -144,13 +144,13 @@ def test_renamed_message(model):
 
 
 def test_fixtures_of_the_release(model, golden):
-    """The fixtures file (schema 2): 566 telegrams captured on a bus, all 528 messages. Each has as many values
+    """The fixtures file (schema 2): 579 telegrams captured on a bus, all 531 messages. Each has as many values
     as the metadata has fields, the values the evidence states, and the answer the simulated ebusd replays for a
     message is the text of one of its captured telegrams, as the real ebusd gave it again when recorded."""
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
-    assert len(readings) == 566 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
+    assert len(readings) == 579 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"
@@ -171,4 +171,4 @@ def test_fixtures_of_the_release(model, golden):
     assert set(golden["reads"]) == set(model.messages)
     for key, text in golden["reads"].items():
         assert text in texts[key], key
-    assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp"]
+    assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp", "ka/RegulationP"]

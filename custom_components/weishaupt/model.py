@@ -20,8 +20,10 @@ SCHEMA = 1
 METADATA_FILE = Path(__file__).parent / "metadata.json"
 # Definitions releases this version of the integration accepts. The second number of a definitions version changes
 # when a message or a field is renamed, removed or retyped; the third only adds. 0.5.0 renamed a message of the
-# system manager, so 0.4.x and 0.5.x do not expose the same names, and a later 0.5.x only adds messages.
-ACCEPTED_DEFINITIONS = ">=0.5.0, <0.6"
+# system manager, so 0.4.x and 0.5.x do not expose the same names. 0.5.1 and 0.5.2 added messages: an ebusd that
+# runs 0.5.0 or 0.5.1 lacks some of the messages of this metadata and the comparison would name them, so the range
+# starts at the release the metadata comes from. A later 0.5.x only adds messages.
+ACCEPTED_DEFINITIONS = ">=0.5.2, <0.6"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "

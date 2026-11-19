@@ -690,7 +690,7 @@ export class WeishauptPanel extends LitElement {
     }
     dl {
       display: grid;
-      grid-template-columns: max-content 1fr;
+      grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
       gap: 6px 16px;
     }
     dt {
@@ -698,6 +698,11 @@ export class WeishauptPanel extends LitElement {
     }
     dd {
       margin: 0;
+      min-width: 0; /* a long entity id wraps inside its column instead of widening the page */
+      overflow-wrap: anywhere;
+    }
+    code {
+      overflow-wrap: anywhere;
     }
     dd ul {
       margin: 0;

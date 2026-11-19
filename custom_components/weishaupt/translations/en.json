@@ -115,6 +115,25 @@
     "definitions_file": {
       "title": "Definitions file beside the configuration: not used",
       "description": "Definitions in use: {version} ({source}).\n\nFiles of the folder `weishaupt` of the configuration that were not used, and why: {refused}.\n\nA definitions file is used only when its sha256 matches the `sha256sums` file of the same release beside it, its schema is the one this version reads, and its version is newer than the bundled one and within the accepted range. Fix or remove the file, then reload the integration."
+    },
+    "old_entities": {
+      "title": "Entities left by version 0.1 of the integration ({count})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Remove the entities left by version 0.1",
+            "description": "{count} entities of this integration were created by version 0.1, with identifiers this version does not use. They get no values. Removing them deletes them from the entity registry: their settings (names, areas) go with them; their history stays in the recorder until it is purged.\n\n{entities}\n\nNothing is removed until you confirm here.",
+            "submit": "Remove these entities"
+          }
+        },
+        "abort": {
+          "no_entry": "The integration entry is not loaded: nothing was removed.",
+          "nothing_left": "No entity of version 0.1 is left: nothing to remove."
+        },
+        "create_entry": {
+          "removed": "{count} entities of version 0.1 were removed from the registry."
+        }
+      }
     }
   },
   "exceptions": {

@@ -399,8 +399,11 @@ new value list are shown by their keys until a release of the integration transl
 diagnostics list the entities named from the definitions. Changes to existing entities (writable or
 not, write conditions, ranges, classes) take effect at the reload. An entity the definitions in use
 no longer yield (a field now marked skip, a message dropped) is removed from the registry at the
-reload, as integrations do with stale entities; one you changed (name, icon, area, labels,
-aliases, hidden or disabled, display options) is kept, and a repair issue names it.
+reload, as integrations do with stale entities, if its identifier follows the scheme of 0.2 and
+later; one you changed (name, icon, area, labels, aliases, hidden or disabled, display precision
+or unit) is kept, and a repair issue names it. Entities left by version 0.1 (other identifiers)
+are never removed at a load: one repair lists them, and removes them only when you confirm it in
+its dialog.
 
 ## Diagnostics
 
@@ -515,7 +518,10 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
-- 0.5.0b2: the panel shows values kept across a reload and follows a reload of the entry, a
+- 0.5.0b3: automatic removal limited to stale entities of the current identifier scheme; the
+  entities of 0.1 are removed only from a repair the user confirms; options Home Assistant writes
+  itself no longer count as a change by the user; long entity ids wrap on the panel.
+- 0.5.0b2 (replaced by 0.5.0b3: it removed the entities left by 0.1 without asking): the panel shows values kept across a reload and follows a reload of the entry, a
   register read by two messages once, absent sensors as such, programs read once on demand,
   real entity ids, the messages not read and the settings left read-only; entities the
   definitions no longer yield are removed (customised ones kept, with a repair); a setting left

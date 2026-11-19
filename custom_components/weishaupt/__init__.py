@@ -97,22 +97,45 @@ def yielded(hub: Hub) -> set[tuple[str, str]]:
     return found
 
 
+# Options of a registry entry the user sets in the entity's settings dialog; Home Assistant itself writes others
+# (a sensor's suggested display precision, the exposure to assistants), which are not a change by the user.
+USER_OPTIONS = ("display_precision", "unit_of_measurement")
+OLD_ENTITIES_SHOWN = 30  # entity ids named in the repair of the older-scheme entities
+
+
+def current_scheme(suffix: str) -> bool:
+    """Whether a unique id (without its entry id) follows the scheme of 0.2 and later: `<circuit>/<message>/<field>`,
+    `<circuit>/group/<id>`, `<circuit>/<program>/<day>`, `broadcast/Datetime/…`, or `writes`. Version 0.1 built
+    `<device>_<key>` (and `writes_enabled`): those are never removed without the user's confirmation."""
+    return suffix == "writes" or "/" in suffix
+
+
 def _customised(item: er.RegistryEntry) -> bool:
     """Whether the user changed an entity: a name, an icon, an area, labels, aliases, a category, hidden or disabled
-    it, or set its display options. Such an entity is never removed."""
-    user_options = {domain: value for domain, value in item.options.items()
-                    if domain not in ("conversation", "cloud.alexa", "cloud.google_assistant")
-                    and not domain.endswith(".private")}
+    it, or set its display precision or unit. Such an entity is never removed."""
     aliases = [alias for alias in item.aliases if isinstance(alias, str)]  # not the default "its own name"
+    user_options = any(key in options for options in item.options.values() if isinstance(options, dict)
+                       for key in USER_OPTIONS)
     return bool(item.name or item.icon or item.area_id or item.labels or aliases or item.categories
                 or item.hidden_by == er.RegistryEntryHider.USER or item.disabled_by == er.RegistryEntryDisabler.USER
                 or user_options)
 
 
+def older_entities(hass: HomeAssistant, entry: ConfigEntry) -> list[str]:
+    """Entity ids of this entry left by version 0.1 (another unique-id scheme)."""
+    prefix = f"{entry.entry_id}_"
+    return sorted(item.entity_id for item in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+                  if item.platform == DOMAIN and item.unique_id.startswith(prefix)
+                  and not current_scheme(item.unique_id.removeprefix(prefix)))
+
+
 def _remove_stale(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
-    """Entities of this entry that the metadata in use no longer yields (a definitions release marked a field
-    skip, or dropped a message): removed from the registry, as integrations do with stale entities, unless the
-    user customised them; those stay, and one repair issue names them."""
+    """Entities of this entry, in the current unique-id scheme, that the metadata in use no longer yields (a
+    definitions release marked a field skip, or dropped a message): removed from the registry, as integrations do
+    with stale entities, unless the user customised them; those stay, and one repair issue names them.
+
+    Entities of another scheme (left by version 0.1) are never removed here: one repair lists them and removes them
+    only when the user confirms it."""
     registry = er.async_get(hass)
     keep = yielded(hub)
     prefix = f"{entry.entry_id}_"
@@ -120,7 +143,8 @@ def _remove_stale(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
     for item in er.async_entries_for_config_entry(registry, entry.entry_id):
         if item.platform != DOMAIN or not item.unique_id.startswith(prefix):
             continue
-        if (item.domain, item.unique_id.removeprefix(prefix)) in keep:
+        suffix = item.unique_id.removeprefix(prefix)
+        if not current_scheme(suffix) or (item.domain, suffix) in keep:
             continue
         if _customised(item):
             kept.append(item.entity_id)
@@ -128,13 +152,29 @@ def _remove_stale(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
         _LOGGER.info("%s removed: the definitions %s no longer have it", item.entity_id, hub.model.version)
         registry.async_remove(item.entity_id)
     issue = f"stale_entities_{entry.entry_id}"
-    if not kept:
+    if kept:
+        ir.async_create_issue(
+            hass, DOMAIN, issue, is_fixable=False, severity=ir.IssueSeverity.WARNING,
+            translation_key="stale_entities", learn_more_url=DOCUMENTATION_URL,
+            translation_placeholders={"version": hub.model.version, "entities": ", ".join(sorted(kept))})
+    else:
+        ir.async_delete_issue(hass, DOMAIN, issue)
+    update_older_issue(hass, entry)
+
+
+def update_older_issue(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """One fixable repair while entities of version 0.1 remain: its dialog lists them and removes them on the
+    user's confirmation."""
+    issue = f"old_entities_{entry.entry_id}"
+    older = older_entities(hass, entry)
+    if not older:
         ir.async_delete_issue(hass, DOMAIN, issue)
         return
+    shown = ", ".join(older[:OLD_ENTITIES_SHOWN]) + (" …" if len(older) > OLD_ENTITIES_SHOWN else "")
     ir.async_create_issue(
-        hass, DOMAIN, issue, is_fixable=False, severity=ir.IssueSeverity.WARNING, translation_key="stale_entities",
-        learn_more_url=DOCUMENTATION_URL,
-        translation_placeholders={"version": hub.model.version, "entities": ", ".join(sorted(kept))})
+        hass, DOMAIN, issue, is_fixable=True, severity=ir.IssueSeverity.WARNING, translation_key="old_entities",
+        learn_more_url=DOCUMENTATION_URL, data={"entry_id": entry.entry_id, "kind": "old_entities"},
+        translation_placeholders={"count": str(len(older)), "entities": shown})
 
 
 def _follow_renames(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
@@ -214,7 +254,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-    for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities"):
+    for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities", "old_entities"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 
 

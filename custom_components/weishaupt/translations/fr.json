@@ -115,6 +115,25 @@
     "definitions_file": {
       "title": "Fichier de définitions à côté de la configuration : non utilisé",
       "description": "Définitions utilisées : {version} ({source}).\n\nFichiers du dossier `weishaupt` de la configuration non utilisés, et pourquoi : {refused}.\n\nUn fichier de définitions n'est utilisé que si son sha256 correspond au fichier `sha256sums` de la même version posé à côté, que son schéma est celui que lit cette version, et que sa version est plus récente que celle livrée et dans la plage acceptée. Corrigez ou retirez le fichier, puis rechargez l'intégration."
+    },
+    "old_entities": {
+      "title": "Entités laissées par la version 0.1 de l'intégration ({count})",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Supprimer les entités laissées par la version 0.1",
+            "description": "{count} entités de cette intégration ont été créées par la version 0.1, avec des identifiants que cette version n'utilise pas. Elles ne reçoivent aucune valeur. Les supprimer les retire du registre des entités, avec leurs réglages (noms, pièces) ; leur historique reste dans l'enregistreur jusqu'à sa purge.\n\n{entities}\n\nRien n'est supprimé tant que vous ne confirmez pas ici.",
+            "submit": "Supprimer ces entités"
+          }
+        },
+        "abort": {
+          "no_entry": "L'entrée de l'intégration n'est pas chargée : rien n'a été supprimé.",
+          "nothing_left": "Il ne reste aucune entité de la version 0.1 : rien à supprimer."
+        },
+        "create_entry": {
+          "removed": "{count} entités de la version 0.1 ont été retirées du registre."
+        }
+      }
     }
   },
   "exceptions": {

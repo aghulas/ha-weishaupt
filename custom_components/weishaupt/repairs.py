@@ -1,4 +1,4 @@
-"""Confirmation of a change of a regulation setting.
+"""Confirmation of a change of a regulation setting, and of the removal of the entities left by version 0.1.
 
 Setting a regulation setting creates a fixable repair issue; its flow shows the device, the setting, the current
 value, the new value, the range and step, the bus address, the register and the source address, and writes only
@@ -10,10 +10,10 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import entity_registry as er
 
 from . import clock
 from .guard import WriteRefused
@@ -21,7 +21,41 @@ from .writer import CLOCK_KEY, WriteFailed, _text
 
 
 async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None) -> RepairsFlow:
+    if (data or {}).get("kind") == "old_entities":
+        return RemoveOlderEntitiesFlow(data or {})
     return ConfirmWriteFlow(data or {})
+
+
+class RemoveOlderEntitiesFlow(RepairsFlow):
+    """The entities left by version 0.1: listed, and removed from the registry only when the user confirms."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._entry_id = data.get("entry_id")
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        from . import OLD_ENTITIES_SHOWN, older_entities, update_older_issue
+        entry = self.hass.config_entries.async_get_entry(self._entry_id) if self._entry_id else None
+        if entry is None:
+            return self.async_abort(reason="no_entry")
+        older = older_entities(self.hass, entry)  # what is there now, not what the issue said
+        if not older:
+            update_older_issue(self.hass, entry)
+            return self.async_abort(reason="nothing_left")
+        if user_input is None:
+            shown = "\n".join(f"- `{entity_id}`" for entity_id in older[:OLD_ENTITIES_SHOWN])
+            if len(older) > OLD_ENTITIES_SHOWN:
+                shown += f"\n- … ({len(older) - OLD_ENTITIES_SHOWN})"
+            return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}),
+                                        description_placeholders={"count": str(len(older)), "entities": shown})
+        registry = er.async_get(self.hass)
+        for entity_id in older:
+            registry.async_remove(entity_id)
+        update_older_issue(self.hass, entry)
+        return self.async_create_entry(data={}, description="removed",
+                                       description_placeholders={"count": str(len(older))})
 
 
 class ConfirmWriteFlow(RepairsFlow):

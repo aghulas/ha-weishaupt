@@ -98,6 +98,31 @@ def translations(model_module, language: str) -> dict:
     return result
 
 
+def icons(model_module) -> dict:
+    """icons.json: icons for what has no device class to give one (programs, faults, counters, the clock, the
+    write switch), by translation key, and the icon of the action."""
+    model = model_module.Model.load(PACKAGE / "metadata.json")
+    sensor: dict[str, dict] = {"clock_offset": {"default": "mdi:clock-alert-outline"}}
+    for description in model.group_entities:
+        family = description.group.family
+        sensor[description.translation_key] = {
+            "default": "mdi:calendar-week" if family == "program" else "mdi:alert-circle-outline"}
+    for description in model.value_entities:
+        if description.message.family == "fault_counter":
+            sensor[description.translation_key] = {"default": "mdi:counter"}
+    text = {f"program_{group.id}_{day}": {"default": "mdi:calendar-clock"}
+            for group in model.writable_programs for day in model_module.WEEKDAYS}
+    return {
+        "entity": {
+            "button": {"set_clock": {"default": "mdi:clock-edit-outline"}},
+            "sensor": dict(sorted(sensor.items())),
+            "switch": {"writes": {"default": "mdi:pencil-off", "state": {"on": "mdi:pencil"}}},
+            "text": dict(sorted(text.items())),
+        },
+        "services": {"set_program": {"service": "mdi:calendar-edit"}},
+    }
+
+
 def render(data: dict) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
@@ -123,6 +148,14 @@ def main() -> None:
         else:
             target.write_text(text, encoding="utf-8")
             print(f"translations/{target.name}: written")
+    target = PACKAGE / "icons.json"
+    text = render(icons(model_module))
+    if args.check:
+        if not target.exists() or target.read_text(encoding="utf-8") != text:
+            stale.append(target.name)
+    else:
+        target.write_text(text, encoding="utf-8")
+        print("icons.json: written")
     if stale:
         raise SystemExit(f"not up to date: {', '.join(stale)} (run scripts/vendor_metadata.py)")
 

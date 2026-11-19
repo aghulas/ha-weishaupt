@@ -1,0 +1,299 @@
+{
+  "entity": {
+    "button": {
+      "set_clock": {
+        "default": "mdi:clock-edit-outline"
+      }
+    },
+    "sensor": {
+      "boiler_fault_history": {
+        "default": "mdi:alert-circle-outline"
+      },
+      "boiler_faultcounters1_code51": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters1_code52": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters1_code53": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters1_code55": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters1_code57": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters2_code45": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters2_code46": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters2_code47": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters2_code48": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters2_code49": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters3_code38": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters3_code39": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters3_code41": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters3_code43": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters3_code44": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters4_code33": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters4_code34": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters4_code35": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters4_code36": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters4_code37": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters5_code23": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters5_code24": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters5_code30": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters5_code31": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters5_code32": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters6_code15": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters6_code16": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters6_code18": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters6_code21": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters6_code22": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters7_code11": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters7_code12": {
+        "default": "mdi:counter"
+      },
+      "boiler_faultcounters7_code14": {
+        "default": "mdi:counter"
+      },
+      "clock_offset": {
+        "default": "mdi:clock-alert-outline"
+      },
+      "program_circulation": {
+        "default": "mdi:calendar-week"
+      },
+      "program_circulation_stored": {
+        "default": "mdi:calendar-week"
+      },
+      "program_dhw": {
+        "default": "mdi:calendar-week"
+      },
+      "program_dhw_stored": {
+        "default": "mdi:calendar-week"
+      },
+      "program_heating1": {
+        "default": "mdi:calendar-week"
+      },
+      "program_heating2": {
+        "default": "mdi:calendar-week"
+      },
+      "program_heating3": {
+        "default": "mdi:calendar-week"
+      }
+    },
+    "switch": {
+      "writes": {
+        "default": "mdi:pencil-off",
+        "state": {
+          "on": "mdi:pencil"
+        }
+      }
+    },
+    "text": {
+      "program_circulation_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_stored_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_circulation_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_stored_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_dhw_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating1_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating2_wednesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_friday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_monday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_saturday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_sunday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_thursday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_tuesday": {
+        "default": "mdi:calendar-clock"
+      },
+      "program_heating3_wednesday": {
+        "default": "mdi:calendar-clock"
+      }
+    }
+  },
+  "services": {
+    "set_program": {
+      "service": "mdi:calendar-edit"
+    }
+  }
+}

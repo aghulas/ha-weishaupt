@@ -142,8 +142,9 @@ def ws_read_program(hass: HomeAssistant, connection, msg: dict[str, Any]) -> Non
     if group is None or group.family != "program":
         connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "no program with this key")
         return
+    state = hub.queue_state()  # before queueing: what these reads will wait behind
     queued = hub.async_read_once(group.members)
-    connection.send_result(msg["id"], {"queued": queued, "seconds": round(queued * max(hub.request_gap, 1.0))})
+    connection.send_result(msg["id"], _estimate(queued, state))
 
 
 # ---- writes: the writer of the entities, its guard and its confirmation, nothing else -----------------------------
@@ -364,6 +365,7 @@ def fault_tables(hub: Hub) -> list[dict[str, Any]]:
             continue
         out.append({"device": device.id, "label": device.label, "history": history, "counters": counters or None,
                     "log": log, "keys": keys, "not_listened": sum(1 for key in keys if key not in listened),
+                    "to_read": len(hub.to_read_once(keys)),
                     "unread": sum(1 for key in keys if key not in hub.readings)})
     return out
 
@@ -407,8 +409,17 @@ def ws_read_faults(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None
     if table is None:
         connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "no fault messages on this device")
         return
+    state = hub.queue_state()
     queued = hub.async_read_once(tuple(table["keys"]))
-    connection.send_result(msg["id"], {"queued": queued, "seconds": round(queued * max(hub.request_gap, 1.0))})
+    connection.send_result(msg["id"], _estimate(queued, state))
+
+
+def _estimate(queued: int, state: dict[str, Any]) -> dict[str, Any]:
+    """Requests really queued, their own time, and the reads already due ahead of them (the first pass after a
+    start, the reader's queue): rough, at one request per gap."""
+    gap = state["gap"]
+    return {"queued": queued, "seconds": round(queued * gap), "ahead": state["ahead"],
+            "wait": round(state["ahead"] * gap), "first_pass": state["first_pass"]}
 
 
 def _reading(hub: Hub, key: str) -> dict[str, Any] | None:
@@ -466,6 +477,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "read": all(key in hub.usable for key in group.members),
             "listened": any(key in listened for key in group.members),
             "slots": len(group.members),
+            "to_read": len(hub.to_read_once(group.members)),
             "entity_id": links.get(f"{group.circuit}/group/{group.id}", {}).get("sensor"),
         } for group in model.groups.values() if group.family == "program" and group.device == device.id]
         used = {row["menu"] for row in rows} | ({"programs"} if programs else set())

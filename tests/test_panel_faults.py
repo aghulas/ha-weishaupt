@@ -24,7 +24,9 @@ async def test_fault_tables_read_once_on_demand(hass, fake, hass_ws_client):
     await client.send_json({"id": 2, "type": "weishaupt/panel/read_faults", "entry_id": entry.entry_id,
                             "device": "boiler1"})
     answer = (await client.receive_json())["result"]
-    assert answer["queued"] == boiler["not_listened"]
+    # only what is really requested: the messages no enabled entity reads (the fault memory has its sensor)
+    assert answer["queued"] == boiler["to_read"] == boiler["not_listened"] < len(keys)
+    assert {"seconds", "ahead", "wait", "first_pass"} <= set(answer) and answer["first_pass"] is False
     await wait_until(lambda: all(key in hub.readings for key in keys))
     assert len(fake.reads_of()) - asked == answer["queued"]  # one request each, once
     boiler = {t["device"]: t for t in panel.fault_tables(hub)}["boiler1"]

@@ -12,6 +12,7 @@ import {
   label,
   languageOf,
   addDragged,
+  queuedText,
   reportHtml,
   reportRows,
   toCsv,
@@ -27,7 +28,7 @@ import {
   WEEKDAYS,
 } from "./format.ts";
 import type {
-  Days, Device, FaultTable, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer,
+  Days, Device, Estimate, FaultTable, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer,
 } from "./types.ts";
 
 const DEFINITIONS = "__definitions__";
@@ -82,7 +83,7 @@ export class WeishauptPanel extends LitElement {
   declare _menu: string | undefined;
   declare _error: string | undefined;
   declare _tick: number;
-  declare _queued: Record<string, number>;
+  declare _queued: Record<string, Estimate>;
   declare _reloading: boolean;
   declare _editing: string | undefined; // key of the row being changed
   declare _draft: string;
@@ -185,12 +186,12 @@ export class WeishauptPanel extends LitElement {
   }
 
   private async _readFaults(device: string): Promise<void> {
-    const answer = await this.hass.callWS<{ queued: number; seconds: number }>({
+    const answer = await this.hass.callWS<Estimate>({
       type: "weishaupt/panel/read_faults",
       entry_id: this._entryId,
       device,
     });
-    this._queued = { ...this._queued, [`faults:${device}`]: answer.queued };
+    this._queued = { ...this._queued, [`faults:${device}`]: answer };
   }
 
   private _report(): void {
@@ -232,16 +233,16 @@ export class WeishauptPanel extends LitElement {
     return html`<h2>${label(table.label, lang)} — ${t(lang, "faults")}</h2>
       ${table.not_listened
         ? html`<p class="secondary">${t(lang, "faults_unread", { n: table.not_listened })}</p>
-            ${table.unread === 0
-              ? html`<p class="secondary">${t(lang, "faults_read_once")}</p>`
-              : queued !== undefined
-              ? html`<p class="secondary" role="status">${t(lang, "read_queued", { n: queued })}</p>`
-              : html`<p>
-                  <button class="link" @click=${() => this._readFaults(table.device)}>${t(lang, "read_now")}</button>
-                  <span class="secondary"
-                    >${t(lang, "read_cost", { n: table.unread, s: Math.round(table.unread * 2.2) })}</span
-                  >
-                </p>`}`
+            ${queued !== undefined
+              ? html`<p class="secondary" role="status">${queuedText(queued, lang)}</p>`
+              : table.to_read === 0 || table.unread === 0
+                ? html`<p class="secondary">${t(lang, "faults_read_once")}</p>`
+                : html`<p>
+                    <button class="link" @click=${() => this._readFaults(table.device)}>${t(lang, "read_now")}</button>
+                    <span class="secondary"
+                      >${t(lang, "read_cost", { n: table.to_read, s: Math.round(table.to_read * 2.2) })}</span
+                    >
+                  </p>`}`
         : nothing}
       ${table.history
         ? html`<h3>${t(lang, "fault_history")}</h3>
@@ -321,12 +322,12 @@ export class WeishauptPanel extends LitElement {
 
   private async _readProgram(key: string): Promise<void> {
     if (!this._entryId) return;
-    const answer = await this.hass.callWS<{ queued: number; seconds: number }>({
+    const answer = await this.hass.callWS<Estimate>({
       type: "weishaupt/panel/read_program",
       entry_id: this._entryId,
       program: key,
     });
-    this._queued = { ...this._queued, [key]: answer.queued };
+    this._queued = { ...this._queued, [key]: answer };
   }
 
   private async _subscribe(entryId: string): Promise<void> {
@@ -863,7 +864,7 @@ export class WeishauptPanel extends LitElement {
                     ? html`<div class="kept">${t(lang, "kept")}</div>`
                     : nothing}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
                 </td>
-                <td class="nowrap">${formatRange(row)}</td>
+                <td class="nowrap">${formatRange(row, lang)}</td>
                 <td>${this._writeCell(row)}</td>
                 <td>
                   ${row.entity_id
@@ -916,11 +917,11 @@ export class WeishauptPanel extends LitElement {
         <p class="secondary">${note}</p>
         ${program.read && !program.listened
           ? this._queued[program.key] !== undefined
-            ? html`<p class="secondary" role="status">${t(lang, "read_queued", { n: this._queued[program.key] })}</p>`
+            ? html`<p class="secondary" role="status">${queuedText(this._queued[program.key], lang)}</p>`
             : html`<p>
                 <button class="link" @click=${() => this._readProgram(program.key)}>${t(lang, "read_now")}</button>
                 <span class="secondary"
-                  >${t(lang, "read_cost", { n: program.slots, s: Math.round(program.slots * 2.2) })}</span
+                  >${t(lang, "read_cost", { n: program.to_read, s: Math.round(program.to_read * 2.2) })}</span
                 >
               </p>`
           : nothing}

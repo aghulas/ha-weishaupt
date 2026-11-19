@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Labels, Reading, Row, Tree } from "./types.ts";
+import type { Estimate, Labels, Reading, Row, Tree } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -126,7 +126,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     col_label: "Setting",
     col_value: "Value",
     col_unit: "Unit",
-    col_range: "Range (step)",
+    col_range: "Range (step) or choices",
     col_writable: "Writable",
     report: "Printable report",
     export_csv: "Export CSV",
@@ -151,6 +151,13 @@ export const STRINGS: Record<string, Record<string, string>> = {
     fault_log_hint: "The operating unit of the system manager selects the entry shown; selecting another one is a write, which the panel does not do.",
     faults_unread: "{n} of these messages are read by no enabled entity.",
     faults_read_once: "Read once on demand: not kept up to date unless their entities are enabled.",
+    read_nothing: "Nothing to request: these messages are already read by enabled entities or waiting.",
+    read_queued_one: "1 request queued (about {s} s).",
+    read_queued_n: "{n} requests queued (about {s} s).",
+    read_after_first_pass: "They come after the first pass that follows a start: {n} reads still due, {wait}.",
+    read_after_queue: "They come after {n} reads already due, {wait}.",
+    about_s: "about {n} s",
+    about_min: "about {n} min",
   },
   fr: {
     title: "Weishaupt",
@@ -272,7 +279,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     col_label: "Réglage",
     col_value: "Valeur",
     col_unit: "Unité",
-    col_range: "Plage (pas)",
+    col_range: "Plage (pas) ou choix",
     col_writable: "Inscriptible",
     report: "Rapport imprimable",
     export_csv: "Exporter en CSV",
@@ -297,6 +304,13 @@ export const STRINGS: Record<string, Record<string, string>> = {
     fault_log_hint: "Le tableau de commande du manager système choisit l'entrée affichée ; en choisir une autre est une écriture, que le panneau ne fait pas.",
     faults_unread: "{n} de ces messages ne sont lus par aucune entité activée.",
     faults_read_once: "Lus une fois à la demande : pas tenus à jour tant que leurs entités ne sont pas activées.",
+    read_nothing: "Rien à demander : ces messages sont déjà lus par des entités activées ou en attente.",
+    read_queued_one: "1 requête en file (environ {s} s).",
+    read_queued_n: "{n} requêtes en file (environ {s} s).",
+    read_after_first_pass: "Elles passent après la première lecture qui suit un démarrage : {n} lectures encore dues, {wait}.",
+    read_after_queue: "Elles passent après {n} lectures déjà dues, {wait}.",
+    about_s: "environ {n} s",
+    about_min: "environ {n} min",
   },
 };
 
@@ -393,12 +407,28 @@ export function formatAge(seconds: number, language: string): string {
   return t(language, "days_ago", { n: Math.round(s / 86400) });
 }
 
-export function formatRange(row: Row): string {
-  const range = row.range;
-  if (!range) return "";
-  const unit = row.unit ? ` ${row.unit}` : "";
-  const bounds = `${range.min ?? "…"} – ${range.max ?? "…"}${unit}`;
-  return range.step ? `${bounds} (${range.step})` : bounds;
+/** A number in the language's way: decimal comma in French, and a real minus sign (−10, not -10). */
+export function formatNumber(value: number, language: string): string {
+  return new Intl.NumberFormat(language === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 3, useGrouping: false })
+    .format(value)
+    .replace("-", "\u2212");
+}
+
+/** The range of a setting: `−10 … −1 °C (0,5)`. A choice has none (its entries are its allowed values). */
+export function rangeText(
+  range: { min: number | null; max: number | null; step: number | null } | null | undefined,
+  unit: string | null,
+  language: string,
+): string {
+  if (!range || (range.min == null && range.max == null)) return "";
+  const n = (v: number | null): string => (v == null ? "…" : formatNumber(v, language));
+  const bounds = `${n(range.min)} … ${n(range.max)}${unit ? ` ${unit}` : ""}`;
+  return range.step ? `${bounds} (${formatNumber(range.step, language)})` : bounds;
+}
+
+export function formatRange(row: Row, language = "en"): string {
+  if (row.values || row.writable?.options) return ""; // a choice: no numeric range
+  return rangeText(row.range, row.unit, language);
 }
 
 export const SLOTS = 3; // ranges a day holds
@@ -522,18 +552,27 @@ export function reportRows(tree: Tree, readings: Record<string, Reading | null>,
     for (const row of rows) {
       const reading = readingOf(row, readings);
       const raw = reading?.values[row.index];
-      let value = "";
-      if (raw !== undefined && raw !== NOT_AVAILABLE) value = row.values ? label(row.values[raw], language) || raw : raw;
+      // a blank never stands for a value: a value not read says why, as the panel does
+      let value: string;
+      if (raw === undefined) value = t(language, missingReason(row));
+      else if (raw === NOT_AVAILABLE) value = t(language, "not_available");
+      else value = row.values ? label(row.values[raw], language) || raw : raw;
+      const choice = row.values || row.writable?.options;
       const range = row.writable?.minimum != null
         ? { min: row.writable.minimum, max: row.writable.maximum, step: row.writable.step }
         : row.range;
+      const allowed = row.writable?.options
+        ? row.writable.options.map((o) => label(o.label, language)).join(", ")
+        : row.values
+          ? Object.values(row.values).map((v) => label(v, language)).join(", ")
+          : "";
       out.push({
         device: label(device.label, language),
         menu: path(row.menu),
         label: label(row.label, language),
         value,
         unit: row.values ? "" : (row.unit ?? ""),
-        range: range ? `${range.min ?? ""} – ${range.max ?? ""}${range.step ? ` (${range.step})` : ""}` : "",
+        range: choice ? allowed : rangeText(range, null, language),
         writable: row.writable ? t(language, row.writable.risk) : t(language, "read_only"),
       });
     }
@@ -552,7 +591,8 @@ export function reportHeaders(language: string): string[] {
  * byte-order mark so that spreadsheets read the accents. */
 export function toCsv(rows: ReportRow[], language: string): string {
   const separator = language === "fr" ? ";" : ",";
-  const quote = (text: string): string => (/[";,\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text);
+  const quote = (text: string): string =>
+    text.includes(separator) || /["\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   const lines = [reportHeaders(language), ...rows.map((row) => COLUMNS.map((c) => row[c]))];
   return "\ufeff" + lines.map((line) => line.map(quote).join(separator)).join("\r\n") + "\r\n";
 }
@@ -573,11 +613,29 @@ export function reportHtml(rows: ReportRow[], language: string, heading: { title
     .map((r) => `<tr>${columns.map((c) => `<td>${escapeHtml(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`);
   return `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><title>${escapeHtml(heading.title)}</title>
 <style>
-body{font:11pt system-ui,sans-serif;margin:16px;color:#000;background:#fff}
-h1{font-size:16pt;margin:0 0 4px}h2{font-size:13pt;margin:18px 0 6px}p{margin:0 0 8px;color:#333}
-table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:3px 6px;text-align:left;vertical-align:top}
-th{background:#eee}thead{display:table-header-group}tr{break-inside:avoid}section{break-inside:auto}
-@media print{body{margin:0}h2{break-after:avoid}@page{margin:12mm}}
+@page{size:A4;margin:15mm 12mm}
+body{font:10pt system-ui,sans-serif;margin:16px;color:#000;background:#fff}
+h1{font-size:15pt;margin:0 0 4px}h2{font-size:12pt;margin:16px 0 6px}p{margin:0 0 8px;color:#333}
+table{border-collapse:collapse;width:100%;table-layout:auto}
+th,td{border:1px solid #999;padding:4px 7px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+th{background:#eee}thead{display:table-header-group}tfoot{display:table-footer-group}
+tr,td,th{break-inside:avoid;page-break-inside:avoid}
+@media print{body{margin:0}h2{break-after:avoid;page-break-after:avoid}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style></head><body><h1>${escapeHtml(heading.title)}</h1><p>${escapeHtml(heading.subtitle)}</p>${tables.join("")}
 <p>${escapeHtml(t(language, "report_no_factory"))}</p></body></html>`;
+}
+
+/** What a "Read now" queued: only the requests really sent, their time, and the reads already waiting before them
+ * (the first pass after a start, the reader's queue). */
+export function queuedText(estimate: Estimate, language: string): string {
+  if (estimate.queued === 0) return t(language, "read_nothing");
+  const own = t(language, estimate.queued === 1 ? "read_queued_one" : "read_queued_n", {
+    n: estimate.queued, s: estimate.seconds,
+  });
+  if (estimate.ahead === 0) return own;
+  const minutes = estimate.wait >= 90 ? Math.round(estimate.wait / 60) : 0;
+  const wait = minutes ? t(language, "about_min", { n: minutes }) : t(language, "about_s", { n: estimate.wait });
+  return `${own} ${t(language, estimate.first_pass ? "read_after_first_pass" : "read_after_queue", {
+    n: estimate.ahead, wait,
+  })}`;
 }

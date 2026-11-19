@@ -169,8 +169,9 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   do). Messages no enabled entity reads have *Read now*: read once, at the pace of the bus, after
   what the entities wait for, with the number of requests shown.
 - **Report and CSV**: *Printable report* opens every setting of the installation (device, menu,
-  setting, value as read, unit, range and step, writable and its class) in a page the browser
-  prints; *Export CSV* saves the same rows, comma-separated in English and semicolon-separated in
+  setting, value as read or why it is not, unit, range and step or the entries of a choice,
+  writable and its class) in a page the browser prints, with page margins and the table header
+  repeated on each page; *Export CSV* saves the same rows, comma-separated in English and semicolon-separated in
   French. The definitions carry no factory values yet; a value not read when the report is made
   is empty.
 
@@ -562,6 +563,10 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
+- 0.7.0b2: the printed report has page margins, its header on each page and no row split across
+  pages; choices list their entries instead of a numeric range; ranges read `−10 … −1 (0,5)` in the
+  language of Home Assistant; a value not read says why; *Read now* counts only the requests it
+  really sends and says what it waits behind.
 - 0.7.0b1: fault tables in the panel (fault memory with texts, counters, the system manager's
   fault-log entry), read on demand; a printable report and a CSV export of the settings; the write
   switch's `writes_last_hour` follows each write; after a restart of ebusd, the entry waits for its

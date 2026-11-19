@@ -12,6 +12,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
@@ -417,11 +418,23 @@ class Hub:
             closing()
         self._closing.clear()
 
+    def to_read_once(self, keys: tuple[str, ...] | list[str]) -> list[str]:
+        """What `async_read_once` would really ask: usable, not read by an enabled entity, not already queued."""
+        return [key for key in keys if key in self.usable and key not in self._listeners and key not in self._once]
+
+    def queue_state(self) -> dict[str, Any]:
+        """What a request asked now waits behind: the messages due now, whether the first pass after a start is
+        still running, and the gap between two requests."""
+        now = time.monotonic()
+        ahead = sum(1 for key in [*self._listeners, *self._once] if self._due.get(key, 0.0) <= now
+                    and not self.model.messages[key].passive)
+        return {"ahead": ahead, "first_pass": self.first_pass_done is None, "gap": max(self.request_gap, 1.0)}
+
     @callback
     def async_read_once(self, keys: tuple[str, ...]) -> int:
         """Read these messages once although no entity listens to them (a program the panel shows), at the pace of
         the reader and after what entities wait for. Returns how many are queued."""
-        queued = [key for key in keys if key in self.usable and key not in self._listeners and key not in self._once]
+        queued = self.to_read_once(keys)
         for key in queued:
             self._once.add(key)
             self._due[key] = 0.0

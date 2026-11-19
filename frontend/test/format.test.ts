@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, initialDraft, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, initialDraft, queuedText, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
 import type { Row, Tree } from "../src/types.ts";
@@ -62,7 +62,9 @@ test("ages and ranges", () => {
   assert.equal(formatAge(42, "en"), "42 s ago");
   assert.equal(formatAge(600, "fr"), "il y a 10 min");
   assert.equal(formatAge(7200, "en"), "2 h ago");
-  assert.equal(formatRange(row()), "16 – 35 °C (0.5)");
+  assert.equal(formatRange(row()), "16 … 35 °C (0.5)");
+  assert.equal(formatRange(row({ range: { min: -10, max: -1, step: 0.5 } }), "fr"), "\u221210 … \u22121 °C (0,5)");
+  assert.equal(formatRange(row({ values: { Off: { en: "Off" } }, range: { min: 0, max: 7, step: 1 } })), "");
   assert.equal(formatRange(row({ range: null })), "");
 });
 
@@ -139,13 +141,26 @@ test("the report: settings only, in the order of the menus, values as read, CSV 
     ["Réglage", "Température ambiante normale", "21.5", "°C"],
     ["Réglage › Congés", "Niveau, vacances", "Réduit", ""],
   ]);
-  assert.equal(rows[0].range, "16 – 35 (0.5)");
+  assert.equal(rows[0].range, "16 … 35 (0,5)");
+  assert.equal(rows[1].range, "Réduit"); // a choice: its entries, not "0 … 7 (1)"
   const csv = toCsv(rows, "fr");
-  assert.ok(csv.startsWith("\ufeffAppareil;Menu;Réglage;Valeur;Unité;Plage (pas);Inscriptible\r\n"));
-  assert.ok(csv.includes("Module de chauffage 2;Réglage;Température ambiante normale;21.5;°C;16 – 35 (0.5);lecture seule"));
+  assert.ok(csv.startsWith("\ufeffAppareil;Menu;Réglage;Valeur;Unité;Plage (pas) ou choix;Inscriptible\r\n"));
+  assert.ok(csv.includes("Module de chauffage 2;Réglage;Température ambiante normale;21.5;°C;16 … 35 (0,5);lecture seule"));
+  // a setting not read: its reason, never a blank
+  assert.equal(reportRows(tree, {}, "fr")[0].value, "en attente de la première lecture");
   assert.ok(toCsv(reportRows(tree, readings, "en"), "en").includes("Heating module 2,Settings,Normal room temperature,21.5"));
   assert.ok(toCsv([{ ...rows[0], label: 'a "b"; c' }], "fr").includes('"a ""b""; c"'));
   const page = reportHtml(rows, "fr", { title: "Réglages <x>", subtitle: "s" });
   assert.ok(page.includes("<h2>Module de chauffage 2</h2>") && page.includes("Réglages &lt;x&gt;"));
   assert.ok(page.includes("@media print"));
+});
+
+test("the estimate of a Read now: only what is requested, and what it waits behind", () => {
+  assert.equal(queuedText({ queued: 7, seconds: 15, ahead: 0, wait: 0, first_pass: false }, "en"),
+    "7 requests queued (about 15 s).");
+  assert.equal(queuedText({ queued: 7, seconds: 15, ahead: 95, wait: 200, first_pass: true }, "fr"),
+    "7 requêtes en file (environ 15 s). Elles passent après la première lecture qui suit un démarrage : 95 lectures encore dues, environ 3 min.");
+  assert.equal(queuedText({ queued: 1, seconds: 2, ahead: 4, wait: 8, first_pass: false }, "en"),
+    "1 request queued (about 2 s). They come after 4 reads already due, about 8 s.");
+  assert.ok(queuedText({ queued: 0, seconds: 0, ahead: 0, wait: 0, first_pass: false }, "en").startsWith("Nothing"));
 });

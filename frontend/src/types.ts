@@ -97,6 +97,7 @@ export interface Program {
   read: boolean;
   listened: boolean; // an enabled entity reads its slots
   slots: number;
+  to_read: number; // slots a "Read now" would really request
   entity_id: string | null;
 }
 
@@ -176,5 +177,15 @@ export interface FaultTable {
   log: { entry: { id: number | null; code: number | null; type: number | null; device: number | null; time: string | null } | null } | null;
   keys: string[];
   not_listened: number;
+  to_read: number; // messages a "Read now" would really request
   unread: number;
+}
+
+/** The answer of a "Read now": requests really queued, their own time, and what they wait behind. */
+export interface Estimate {
+  queued: number;
+  seconds: number;
+  ahead: number;
+  wait: number;
+  first_pass: boolean;
 }

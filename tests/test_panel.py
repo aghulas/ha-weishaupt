@@ -131,7 +131,7 @@ async def test_a_program_is_read_once_for_the_grid(hass, fake, tmp_path, hass_ws
     await client.send_json({"id": 1, "type": "weishaupt/panel/read_program", "entry_id": entry.entry_id,
                             "program": "fs2/heating1"})
     answer = (await client.receive_json())["result"]
-    assert answer["queued"] == 21
+    assert answer["queued"] == 21 and answer["ahead"] >= 0 and answer["wait"] == answer["ahead"] * 1
     await settled(hass, entry)
     from ha_common import wait_until
     await wait_until(lambda: all(key in hub.readings for key in members))
@@ -175,3 +175,19 @@ async def test_definitions_name_real_entities_and_messages_not_read(hass, fake, 
     assert reasons["broadcast/Datetime"] == "write_only"
     readable = definitions["usable"] + sum(1 for r in reasons.values() if r in ("mismatch", "other"))
     assert readable == definitions["usable"]  # the bench: every readable message is loaded
+
+
+async def test_read_now_counts_what_it_requests_and_what_waits_ahead(hass, fake, tmp_path):
+    """Before the first pass ends, a Read now waits behind the reads still due; what an entity already reads is
+    not counted."""
+    from custom_components.weishaupt.panel import _estimate
+    entry = make_entry(hass, fake, gap=0.0)
+    await setup(hass, entry)
+    hub = entry.runtime_data
+    members = hub.model.groups["fs2/heating1"].members
+    listened = next(iter(hub.listened()))
+    assert hub.to_read_once([*members, listened]) == list(members)  # the listened one is not counted
+    state = {"ahead": 95, "first_pass": True, "gap": 2.0}
+    assert _estimate(21, state) == {"queued": 21, "seconds": 42, "ahead": 95, "wait": 190, "first_pass": True}
+    await settled(hass, entry)
+    assert hub.queue_state()["first_pass"] is False and hub.queue_state()["ahead"] == 0

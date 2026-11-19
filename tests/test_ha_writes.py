@@ -504,16 +504,19 @@ async def test_migration_enables_the_numbers_0_3_0b2_disabled(hass, fake, log):
 
 async def test_a_reload_keeps_the_values(hass, fake, log):
     """After a reload of the entry (as Home Assistant does when an entity is enabled), the values read before are
-    shown at once and not asked again before their interval."""
+    shown at once, and read again in the first pass, so that a change made at the device does not wait for the
+    end of their interval."""
     entry, writer = await writing(hass, fake, log)
     await settled(hass, entry)
+    fake.reads["em2/RoomNormalTemp"] = "22.0"  # changed at the device while Home Assistant reloads
     before = len(fake.reads_of())
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    assert hass.states.get(number_id(hass, entry, "em2/RoomNormalTemp")).state == "21.5"
-    import asyncio
-    await asyncio.sleep(0.5)
-    assert [c for _, c in fake.reads_of()[before:] if "em2 RoomNormalTemp" in c] == []
+    entity_id = number_id(hass, entry, "em2/RoomNormalTemp")
+    assert hass.states.get(entity_id).state == "21.5"  # the value kept, not unknown
+    await settled(hass, entry)
+    assert [c for _, c in fake.reads_of()[before:] if "em2 RoomNormalTemp" in c]
+    assert hass.states.get(entity_id).state == "22.0" and entry.runtime_data.restored == set()
 
 
 async def test_a_choice_through_its_confirmation(hass, fake, log):

@@ -324,3 +324,45 @@ async def test_enabled_program_days_are_read_right_after_the_settings(hass, fake
     print(f"\nmessages listened {listened}, bus requests of the first pass {total}, "
           f"until the 14 texts have values {requests_until_texts} "
           f"(~{requests_until_texts / 0.4 / 60:.0f} min at 0.4 requests/s, against ~{total / 0.4 / 60:.0f} min)")
+
+
+async def test_a_restored_program_day_is_read_again_in_the_first_pass(hass, fake, log):
+    """A warm start (a reload of the entry): the enabled program days show the value kept from before, never
+    unknown, and their slots are read again in the first pass, right after the settings, not a day later. A day
+    changed at the room unit in between shows its new value within that pass."""
+    from unittest.mock import patch
+    from homeassistant.helpers.entity import Entity
+    from custom_components.weishaupt.text import ProgramDayText
+
+    def enabled_default(self):
+        return self._attr_entity_registry_enabled_default if isinstance(self, ProgramDayText) else True
+
+    with patch.object(Entity, "entity_registry_enabled_default", property(enabled_default)):
+        entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
+        await setup(hass, entry)
+        await settled(hass, entry)
+        fake.reads["fs1/HCProgram1Sun1"] = "02:15;Enabled;02:00;Enabled"  # changed at the room unit
+        fake.commands.clear()
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    hub = entry.runtime_data
+    sunday = text_id(hass, entry, "fs1/heating1", "sunday")
+    assert hass.states.get(sunday).state == "-"  # kept from before the reload, not unknown
+    texts = [text_id(hass, entry, f"{c}/heating1", d) for c in ("fs1", "fs3")
+             for d in ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")]
+    assert all(hass.states.get(t).state not in ("unknown", "unavailable") for t in texts)
+    from ha_common import wait_until
+    await wait_until(lambda: hass.states.get(sunday).state == "02:00-02:15")
+    slots = {f"{c}/HCProgram1{d}{n}" for c in ("fs1", "fs3") for d in ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+             for n in (1, 2, 3)}
+
+    def key(command: str) -> str:
+        return command.split()[-2] + "/" + command.split()[-1]
+
+    await wait_until(lambda: slots <= {key(c) for _, c in fake.reads_of()})
+    bus = [key(c) for _, c in fake.reads_of() if not hub.model.messages[key(c)].passive]
+    last_slot = max(i for i, k in enumerate(bus) if k in slots) + 1
+    await settled(hass, entry)
+    total = len([c for _, c in fake.reads_of() if not hub.model.messages[key(c)].passive])
+    assert last_slot < total / 2, (last_slot, total)
+    print(f"\nwarm start: {total} bus requests in the first pass, the 42 slots read by request {last_slot}")

@@ -98,6 +98,7 @@ class Hub:
         self._wake = asyncio.Event()
         self._urgent: set[str] = set()  # messages of an entity just enabled: read first
         self._priority: dict[str, int] = {}  # class asked for by a listener
+        self.restored: set[str] = set()  # messages shown from before a reload, until read again
         # messages listened to when the entry was last unloaded (None at the first set-up since Home Assistant
         # started): kept by __init__.py across a reload
         self.previously_listened: set[str] | None = None
@@ -145,6 +146,7 @@ class Hub:
 
     def store(self, key: str, values: tuple[str, ...]) -> None:
         """A reading obtained outside the reader (the read-back of a write): keep it and tell the listeners."""
+        self.restored.discard(key)
         self.readings[key] = Reading(values, time.time())
         self._failures.pop(key, None)
         self._notify(key)
@@ -294,6 +296,7 @@ class Hub:
             self._due[key] = now + RETRY_INTERVAL
             return 0.0
         self._failures.pop(key, None)
+        self.restored.discard(key)
         self.readings[key] = Reading(values, time.time())
         self._due[key] = now + interval
         self._notify(key)
@@ -338,17 +341,18 @@ class Hub:
         return set(self._listeners)
 
     def restore(self, readings: dict[str, Reading]) -> None:
-        """Readings kept across a reload of the entry: still valid ones are shown at once, and requested again only
-        when their interval has run out, instead of the whole first fill showing unknown values."""
-        now, monotonic = time.time(), time.monotonic()
+        """Readings kept across a reload of the entry: still valid ones are shown at once, so that nothing reads
+        unknown, and every message an enabled entity listens to is read again in the first pass, in its usual order
+        (live values, settings, program days, the rest). Waiting for the end of their interval would show a value
+        changed at the device itself up to a day late (the programs are read once a day). Messages no enabled
+        entity listens to are not read at all, as before."""
+        now = time.time()
         for key, reading in readings.items():
             if key not in self.usable:
                 continue
-            interval = self.interval(self.model.messages[key])
-            age = now - reading.when
-            if 0 <= age < interval:
+            if 0 <= now - reading.when < self.interval(self.model.messages[key]):
                 self.readings[key] = reading
-                self._due[key] = monotonic + interval - age
+                self.restored.add(key)
 
     def snapshot(self) -> dict[str, object]:
         """State of the reader, for the diagnostics download."""
@@ -359,6 +363,7 @@ class Hub:
             "available": self.available,
             "messages_listened": len(self._listeners),
             "messages_read": len(self.readings),
+            "restored_not_read_again": len(self.restored),
             "due_now": sum(1 for key in self._listeners if self._due.get(key, 0.0) <= now),
             "time": dt_util.utcnow().isoformat(),
         }

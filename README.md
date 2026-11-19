@@ -138,6 +138,32 @@ and `sensor.chaudiere_1_temperature_de_depart_i35` on a French one. The unique i
 on the language (it is built from the ebusd circuit, message and field), so renaming or changing
 language later loses nothing — but do not copy entity ids from someone else's configuration.
 
+## The Weishaupt panel
+
+An entry **Weishaupt** in the sidebar, for administrators only, shows the installation the way the
+vendor's controllers and service tool organise it. It is read only: a change is made in the entity,
+which each row opens (Home Assistant's own dialog, with the guard and confirmations described
+above).
+
+- **Devices and menus**: one node per device on the bus, with its bus address and software and
+  hardware versions, and the menus of the definitions under it (*Info → Sensors*, *Process
+  values*, *Statistics*, *Settings*, *Weekly programs*…).
+- **The table of a menu**: name and description, value with its unit (a value-list entry by its
+  label), when it was read, range and step, whether it is writable and its class (comfort,
+  regulation), and a button to the entity. A value that is not read says why: not loaded by
+  ebusd, or no enabled entity reads it (the panel itself asks nothing from the bus).
+- **Weekly programs**: every program the definitions know, as a week grid (bars over 24 h and
+  the ranges in text), read only; the programs proven writable are changed through their
+  program-day entities.
+- **Definitions**: the definitions in use (shipped or a file beside the configuration), files not
+  used and why, differences with ebusd, entities named from the definitions, the ebusd version,
+  and the state of writes (switch, run-time checksum, writes this hour).
+- The offset of the clock master in the header.
+
+The panel follows the language (English, French) and the theme of Home Assistant, and becomes one
+choice list on a phone. Its file is served by the integration; nothing is added to the dashboards
+and nothing has to be installed apart from the integration.
+
 ## Load on the bus
 
 No measurement says how often these devices may be asked, so the integration is cautious and says
@@ -411,6 +437,11 @@ integration under the same name:
 - `ebusd.py` (client), `model.py` (metadata), `writes.py` (what is writable, the bytes of a write)
   and `guard.py` (the write guard of 0.1, proven in service) have no Home Assistant dependency;
   `writer.py` runs a write, `number.py`, `switch.py` and `repairs.py` are its interface.
+- `panel.py` registers the panel and its WebSocket commands (read only, administrators only).
+  The panel's sources are in `frontend/` (TypeScript and Lit); `npm ci && npm test && npm run
+  build` in that folder writes `custom_components/weishaupt/frontend/dist/weishaupt-panel.js`,
+  the same bytes for the same sources and lock file. The built file is committed (HACS runs no
+  build); the workflow *Frontend* rebuilds it and fails when it differs. It needs Node 24 or later.
 - `brand/` holds the images Home Assistant and HACS show; they are drawn by `scripts/make_brand.py`
   (an own mark, no vendor logo).
 
@@ -470,6 +501,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.5.0b1: the Weishaupt panel, read only: devices and menus, the table of each menu, weekly
+  programs as a week grid, the definitions in use, the clock offset.
 - 0.4.0: the code of 0.4.0b2. On a heating system: definitions 0.5.9 beside the configuration
   used at a reload without a restart, a corrupted copy refused with the bundled definitions kept.
 - 0.4.0b2: no repair issue for a file in use, only for a refused one; entities of messages the

@@ -145,6 +145,8 @@ what it does:
 
 - one request at a time, and **never two requests closer than 2 s** (option, 1 to 30 s);
 - live values every 5 minutes (option, 1 minute to 1 hour);
+- after a start: passive messages, live values, then what the entities that set a value show
+  (numbers and selects, then the slots of enabled program days), then the rest;
 - counters and fault memory at start and then every hour, settings every 6 hours, weekly programs
   once a day;
 - states the devices send by themselves (boiler status, room unit exchanges) are read from the
@@ -204,7 +206,9 @@ writes and keeps none — each program has **one text entity per day** (*Heating
 metadata classes *comfort* is offered (all twelve are): a day is written without a confirmation, so
 a program of another class would stay read-only. Its value is the day as the program sensors show it:
 `06:30-18:00, 19:00-21:00`, up to three ranges in quarters of an hour, `-` for none. Heating program
-1 is enabled when created (room units 1 and 3: 14 texts), the others not.
+1 is enabled when created (room units 1 and 3: 14 texts), the others not. A text is unknown until
+its three slots are read; after a start they are read right after the live values and the
+settings (numbers and selects), not after the whole first pass.
 
 Setting a day writes its three slots and reads them back: comfort class, no confirmation, from
 ebusd's own address as the definitions prove. Only the slots that change are written. A slot with
@@ -232,7 +236,9 @@ integration keeps the bus quiet before second 00 of the next minute and broadcas
 time **at second 00 exactly**, from ebusd's own address; every controller takes it over, seconds
 included. If the connection to ebusd is not free within 2 s of second 00, **nothing is sent**: a
 time sent late would set the whole installation late. There is no action: no automation sets the
-clock.
+clock. If an automation of yours broadcasts the time (for example at Home Assistant's start), make it
+send at second 00 of the minute it carries, or use the button: a broadcast sent 12 s late sets every
+controller 12 s late until the next correct one.
 
 The source is the one the metadata gives each setting: the address the device takes the value from
 (`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
@@ -414,6 +420,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc4: after a start, the settings and the slots of enabled program days are read before the
+  rest of the first pass.
 - 0.3.0rc3: definitions 0.5.8; 12 weekly programs of room units 1 and 3 and of the system manager (text per day, action
   `set_program`); clock offset sensor and a set-clock button that sends at second 00 or not at all.
 - 0.3.0rc2: definitions 0.5.6, five choices as selects; numbers that 0.3.0b2 created disabled

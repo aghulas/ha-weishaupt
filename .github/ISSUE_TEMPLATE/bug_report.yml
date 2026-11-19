@@ -53,9 +53,11 @@ body:
     attributes:
       label: Diagnostics
       description: >-
-        Settings → Devices & services → Weishaupt → ⋮ → Download diagnostics, then drag the file here. It holds no
-        address of ebusd, no file path and no user id (they are redacted), but it does hold the values read from your
-        boilers: look at it before you attach it.
+        Settings → Devices & services → Weishaupt → ⋮ → Download diagnostics, then drag the file here. The
+        integration's data in it holds no address of ebusd, no file path, no entry id and no user id (they are
+        redacted), but it does hold the values read from your boilers: look at it before you attach it. Home
+        Assistant itself adds `setup_times`, keyed by the entry id, and the open repairs, whose ids contain it: an
+        opaque local id, no address.
     validations:
       required: true
   - type: textarea

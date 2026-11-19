@@ -3,7 +3,10 @@
 Nothing that identifies a site or a person: the address of ebusd, the path of the telegram log, the title of the
 entry, its id and the Home Assistant user ids of the write journal are redacted, and the bus gives no serial number. The
 values read are included (temperatures, counters, settings): they are what a report about another boiler model or
-software version needs. A test checks that none of the redacted values appears anywhere in the download."""
+software version needs. A test checks that none of the redacted values appears anywhere in this data.
+
+Home Assistant wraps it in a download that also holds `setup_times` (keyed by the entry id) and the domain's open
+repair issues (whose ids contain the entry id); an integration has no hook on those parts."""
 from __future__ import annotations
 
 from dataclasses import asdict

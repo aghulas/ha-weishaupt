@@ -15,10 +15,9 @@ guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
 
-Version 0.3 is a pre-release. Reading was tested against a simulated ebusd, a real ebusd without a
-bus, and once on a heating system for twelve minutes. **Writing was tested against a simulated
-ebusd and a real ebusd without a bus only: no write of this version has been sent to a bus yet**
-(see [Tests](#tests)).
+Version 0.8 is tested against a simulated ebusd in the test suite and on one heating system (see
+[Supported devices and limits](#supported-devices-and-limits)): reads, writes of settings, choices,
+program days and the clock, each read back, since 0.3.
 
 ## What it needs
 
@@ -108,8 +107,10 @@ register they do not describe is not shown. Limits a second installation should 
 - **Not a climate entity**: settings are numbers, selects and texts; no `climate` or `water_heater` entity yet.
 
 **Reporting a problem**: open an issue with the diagnostics download (Settings → Devices & services → Weishaupt →
-⋮ → Download diagnostics). It holds no address of ebusd, no file path, no entry id and no user id; it does hold
-the values read.
+⋮ → Download diagnostics). The integration's own data (`data`) holds no address of ebusd, no file path, no entry
+id and no user id; it does hold the values read. Home Assistant
+itself adds to every download a `setup_times` object keyed by the entry id and, when the integration has repairs
+open, an `issues` list whose ids contain it: an opaque local id, no address, which an integration cannot remove.
 
 ## Installation
 
@@ -486,8 +487,11 @@ its dialog.
 results (address, identification, software and hardware version; the bus carries no serial
 number), the result of the comparison with the definitions, the counters of the reader (requests,
 failed and dropped readings), the last readings and, with writes enabled, the writable settings, the
-result of the checksum probe and the last writes. The address of ebusd is redacted. It is the
-file to attach to a report about another boiler model or software version.
+result of the checksum probe and the last writes. In the integration's data the address of ebusd, the
+telegram-log path, the entry id and the user ids are redacted, even inside texts. Home Assistant
+itself adds to every download a `setup_times` object keyed by the entry id and, when the integration has repairs
+open, an `issues` list whose ids contain it: an opaque local id, no address, which an integration cannot remove. It is the file to
+attach to a report about another boiler model or software version.
 
 ## Coming from 0.1
 
@@ -603,6 +607,10 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.8.0: the code of 0.8.0b2, checked on a heating system: ready for a second installation
+  (devices that appear later reload the entry, a device absent for 7 days gets a repair offering
+  its removal; diagnostics without address, path, user id or entry id in the integration's data;
+  icons; issue templates; supported devices and limits).
 - 0.7.0: the code of 0.7.0b2, checked on a heating system: fault tables in the panel (history
   and counters, read on demand with an honest cost), a printable report and a CSV export of the
   settings; after an ebusd restart the integration waits for the scan and never removes an

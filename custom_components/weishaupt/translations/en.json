@@ -70,18 +70,20 @@
         "step": {
           "confirm": {
             "title": "{setting} — {device}",
-            "description": "- Current value: {current}\n- New value: **{requested}**\n- Allowed range: {minimum} to {maximum}, step {step}\n- Written to bus address `{address}`, register `{register}`, from source address `{source}` ({source_text})\n\nThe controller is read back right after the write. This setting changes how the heating is regulated.",
+            "description": "- Current value: {current}\n- New value: **{requested}**\n- Allowed: {allowed}\n- Written to bus address `{address}`, register `{register}`, from source address `{source}` ({source_text})\n\nThe controller is read back right after the write. This setting changes how the heating is regulated.",
             "submit": "Write to the controller"
           }
         },
         "abort": {
           "expired": "This request has expired or was withdrawn: nothing was written. Set the value again to create a new one.",
           "refused": "Nothing was written: {reason}",
-          "written": "Done. {setting} of {device}: {requested} written and read back from the controller ({read_back}). Telegram `{telegram}`.",
-          "unchanged": "{setting} of {device} already holds {requested}: nothing was written.",
           "not_taken": "{setting} of {device}: {requested} was sent and acknowledged, but the controller reads back {read_back}. The value was not taken over.",
           "write_failed": "{setting} of {device}: the write was not sent ({reason}).",
           "no_read_back": "{setting} of {device}: {requested} was sent, but could not be read back ({reason}). Check the value before trying again."
+        },
+        "create_entry": {
+          "written": "Done. {setting} of {device}: {requested} written and read back from the controller ({read_back}). Telegram `{telegram}`.",
+          "unchanged": "{setting} of {device} already holds {requested}: nothing was written."
         }
       }
     }
@@ -244,6 +246,9 @@
       },
       "manager_boiler2status_service": {
         "name": "Boiler 2 status – Service"
+      },
+      "manager_circwithlegionella": {
+        "name": "Circulation during legionella protection"
       },
       "manager_hcmode_dhw": {
         "name": "Hot water"
@@ -417,6 +422,35 @@
       },
       "room_switchonruntime": {
         "name": "Optimised switch-on lead time (setting)"
+      }
+    },
+    "select": {
+      "manager_circwithlegionella": {
+        "name": "Circulation during legionella protection (setting)",
+        "state": {
+          "off": "Off",
+          "on": "On"
+        }
+      },
+      "manager_dhwlegionelladay": {
+        "name": "Legionella protection day (setting)",
+        "state": {
+          "off": "Off",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
+      },
+      "room_holidaytemplevel": {
+        "name": "Holiday temperature level (setting)",
+        "state": {
+          "antifreeze": "Antifreeze",
+          "setback": "Setback"
+        }
       }
     },
     "sensor": {
@@ -709,6 +743,19 @@
       },
       "manager_dhwexceeded": {
         "name": "Hot water exceed temperature"
+      },
+      "manager_dhwlegionelladay": {
+        "name": "Legionella protection day",
+        "state": {
+          "off": "Off",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
       },
       "manager_dhwloadingpriority": {
         "name": "Hot water loading priority",
@@ -1146,6 +1193,13 @@
       },
       "room_heatdemandtemp": {
         "name": "Requested flow temperature"
+      },
+      "room_holidaytemplevel": {
+        "name": "Holiday temperature level",
+        "state": {
+          "antifreeze": "Antifreeze",
+          "setback": "Setback"
+        }
       },
       "room_outsidetemp": {
         "name": "Outside temperature"

@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.5.5",
-  "commit": "75f943f",
-  "messages": 536,
-  "csv_lines": 602,
-  "loaded_by_ebusd": 662,
-  "sidecar_sha256": "cb2be18503d95d481fd92a1242acb65d4f83031df14c3625e9108d8e0c2b901c"
+  "version": "0.5.6",
+  "commit": "87d7caf",
+  "messages": 542,
+  "csv_lines": 718,
+  "loaded_by_ebusd": 778,
+  "sidecar_sha256": "04ec3e0f0075a73b71694802621f4e85a1c0fec432e74a9cb938139fe7fb15cb"
  },
  "languages": [
   "en",
@@ -412,6 +412,15 @@
      "fr": "État de la chaudière"
     },
     "source": "no vendor menu: status telegram broadcast on the bus"
+   },
+   {
+    "id": "clock",
+    "parent": "",
+    "label": {
+     "en": "Date and time",
+     "fr": "Date et heure"
+    },
+    "source": "no vendor menu: standard date / time broadcast, taken over by the clock master"
    }
   ]
  },
@@ -5142,6 +5151,144 @@
     }
    ]
   },
+  "ka/DHWLegionellaDay": {
+   "circuit": "ka",
+   "name": "DHWLegionellaDay",
+   "address": "15",
+   "device": "manager",
+   "menu": "dhw",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella protection day",
+    "fr": "Jour de la fonction anti-légionelle"
+   },
+   "description": {
+    "en": "day of the legionella protection",
+    "fr": "jour de la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "Monday",
+       "fr": "Lundi"
+      },
+      "2": {
+       "en": "Tuesday",
+       "fr": "Mardi"
+      },
+      "3": {
+       "en": "Wednesday",
+       "fr": "Mercredi"
+      },
+      "4": {
+       "en": "Thursday",
+       "fr": "Jeudi"
+      },
+      "5": {
+       "en": "Friday",
+       "fr": "Vendredi"
+      },
+      "6": {
+       "en": "Saturday",
+       "fr": "Samedi"
+      },
+      "7": {
+       "en": "Sunday",
+       "fr": "Dimanche"
+      }
+     },
+     "description": {
+      "en": "day of the week, or off",
+      "fr": "jour de la semaine, ou arrêt"
+     }
+    }
+   ]
+  },
+  "ka/CircWithLegionella": {
+   "circuit": "ka",
+   "name": "CircWithLegionella",
+   "address": "15",
+   "device": "manager",
+   "menu": "dhw",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation during legionella protection",
+    "fr": "Circulation ECS pendant la fonction anti-légionelle"
+   },
+   "description": {
+    "en": "circulation pump during the legionella protection",
+    "fr": "pompe de circulation ECS pendant la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "on"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "On",
+       "fr": "Marche"
+      }
+     },
+     "description": {
+      "en": "off or on",
+      "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
   "ka/CalorifierSwitchDiff": {
    "circuit": "ka",
    "name": "CalorifierSwitchDiff",
@@ -8873,6 +9020,60 @@
     }
    ]
   },
+  "fs1/HolidayTempLevel": {
+   "circuit": "fs1",
+   "name": "HolidayTempLevel",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday temperature level",
+    "fr": "Niveau de température pendant les vacances"
+   },
+   "description": {
+    "en": "temperature level during a holiday period",
+    "fr": "niveau de température pendant les vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Antifreeze",
+      "1": "Setback"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Antifreeze",
+       "fr": "Hors-gel"
+      },
+      "1": {
+       "en": "Setback",
+       "fr": "Réduit"
+      }
+     },
+     "description": {
+      "en": "temperature level during a holiday period",
+      "fr": "niveau de température pendant les vacances"
+     }
+    }
+   ]
+  },
   "fs1/SwitchOnRuntime": {
    "circuit": "fs1",
    "name": "SwitchOnRuntime",
@@ -9030,7 +9231,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9039,6 +9241,14 @@
     "p": 1,
     "day": 1,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9127,7 +9337,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9136,6 +9347,14 @@
     "p": 1,
     "day": 1,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9224,7 +9443,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9233,6 +9453,14 @@
     "p": 1,
     "day": 1,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9321,7 +9549,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9330,6 +9559,13 @@
     "p": 1,
     "day": 2,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "change-observed",
+    "open": []
    },
    "fields": [
     {
@@ -9418,7 +9654,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9427,6 +9664,14 @@
     "p": 1,
     "day": 2,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9515,7 +9760,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9524,6 +9770,14 @@
     "p": 1,
     "day": 2,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9612,7 +9866,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9621,6 +9876,14 @@
     "p": 1,
     "day": 3,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9709,7 +9972,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9718,6 +9982,14 @@
     "p": 1,
     "day": 3,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9806,7 +10078,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9815,6 +10088,14 @@
     "p": 1,
     "day": 3,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -9903,7 +10184,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -9912,6 +10194,14 @@
     "p": 1,
     "day": 4,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10000,7 +10290,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10009,6 +10300,14 @@
     "p": 1,
     "day": 4,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10097,7 +10396,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10106,6 +10406,14 @@
     "p": 1,
     "day": 4,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10194,7 +10502,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10203,6 +10512,14 @@
     "p": 1,
     "day": 5,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10291,7 +10608,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10300,6 +10618,14 @@
     "p": 1,
     "day": 5,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10388,7 +10714,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10397,6 +10724,14 @@
     "p": 1,
     "day": 5,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10485,7 +10820,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10494,6 +10830,14 @@
     "p": 1,
     "day": 6,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10582,7 +10926,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10591,6 +10936,14 @@
     "p": 1,
     "day": 6,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10679,7 +11032,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10688,6 +11042,14 @@
     "p": 1,
     "day": 6,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10776,7 +11138,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10785,6 +11148,14 @@
     "p": 1,
     "day": 7,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10873,7 +11244,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10882,6 +11254,14 @@
     "p": 1,
     "day": 7,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -10970,7 +11350,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -10979,6 +11360,14 @@
     "p": 1,
     "day": 7,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram1Tue1"
    },
    "fields": [
     {
@@ -11067,7 +11456,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11076,6 +11466,14 @@
     "p": 2,
     "day": 1,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11164,7 +11562,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11173,6 +11572,14 @@
     "p": 2,
     "day": 1,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11261,7 +11668,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11270,6 +11678,14 @@
     "p": 2,
     "day": 1,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11358,7 +11774,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11367,6 +11784,14 @@
     "p": 2,
     "day": 2,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11455,7 +11880,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11464,6 +11890,14 @@
     "p": 2,
     "day": 2,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11552,7 +11986,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11561,6 +11996,14 @@
     "p": 2,
     "day": 2,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11649,7 +12092,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11658,6 +12102,14 @@
     "p": 2,
     "day": 3,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11746,7 +12198,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11755,6 +12208,14 @@
     "p": 2,
     "day": 3,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11843,7 +12304,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11852,6 +12314,14 @@
     "p": 2,
     "day": 3,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -11940,7 +12410,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -11949,6 +12420,14 @@
     "p": 2,
     "day": 4,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12037,7 +12516,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12046,6 +12526,14 @@
     "p": 2,
     "day": 4,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12134,7 +12622,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12143,6 +12632,14 @@
     "p": 2,
     "day": 4,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12231,7 +12728,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12240,6 +12738,14 @@
     "p": 2,
     "day": 5,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12328,7 +12834,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12337,6 +12844,14 @@
     "p": 2,
     "day": 5,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12425,7 +12940,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12434,6 +12950,14 @@
     "p": 2,
     "day": 5,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12522,7 +13046,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12531,6 +13056,14 @@
     "p": 2,
     "day": 6,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12619,7 +13152,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12628,6 +13162,14 @@
     "p": 2,
     "day": 6,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12716,7 +13258,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12725,6 +13268,14 @@
     "p": 2,
     "day": 6,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12813,7 +13364,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12822,6 +13374,14 @@
     "p": 2,
     "day": 7,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -12910,7 +13470,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -12919,6 +13480,14 @@
     "p": 2,
     "day": 7,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram2Sun3"
    },
    "fields": [
     {
@@ -13007,7 +13576,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13016,6 +13586,13 @@
     "p": 2,
     "day": 7,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "change-observed",
+    "open": []
    },
    "fields": [
     {
@@ -13104,7 +13681,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13113,6 +13691,14 @@
     "p": 3,
     "day": 1,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13201,7 +13787,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13210,6 +13797,14 @@
     "p": 3,
     "day": 1,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13298,7 +13893,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13307,6 +13903,14 @@
     "p": 3,
     "day": 1,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13395,7 +13999,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13404,6 +14009,14 @@
     "p": 3,
     "day": 2,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13492,7 +14105,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13501,6 +14115,14 @@
     "p": 3,
     "day": 2,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13589,7 +14211,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13598,6 +14221,14 @@
     "p": 3,
     "day": 2,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13686,7 +14317,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13695,6 +14327,14 @@
     "p": 3,
     "day": 3,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13783,7 +14423,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13792,6 +14433,14 @@
     "p": 3,
     "day": 3,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13880,7 +14529,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13889,6 +14539,14 @@
     "p": 3,
     "day": 3,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -13977,7 +14635,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -13986,6 +14645,14 @@
     "p": 3,
     "day": 4,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14074,7 +14741,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14083,6 +14751,14 @@
     "p": 3,
     "day": 4,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14171,7 +14847,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14180,6 +14857,14 @@
     "p": 3,
     "day": 4,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14268,7 +14953,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14277,6 +14963,14 @@
     "p": 3,
     "day": 5,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14365,7 +15059,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14374,6 +15069,14 @@
     "p": 3,
     "day": 5,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14462,7 +15165,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14471,6 +15175,14 @@
     "p": 3,
     "day": 5,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14559,7 +15271,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14568,6 +15281,14 @@
     "p": 3,
     "day": 6,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14656,7 +15377,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14665,6 +15387,14 @@
     "p": 3,
     "day": 6,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14753,7 +15483,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14762,6 +15493,14 @@
     "p": 3,
     "day": 6,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14850,7 +15589,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14859,6 +15599,14 @@
     "p": 3,
     "day": 7,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -14947,7 +15695,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -14956,6 +15705,14 @@
     "p": 3,
     "day": 7,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "HCProgram3Sun3"
    },
    "fields": [
     {
@@ -15044,7 +15801,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15053,6 +15811,13 @@
     "p": 3,
     "day": 7,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "change-observed",
+    "open": []
    },
    "fields": [
     {
@@ -15141,7 +15906,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15149,6 +15915,14 @@
    "position": {
     "day": 1,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15237,7 +16011,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15245,6 +16020,14 @@
    "position": {
     "day": 1,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15333,7 +16116,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15341,6 +16125,14 @@
    "position": {
     "day": 1,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15429,7 +16221,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15437,6 +16230,14 @@
    "position": {
     "day": 2,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15525,7 +16326,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15533,6 +16335,14 @@
    "position": {
     "day": 2,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15621,7 +16431,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15629,6 +16440,14 @@
    "position": {
     "day": 2,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15717,7 +16536,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15725,6 +16545,14 @@
    "position": {
     "day": 3,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15813,7 +16641,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15821,6 +16650,14 @@
    "position": {
     "day": 3,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -15909,7 +16746,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -15917,6 +16755,14 @@
    "position": {
     "day": 3,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16005,7 +16851,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16013,6 +16860,14 @@
    "position": {
     "day": 4,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16101,7 +16956,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16109,6 +16965,14 @@
    "position": {
     "day": 4,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16197,7 +17061,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16205,6 +17070,14 @@
    "position": {
     "day": 4,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16293,7 +17166,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16301,6 +17175,14 @@
    "position": {
     "day": 5,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16389,7 +17271,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16397,6 +17280,14 @@
    "position": {
     "day": 5,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16485,7 +17376,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16493,6 +17385,14 @@
    "position": {
     "day": 5,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16581,7 +17481,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16589,6 +17490,14 @@
    "position": {
     "day": 6,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16677,7 +17586,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16685,6 +17595,14 @@
    "position": {
     "day": 6,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16773,7 +17691,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16781,6 +17700,14 @@
    "position": {
     "day": 6,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16869,7 +17796,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16877,6 +17805,14 @@
    "position": {
     "day": 7,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -16965,7 +17901,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -16973,6 +17910,14 @@
    "position": {
     "day": 7,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "DHWProgramSun3"
    },
    "fields": [
     {
@@ -17061,7 +18006,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17069,6 +18015,13 @@
    "position": {
     "day": 7,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "change-observed",
+    "open": []
    },
    "fields": [
     {
@@ -17157,7 +18110,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17165,6 +18119,14 @@
    "position": {
     "day": 1,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17253,7 +18215,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17261,6 +18224,14 @@
    "position": {
     "day": 1,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17349,7 +18320,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17357,6 +18329,14 @@
    "position": {
     "day": 1,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17445,7 +18425,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17453,6 +18434,14 @@
    "position": {
     "day": 2,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17541,7 +18530,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17549,6 +18539,14 @@
    "position": {
     "day": 2,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17637,7 +18635,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17645,6 +18644,14 @@
    "position": {
     "day": 2,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17733,7 +18740,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17741,6 +18749,14 @@
    "position": {
     "day": 3,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17829,7 +18845,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17837,6 +18854,14 @@
    "position": {
     "day": 3,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -17925,7 +18950,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -17933,6 +18959,14 @@
    "position": {
     "day": 3,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18021,7 +19055,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18029,6 +19064,14 @@
    "position": {
     "day": 4,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18117,7 +19160,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18125,6 +19169,14 @@
    "position": {
     "day": 4,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18213,7 +19265,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18221,6 +19274,14 @@
    "position": {
     "day": 4,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18309,7 +19370,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18317,6 +19379,14 @@
    "position": {
     "day": 5,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18405,7 +19475,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18413,6 +19484,14 @@
    "position": {
     "day": 5,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18501,7 +19580,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18509,6 +19589,14 @@
    "position": {
     "day": 5,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18597,7 +19685,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18605,6 +19694,14 @@
    "position": {
     "day": 6,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18693,7 +19790,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18701,6 +19799,14 @@
    "position": {
     "day": 6,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18789,7 +19895,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18797,6 +19904,14 @@
    "position": {
     "day": 6,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18885,7 +20000,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18893,6 +20009,14 @@
    "position": {
     "day": 7,
     "slot": 1
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -18981,7 +20105,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -18989,6 +20114,14 @@
    "position": {
     "day": 7,
     "slot": 2
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "family",
+    "open": [],
+    "proof_slot": "CircProgramSun3"
    },
    "fields": [
     {
@@ -19077,7 +20210,8 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "choice-date-program-writes"
    ],
    "compose": false,
    "family": "program",
@@ -19085,6 +20219,13 @@
    "position": {
     "day": 7,
     "slot": 3
+   },
+   "write": {
+    "source": "31",
+    "runtime_checksum": true,
+    "risk": "comfort",
+    "proof": "change-observed",
+    "open": []
    },
    "fields": [
     {
@@ -26751,6 +27892,60 @@
      "description": {
       "en": "temperature difference",
       "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "fs2/HolidayTempLevel": {
+   "circuit": "fs2",
+   "name": "HolidayTempLevel",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday temperature level",
+    "fr": "Niveau de température pendant les vacances"
+   },
+   "description": {
+    "en": "temperature level during a holiday period",
+    "fr": "niveau de température pendant les vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Antifreeze",
+      "1": "Setback"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Antifreeze",
+       "fr": "Hors-gel"
+      },
+      "1": {
+       "en": "Setback",
+       "fr": "Réduit"
+      }
+     },
+     "description": {
+      "en": "temperature level during a holiday period",
+      "fr": "niveau de température pendant les vacances"
      }
     }
    ]
@@ -37594,6 +38789,60 @@
     }
    ]
   },
+  "fs3/HolidayTempLevel": {
+   "circuit": "fs3",
+   "name": "HolidayTempLevel",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday temperature level",
+    "fr": "Niveau de température pendant les vacances"
+   },
+   "description": {
+    "en": "temperature level during a holiday period",
+    "fr": "niveau de température pendant les vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Antifreeze",
+      "1": "Setback"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Antifreeze",
+       "fr": "Hors-gel"
+      },
+      "1": {
+       "en": "Setback",
+       "fr": "Réduit"
+      }
+     },
+     "description": {
+      "en": "temperature level during a holiday period",
+      "fr": "niveau de température pendant les vacances"
+     }
+    }
+   ]
+  },
   "fs3/SwitchOnRuntime": {
    "circuit": "fs3",
    "name": "SwitchOnRuntime",
@@ -48318,6 +49567,82 @@
      "kind": "live"
     }
    ]
+  },
+  "broadcast/Datetime": {
+   "circuit": "broadcast",
+   "name": "Datetime",
+   "address": "fe",
+   "device": "system",
+   "menu": "clock",
+   "kind": "setting",
+   "label": {
+    "en": "Date and time",
+    "fr": "Date et heure"
+   },
+   "description": {
+    "en": "date and time set for the whole installation",
+    "fr": "date et heure de toute l'installation"
+   },
+   "read": false,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "choice-date-program-writes"
+   ],
+   "compose": false,
+   "write": {
+    "source": "31",
+    "runtime_checksum": false,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "outsidetemp",
+     "type": "D2B",
+     "unit": "°C",
+     "min": -50,
+     "max": 127,
+     "step": 0.5,
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     },
+     "label": {
+      "en": "Outside temperature",
+      "fr": "Température extérieure"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "time",
+     "type": "BTI",
+     "description": {
+      "en": "time",
+      "fr": "heure"
+     },
+     "label": {
+      "en": "Time",
+      "fr": "Heure"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "date",
+     "type": "BDA",
+     "description": {
+      "en": "date",
+      "fr": "date"
+     },
+     "label": {
+      "en": "Date",
+      "fr": "Date"
+     },
+     "kind": "setting"
+    }
+   ]
   }
  },
  "groups": [
@@ -48962,14 +50287,25 @@
    "bc1/BurnerServiceHours",
    "bc2/BurnerServiceHours"
   ],
-  "range": [],
+  "range": [
+   "ka/DHWLegionellaDay",
+   "ka/CircWithLegionella",
+   "fs1/HolidayTempLevel",
+   "fs2/HolidayTempLevel",
+   "fs3/HolidayTempLevel"
+  ],
   "step": [
    "ka/BlockingTime",
    "ka/ChangeOverTime",
+   "ka/DHWLegionellaDay",
+   "ka/CircWithLegionella",
    "ka/RegulationP",
    "ka/RegulationI",
+   "fs1/HolidayTempLevel",
    "fs1/SwitchOnRuntime",
+   "fs2/HolidayTempLevel",
    "fs2/SwitchOnRuntime",
+   "fs3/HolidayTempLevel",
    "fs3/SwitchOnRuntime"
   ],
   "value_labels": [

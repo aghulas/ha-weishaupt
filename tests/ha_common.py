@@ -14,7 +14,7 @@ from custom_components.weishaupt.const import CONF_CYCLIC_INTERVAL, CONF_REQUEST
 def make_entry(hass: HomeAssistant, fake, gap: float = 0.0, **options) -> MockConfigEntry:
     """A config entry for the simulated ebusd. The gap between requests is 0 unless a test is about pacing."""
     entry = MockConfigEntry(
-        domain=DOMAIN, version=2, title="Weishaupt", unique_id=f"127.0.0.1:{fake.port}",
+        domain=DOMAIN, version=2, minor_version=2, title="Weishaupt", unique_id=f"127.0.0.1:{fake.port}",
         data={CONF_HOST: "127.0.0.1", CONF_PORT: fake.port},
         options={CONF_REQUEST_GAP: gap, CONF_CYCLIC_INTERVAL: 300} | options)
     entry.add_to_hass(hass)

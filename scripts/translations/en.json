@@ -70,18 +70,20 @@
         "step": {
           "confirm": {
             "title": "{setting} — {device}",
-            "description": "- Current value: {current}\n- New value: **{requested}**\n- Allowed range: {minimum} to {maximum}, step {step}\n- Written to bus address `{address}`, register `{register}`, from source address `{source}` ({source_text})\n\nThe controller is read back right after the write. This setting changes how the heating is regulated.",
+            "description": "- Current value: {current}\n- New value: **{requested}**\n- Allowed: {allowed}\n- Written to bus address `{address}`, register `{register}`, from source address `{source}` ({source_text})\n\nThe controller is read back right after the write. This setting changes how the heating is regulated.",
             "submit": "Write to the controller"
           }
         },
         "abort": {
           "expired": "This request has expired or was withdrawn: nothing was written. Set the value again to create a new one.",
           "refused": "Nothing was written: {reason}",
-          "written": "Done. {setting} of {device}: {requested} written and read back from the controller ({read_back}). Telegram `{telegram}`.",
-          "unchanged": "{setting} of {device} already holds {requested}: nothing was written.",
           "not_taken": "{setting} of {device}: {requested} was sent and acknowledged, but the controller reads back {read_back}. The value was not taken over.",
           "write_failed": "{setting} of {device}: the write was not sent ({reason}).",
           "no_read_back": "{setting} of {device}: {requested} was sent, but could not be read back ({reason}). Check the value before trying again."
+        },
+        "create_entry": {
+          "written": "Done. {setting} of {device}: {requested} written and read back from the controller ({read_back}). Telegram `{telegram}`.",
+          "unchanged": "{setting} of {device} already holds {requested}: nothing was written."
         }
       }
     }

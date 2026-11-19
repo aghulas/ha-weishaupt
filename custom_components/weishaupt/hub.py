@@ -96,6 +96,8 @@ class Hub:
         # messages listened to when the entry was last unloaded (None at the first set-up since Home Assistant
         # started): kept by __init__.py across a reload
         self.previously_listened: set[str] | None = None
+        # messages of entities the migration of the entry has just enabled: read first at the first set-up
+        self.urgent_at_start: set[str] = set()
         self.writer = None  # writer.Writer, when writes are enabled in the options
 
     # ---- start-up -------------------------------------------------------------------------------------------
@@ -118,7 +120,7 @@ class Hub:
         self.mismatches = self.model.compare(circuits, loaded)
         bad = {m.key for m in self.mismatches}
         self.usable = {key for key, message in self.model.messages.items()
-                       if message.circuit in circuits and key not in bad}
+                       if message.circuit in circuits and key not in bad and (message.read or message.passive)}
 
     @property
     def own_address(self) -> str | None:
@@ -159,7 +161,8 @@ class Hub:
         for key in keys:
             self._listeners.setdefault(key, []).append(update)
             self._due.setdefault(key, 0.0)
-            if self.previously_listened is not None and key not in self.previously_listened:
+            if (self.previously_listened is not None and key not in self.previously_listened
+                    and key not in self.readings) or key in self.urgent_at_start:
                 self._urgent.add(key)
         self._availability_listeners.append(update)
         self._wake.set()
@@ -313,6 +316,19 @@ class Hub:
 
     def listened(self) -> set[str]:
         return set(self._listeners)
+
+    def restore(self, readings: dict[str, Reading]) -> None:
+        """Readings kept across a reload of the entry: still valid ones are shown at once, and requested again only
+        when their interval has run out, instead of the whole first fill showing unknown values."""
+        now, monotonic = time.time(), time.monotonic()
+        for key, reading in readings.items():
+            if key not in self.usable:
+                continue
+            interval = self.interval(self.model.messages[key])
+            age = now - reading.when
+            if 0 <= age < interval:
+                self.readings[key] = reading
+                self._due[key] = monotonic + interval - age
 
     def snapshot(self) -> dict[str, object]:
         """State of the reader, for the diagnostics download."""

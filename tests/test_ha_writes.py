@@ -66,7 +66,11 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert not [e for e in numbers if e.disabled_by]
     assert all(e.entity_category == "config" for e in numbers)
     assert hass.states.get(switch_id(hass, entry)).state == "off"
-    assert writer.capability == "present" and writer.not_writable == {}
+    assert writer.capability == "present"
+    assert set(writer.not_writable) == {k for k, m in writer.hub.model.messages.items()
+                                        if m.writable and (m.family == "program" or m.key == "broadcast/Datetime")}
+    selects = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "select"]
+    assert len(selects) == 5 and not [e for e in selects if e.disabled_by]
     writes = [c for _, c in fake.commands if c.startswith("write")]
     spec = writer.specs["ka/BlockingTime"]
     assert writes == [f"write -c weishaupt-probe -h {spec.telegram(0)}",
@@ -74,7 +78,7 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert fake.writes == []
     # the read side is the one of phase 1: the sensors of the settings stay as they were
     assert len([e for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-                if e.domain in ("sensor", "binary_sensor")]) == 346
+                if e.domain in ("sensor", "binary_sensor")]) == 351
     await settled(hass, entry)
     number = hass.states.get(number_id(hass, entry, "em2/RoomNormalTemp"))
     assert number.state == "21.5" and number.attributes["min"] == 16 and number.attributes["max"] == 35
@@ -148,9 +152,10 @@ async def test_regulation_setting_needs_a_confirmation(hass, fake, log, entity_r
     assert shown["source_text"] == "address of the vendor service tool"
     assert fake.writes == []  # nothing before the confirmation
     result = await manager.async_configure(result["flow_id"], {})
-    assert result["type"] == "abort" and result["reason"] == "written"
+    assert result["type"] == "create_entry" and result["description"] == "written"
+    # the whole frame, source address first
     assert (result["description_placeholders"]["read_back"], result["description_placeholders"]["telegram"]) == (
-        "2 min", "15502305cc25000200")
+        "2 min", "ff15502305cc25000200")
     assert fake.writes == [("ff", "ka", "15502305cc25000200")]
     assert hass.states.get(entity_id).state == "2.0" and hass.states.get(entity_id).attributes["pending"] is None
     assert not [i for i in ir.async_get(hass).issues.values() if i.translation_key == "confirm_write"]
@@ -291,7 +296,7 @@ async def test_diagnostics_carry_the_writes(hass, fake, log):
     await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
     data = await async_get_config_entry_diagnostics(hass, entry)
     writes = data["writes"]
-    assert writes["capability"] == "present" and len(writes["writable"]) == 66
+    assert writes["capability"] == "present" and len(writes["writable"]) == 71
     assert writes["journal"][0]["result"] == "ok" and log not in str(data)
 
 
@@ -424,7 +429,10 @@ async def test_the_confirmation_ends_with_what_happened(hass, fake, log):
             await writer.async_request("ka/BlockingTime", value, None)
         result = await manager.async_init(DOMAIN, data={"issue_id": pending.value.issue_id})
         result = await manager.async_configure(result["flow_id"], {})
-        assert result["type"] == "abort" and result["reason"] == reason
+        if reason == "unchanged":  # nothing to write is no failure
+            assert result["type"] == "create_entry" and result["description"] == reason
+        else:
+            assert result["type"] == "abort" and result["reason"] == reason
         if reason == "not_taken":
             assert result["description_placeholders"]["read_back"] == "1 min"
         await hass.async_block_till_done()
@@ -456,3 +464,80 @@ async def test_an_entity_just_enabled_is_read_first(hass, fake, log):
     first = next(i for i, c in enumerate(reads) if "ka BlockingTime" in c)
     before = [c for c in reads[:first] if " -m 30 " not in c and " -m 900 " not in c]
     assert len(before) <= 3, before  # read among the very first requests after the reload, not after ~60 others
+
+
+async def test_migration_enables_the_numbers_0_3_0b2_disabled(hass, fake, log):
+    """0.3.0b2 (entry 2.1) created the regulation numbers disabled by the integration. The migration to 2.2 enables
+    those, once, and only those: a number the user disabled, and a sensor disabled when created, stay disabled. The
+    numbers it enabled are read first."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from homeassistant.const import CONF_HOST, CONF_PORT
+    entry = MockConfigEntry(
+        domain=DOMAIN, version=2, minor_version=1, title="Weishaupt", unique_id=f"127.0.0.1:{fake.port}",
+        data={CONF_HOST: "127.0.0.1", CONF_PORT: fake.port},
+        options={"request_gap": 0.05, "cyclic_interval": 300, "writes_enabled": True, "telegram_db": log})
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    integration, user = er.RegistryEntryDisabler.INTEGRATION, er.RegistryEntryDisabler.USER
+    by_integration = registry.async_get_or_create(
+        "number", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value", config_entry=entry, disabled_by=integration)
+    by_user = registry.async_get_or_create(
+        "number", DOMAIN, f"{entry.entry_id}_ka/ChangeOverTime/value", config_entry=entry, disabled_by=user)
+    sensor = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value", config_entry=entry, disabled_by=integration)
+    await setup(hass, entry)
+    assert (entry.version, entry.minor_version) == (2, 2)
+    assert registry.async_get(by_integration.entity_id).disabled_by is None
+    assert registry.async_get(by_user.entity_id).disabled_by is user
+    assert registry.async_get(sensor.entity_id).disabled_by is integration
+    from ha_common import wait_until
+    await wait_until(lambda: any("ka BlockingTime" in c for _, c in fake.reads_of()))
+    reads = [c for _, c in fake.reads_of() if " -m 30 " not in c and " -m 900 " not in c]
+    assert "ka BlockingTime" in " ".join(reads[:3])  # among the first requests, not after the first fill
+    # a second set-up does not migrate again: the number the user disables later stays disabled
+    registry.async_update_entity(by_integration.entity_id, disabled_by=user)
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert registry.async_get(by_integration.entity_id).disabled_by is user
+
+
+async def test_a_reload_keeps_the_values(hass, fake, log):
+    """After a reload of the entry (as Home Assistant does when an entity is enabled), the values read before are
+    shown at once and not asked again before their interval."""
+    entry, writer = await writing(hass, fake, log)
+    await settled(hass, entry)
+    before = len(fake.reads_of())
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get(number_id(hass, entry, "em2/RoomNormalTemp")).state == "21.5"
+    import asyncio
+    await asyncio.sleep(0.5)
+    assert [c for _, c in fake.reads_of()[before:] if "em2 RoomNormalTemp" in c] == []
+
+
+async def test_a_choice_through_its_confirmation(hass, fake, log):
+    """Legionella day of the system manager, Tuesday -> Monday: the telegram captured on the bus (`e8 01 01 01 00`
+    from ff), the entries shown by their labels, the whole frame in the result."""
+    from homeassistant.components.repairs import repairs_flow_manager
+    from homeassistant.setup import async_setup_component
+    entry, writer = await writing(hass, fake, log)
+    await settled(hass, entry)
+    entity_id = er.async_get(hass).async_get_entity_id("select", DOMAIN,
+                                                       f"{entry.entry_id}_ka/DHWLegionellaDay/value")
+    state = hass.states.get(entity_id)
+    assert state.state == "tuesday" and state.attributes["options"][:2] == ["off", "monday"]
+    await hass.services.async_call("select", "select_option", {"entity_id": entity_id, "option": "monday"},
+                                   blocking=True)
+    assert fake.writes == []
+    issue = next(i for i in ir.async_get(hass).issues.values() if i.translation_key == "confirm_write")
+    shown = issue.translation_placeholders
+    assert (shown["current"], shown["requested"]) == ("Tuesday", "Monday")
+    assert shown["allowed"] == "Off, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday"
+    assert await async_setup_component(hass, "repairs", {})
+    manager = repairs_flow_manager(hass)
+    result = await manager.async_init(DOMAIN, data={"issue_id": issue.issue_id})
+    result = await manager.async_configure(result["flow_id"], {})
+    assert result["type"] == "create_entry" and result["description"] == "written"
+    assert result["description_placeholders"]["telegram"] == "ff15502305e801010100"
+    assert fake.writes == [("ff", "ka", "15502305e801010100")]
+    assert hass.states.get(entity_id).state == "monday"

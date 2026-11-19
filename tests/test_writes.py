@@ -9,6 +9,7 @@ import pytest
 from fake_ebusd import FakeEbusd
 from weishaupt_core.ebusd import Definition, FieldDefinition, parse_definitions
 from weishaupt_core.model import Model
+from weishaupt_core.model import single_setting
 from weishaupt_core.writes import capability, crc, linked, round_half_away, write_specs
 
 
@@ -25,7 +26,9 @@ def loaded(golden):
 @pytest.fixture(scope="module")
 def specs(model, loaded):
     specs, refused, placeholders = write_specs(model, loaded)
-    assert refused == []
+    assert [r for r in refused if r.exposed] == []
+    # program slots (105) and the date and time broadcast: writable in the definitions, not offered here
+    assert len(refused) == 106
     return specs
 
 
@@ -36,11 +39,17 @@ def captured():
 
 
 def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
-    marked = {key for key, message in model.messages.items() if message.writable}
-    assert set(specs) == marked and len(specs) == 66
+    """71 settings of one value: 66 numbers and 5 choices (legionella day and circulation of ka, holiday
+    temperature level of the three room units). The program slots and the date and time broadcast are writable in
+    the definitions and not offered by this version."""
+    marked = {key for key, message in model.messages.items() if single_setting(message) is not None}
+    assert set(specs) == marked and len(specs) == 71
+    assert {key for key, spec in specs.items() if spec.values} == {
+        "ka/DHWLegionellaDay", "ka/CircWithLegionella", "fs1/HolidayTempLevel", "fs2/HolidayTempLevel",
+        "fs3/HolidayTempLevel"}
     # the classes of the metadata, as they are: normal and setback room temperature and hot-water setpoint are
     # comfort on every device (16), the rest regulation
-    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 50, "comfort": 16}
+    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 55, "comfort": 16}
     assert {key.split("/")[1] for key, spec in specs.items() if spec.risk == "comfort"} == {
         "RoomNormalTemp", "RoomSetbackTemp", "DHWSetpoint"}
     for key, spec in specs.items():
@@ -56,7 +65,7 @@ def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
     assert {v for k, v in from_metadata.items() if k.endswith("/GradientCurve")} == {(2.5, 40.0, 0.5)}
     for spec in specs.values():  # every other bound and step is the field's
         fld = model.messages[spec.key].fields[0]
-        if spec.bounds_from == "definitions":
+        if spec.bounds_from == "definitions" and spec.values is None:
             assert (spec.minimum, spec.maximum) == (fld.minimum, fld.maximum)
             assert spec.step == (fld.step or 1)
 
@@ -85,18 +94,24 @@ def test_the_source_follows_the_metadata_when_it_changes(model, loaded):
 
 
 def test_every_captured_write_telegram_is_built_byte_for_byte(specs, captured):
-    """The telegram built for each setting equals the ones captured on the bus (change and restore), for all 66
-    settings, from the source the capture shows."""
+    """The telegram built for each setting equals the ones captured on the bus (change and restore), for all 71
+    settings, from the source the capture shows. A choice is given by the ebusd name of its entry."""
     covered = set()
     for reading in captured:
         key = f"{reading['circuit']}/{reading['message']}"
+        if key not in specs:  # a program slot or the date and time broadcast: not offered here
+            continue
         spec = specs[key]
+        value = reading["decoded"]["value"]
+        if spec.values is not None:
+            value = spec.raw_of_text(value)
         expected = f"{reading['zz']}5023{len(reading['master'].split()):02x}{reading['master'].replace(' ', '')}"
-        assert spec.telegram(reading["decoded"]["value"]) == expected, key
+        assert spec.telegram(value) == expected, key
         assert spec.source == reading["qq"] and spec.zz == reading["zz"]
-        assert spec.on_step(reading["decoded"]["value"])
+        assert spec.on_step(value)
         covered.add(key)
-    assert covered == set(specs) and len(captured) == 112
+    assert covered == set(specs)
+    assert sum(1 for r in captured if f"{r['circuit']}/{r['message']}" in specs) == 122
 
 
 def test_the_changes_of_the_telegram_log(specs):
@@ -168,14 +183,14 @@ def test_structural_settings_are_never_writable(model):
 
 @pytest.mark.parametrize("build", ["fork", "stock"])
 def test_the_simulation_answers_writes_as_the_real_ebusd(golden, build):
-    """448 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
+    """536 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
     gives the same answer to each, for the fork's build and for a stock one. Without a bus a matched telegram ends
     in `no signal`: it would have been sent."""
     fake = FakeEbusd(golden)
     fake.runtime_checksum = build == "fork"
     fake.signal = False
     recorded = golden["writes"][build]
-    assert len(recorded) == 448
+    assert len(recorded) == 536
     for command, answer in recorded.items():
         assert fake.answer(command) == answer, command
     assert fake.writes == []
@@ -204,7 +219,7 @@ def test_a_setting_without_any_range_stays_read_only(model, loaded):
     specs, refused, _ = write_specs(dataclasses.replace(model, messages=model.messages | {message.key: changed}),
                                     loaded)
     assert "em2/RoomSetbackTemp" not in specs
-    assert [(r.key, r.reason) for r in refused] == [("em2/RoomSetbackTemp", "no range")]
+    assert [(r.key, r.reason) for r in refused if r.exposed] == [("em2/RoomSetbackTemp", "no range")]
 
 
 def test_a_range_of_the_field_comes_before_the_write_conditions(model, loaded):

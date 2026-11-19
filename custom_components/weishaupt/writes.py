@@ -16,7 +16,7 @@ import math
 from dataclasses import dataclass
 
 from .ebusd import Definition
-from .model import Message, Model
+from .model import Message, Model, single_setting
 
 PBSB = "5023"
 WCRC_MARKER = "[WCRC]"
@@ -69,6 +69,8 @@ class WriteSpec:
     open: tuple[str, ...]
     bounds_from: str  # "definitions": the range of the field (CSV); "metadata": the range of the write conditions
     range_source: str | None = None  # where the metadata took a range of the write conditions from
+    values: dict[int, str] | None = None  # value list: raw value -> ebusd name (a select), None for a number
+    value_labels: dict[int, dict[str, str]] | None = None  # raw value -> label per language
 
     @property
     def decimals(self) -> int:
@@ -99,13 +101,18 @@ class WriteSpec:
         return raw / self.divisor if self.divisor > 1 else float(raw)
 
     def raw_of_text(self, text: str) -> int | None:
-        """Register value of what ebusd answers to a read of the setting, None when it is no number."""
+        """Register value of what ebusd answers to a read of the setting (a number, or the ebusd name of an entry
+        of the value list), None when it is neither."""
+        if self.values is not None:
+            return next((raw for raw, name in self.values.items() if name == text), None)
         try:
             return round_half_away(float(text) * self.divisor)
         except ValueError:
             return None
 
     def on_step(self, value: float) -> bool:
+        if self.values is not None:
+            return value == int(value) and int(value) in self.values
         steps = (value - self.minimum) / self.step
         return abs(steps - round(steps)) < 1e-6
 
@@ -125,6 +132,7 @@ class WriteSpec:
 class NotWritable:
     key: str
     reason: str
+    exposed: bool = True  # False: a kind of write this version does not offer (program slots, date and time)
 
 
 def write_specs(model: Model, loaded: dict[str, list[Definition]]) -> tuple[dict[str, WriteSpec],
@@ -135,6 +143,9 @@ def write_specs(model: Model, loaded: dict[str, list[Definition]]) -> tuple[dict
     specs, refused, placeholders = {}, [], {}
     for message in model.messages.values():
         if message.write is None:
+            continue
+        if single_setting(message) is None:
+            refused.append(NotWritable(message.key, "not offered by this version (several fields)", False))
             continue
         spec, reason, placeholder = _spec(message, loaded.get(message.circuit, []))
         if spec is None:
@@ -161,11 +172,23 @@ def _spec(message: Message, definitions: list[Definition]) -> tuple[WriteSpec | 
         return None, "ebusd did not load its write definition", ""
     loaded_fields = [f for f in definition.fields if not f.type.startswith("IGN")]
     divisor = fld.divisor or 1
+    if fld.values:
+        expected = ";".join(f"{raw}={name}" for raw, name in sorted(fld.values.items(), key=lambda i: int(i[0])))
+    else:
+        expected = "" if divisor == 1 else str(divisor)
     if (definition.pbsb.lower() != PBSB or definition.zz.lower() != message.address.lower()
             or len(definition.id) != 6 or WCRC_MARKER not in definition.comment
             or len(loaded_fields) != 1 or loaded_fields[0].type != fld.type
-            or loaded_fields[0].divisor_or_values != ("" if divisor == 1 else str(divisor))):
+            or loaded_fields[0].divisor_or_values != expected):
         return None, "ebusd loaded another write definition", ""
+    if fld.values:  # a choice: its value list is its range
+        values = {int(raw): name for raw, name in fld.values.items()}
+        labels = {int(raw): label for raw, label in (fld.value_labels or {}).items()}
+        spec = WriteSpec(message.key, message.circuit, message.name, message.address.lower(),
+                         definition.id[2:].lower(), fld.type, 1, float(min(values)), float(max(values)), 1.0, None,
+                         conditions.source, conditions.risk, conditions.proof, tuple(conditions.open), "definitions",
+                         None, values, labels)
+        return spec, "", definition.id[:2].lower()
     # The range of the field (the CSV of the definitions); where the CSV cannot hold one (fractional bounds),
     # the range of the write conditions (metadata from 0.5.5 on). No range: not writable. Nothing here supplies one.
     minimum, maximum, step, bounds_from = fld.minimum, fld.maximum, fld.step, "definitions"

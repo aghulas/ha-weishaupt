@@ -143,8 +143,12 @@ class FakeEbusd:
         key = f"{row[1]}/{row[2]}"
         if key not in self.not_taken:
             raw = int.from_bytes(master[-2:], "little", signed=row[10] == "SIN")
-            divisor = int(row[11]) if row[11] else 1
-            self.reads[key] = f"{raw / divisor:.1f}" if divisor > 1 else str(raw)
+            if "=" in row[11]:  # a value list: ebusd answers the name of the entry
+                names = dict(item.split("=", 1) for item in row[11].split(";"))
+                self.reads[key] = names.get(str(raw), str(raw))
+            else:
+                divisor = int(row[11]) if row[11] else 1
+                self.reads[key] = f"{raw / divisor:.1f}" if divisor > 1 else str(raw)
         return "00"
 
     def _definition(self, circuit: str, name: str) -> list[str] | None:

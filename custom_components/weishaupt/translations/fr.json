@@ -70,18 +70,20 @@
         "step": {
           "confirm": {
             "title": "{setting} — {device}",
-            "description": "- Valeur actuelle : {current}\n- Nouvelle valeur : **{requested}**\n- Plage autorisée : {minimum} à {maximum}, pas de {step}\n- Écrit à l'adresse de bus `{address}`, registre `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nLe régulateur est relu juste après l'écriture. Ce réglage modifie la régulation du chauffage.",
+            "description": "- Valeur actuelle : {current}\n- Nouvelle valeur : **{requested}**\n- Valeurs autorisées : {allowed}\n- Écrit à l'adresse de bus `{address}`, registre `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nLe régulateur est relu juste après l'écriture. Ce réglage modifie la régulation du chauffage.",
             "submit": "Écrire dans le régulateur"
           }
         },
         "abort": {
           "expired": "Cette demande a expiré ou a été retirée : rien n'a été écrit. Modifiez de nouveau la valeur pour en créer une autre.",
           "refused": "Rien n'a été écrit : {reason}",
-          "written": "C'est fait. {setting} de {device} : {requested} écrit et relu dans le régulateur ({read_back}). Télégramme `{telegram}`.",
-          "unchanged": "{setting} de {device} vaut déjà {requested} : rien n'a été écrit.",
           "not_taken": "{setting} de {device} : {requested} a été envoyé et acquitté, mais le régulateur relit {read_back}. La valeur n'a pas été prise en compte.",
           "write_failed": "{setting} de {device} : l'écriture n'a pas été envoyée ({reason}).",
           "no_read_back": "{setting} de {device} : {requested} a été envoyé mais n'a pas pu être relu ({reason}). Vérifiez la valeur avant de réessayer."
+        },
+        "create_entry": {
+          "written": "C'est fait. {setting} de {device} : {requested} écrit et relu dans le régulateur ({read_back}). Télégramme `{telegram}`.",
+          "unchanged": "{setting} de {device} vaut déjà {requested} : rien n'a été écrit."
         }
       }
     }
@@ -244,6 +246,9 @@
       },
       "manager_boiler2status_service": {
         "name": "État de la chaudière 2 – Entretien"
+      },
+      "manager_circwithlegionella": {
+        "name": "Circulation ECS pendant la fonction anti-légionelle"
       },
       "manager_hcmode_dhw": {
         "name": "ECS"
@@ -417,6 +422,35 @@
       },
       "room_switchonruntime": {
         "name": "Durée d'anticipation de l'optimisation au démarrage (réglage)"
+      }
+    },
+    "select": {
+      "manager_circwithlegionella": {
+        "name": "Circulation ECS pendant la fonction anti-légionelle (réglage)",
+        "state": {
+          "off": "Arrêt",
+          "on": "Marche"
+        }
+      },
+      "manager_dhwlegionelladay": {
+        "name": "Jour de la fonction anti-légionelle (réglage)",
+        "state": {
+          "off": "Arrêt",
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
+      },
+      "room_holidaytemplevel": {
+        "name": "Niveau de température pendant les vacances (réglage)",
+        "state": {
+          "antifreeze": "Hors-gel",
+          "setback": "Réduit"
+        }
       }
     },
     "sensor": {
@@ -709,6 +743,19 @@
       },
       "manager_dhwexceeded": {
         "name": "Surélévation de température ECS"
+      },
+      "manager_dhwlegionelladay": {
+        "name": "Jour de la fonction anti-légionelle",
+        "state": {
+          "off": "Arrêt",
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
       },
       "manager_dhwloadingpriority": {
         "name": "Priorité de la charge ECS",
@@ -1146,6 +1193,13 @@
       },
       "room_heatdemandtemp": {
         "name": "Température de départ demandée"
+      },
+      "room_holidaytemplevel": {
+        "name": "Niveau de température pendant les vacances",
+        "state": {
+          "antifreeze": "Hors-gel",
+          "setback": "Réduit"
+        }
       },
       "room_outsidetemp": {
         "name": "Température extérieure"

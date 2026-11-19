@@ -55,7 +55,12 @@ class ConfirmWriteFlow(RepairsFlow):
                 "reason": err.placeholders.get("reason", str(err)), "read_back": err.placeholders.get("read_back", "-")})
         spec = writer.specs[entry["key"]]
         read_back = entry.get("read_back")
-        return self.async_abort(reason=entry["result"] if entry["result"] == "unchanged" else "written",
-                                description_placeholders=placeholders | {
-                                    "read_back": "-" if read_back is None else _text(spec, read_back),
-                                    "telegram": entry["telegram"]})
+        # A successful flow ends as an entry: Home Assistant titles its dialog "Success" and deletes the issue; an
+        # abort would be titled with the generic "Repair issue", which the frontend does not let an integration
+        # change.
+        return self.async_create_entry(
+            data={"result": entry["result"]},
+            description="unchanged" if entry["result"] == "unchanged" else "written",
+            description_placeholders=placeholders | {
+                "read_back": "-" if read_back is None else _text(spec, read_back, writer._language()),
+                "telegram": entry["frame"]})

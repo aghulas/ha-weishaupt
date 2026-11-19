@@ -20,19 +20,24 @@ from .hub import Hub, WeishauptConfigEntry
 from .model import ACCEPTED_DEFINITIONS, Model
 from .writer import Writer
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.NUMBER, Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 EXAMPLES = 8  # messages named in the repair issue
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
     model = await hass.async_add_executor_job(Model.load)
     hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), model)
-    hub.previously_listened = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
+
     try:
         await hub.async_setup()
     except EbusdError as err:
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                   translation_placeholders={"error": str(err)}) from err
+    kept = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
+    if kept is not None:  # a reload: what was read and listened to before
+        hub.previously_listened = kept["listened"]
+        hub.restore(kept["readings"])
+    hub.urgent_at_start = hass.data.get(f"{DOMAIN}_enabled_by_migration", {}).pop(entry.entry_id, set())
     if entry.options.get(CONF_WRITES_ENABLED):
         hub.writer = Writer(hass, hub, dict(entry.options))
         try:
@@ -95,7 +100,8 @@ def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
     # what was read before the reload: a message missing from it after the reload is read first
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.runtime_data.listened()
+    hub = entry.runtime_data
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"listened": hub.listened(), "readings": dict(hub.readings)}
     if entry.runtime_data.writer is not None:
         entry.runtime_data.writer.drop_all_pending()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -109,9 +115,23 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Version 1 (0.1.x) kept the options of the write path of 0.1. They are dropped: writes are enabled again only
-    by a decision in the options of this version."""
+    by a decision in the options of this version.
+
+    Version 2.1 (0.3.0b2) created the numbers of the regulation settings disabled; since 0.3.0rc1 every number is
+    created enabled. 2.1 -> 2.2 enables, once, the numbers the integration itself disabled — never one a user
+    disabled — and has them read first."""
     if entry.version == 1:
-        hass.config_entries.async_update_entry(entry, options={}, version=2)
+        hass.config_entries.async_update_entry(entry, options={}, version=2, minor_version=2)
+    if entry.version == 2 and entry.minor_version < 2:
+        registry = er.async_get(hass)
+        enabled = set()
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id):
+            if item.domain == "number" and item.disabled_by is er.RegistryEntryDisabler.INTEGRATION:
+                registry.async_update_entity(item.entity_id, disabled_by=None)
+                # unique id <entry id>_<circuit>/<name>/<field>: the message is <circuit>/<name>
+                enabled.add("/".join(item.unique_id.removeprefix(f"{entry.entry_id}_").split("/")[:2]))
+        hass.data.setdefault(f"{DOMAIN}_enabled_by_migration", {})[entry.entry_id] = enabled
+        hass.config_entries.async_update_entry(entry, minor_version=2)
     return entry.version <= 2
 
 

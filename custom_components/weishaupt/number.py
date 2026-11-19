@@ -41,27 +41,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
         if description.message.key in hub.writer.specs)
 
 
-class SettingNumber(WeishauptEntity, NumberEntity):
+class SettingEntity(WeishauptEntity):
+    """What a number and a select of a setting share: the spec, the attributes, the write through the writer."""
+
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_mode = NumberMode.BOX
 
     def __init__(self, hub: Hub, description: NumberDescription, spec: WriteSpec) -> None:
         message = description.message
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
                          (message.key,))
         self._spec = spec
-        self._attr_native_min_value = spec.minimum
-        self._attr_native_max_value = spec.maximum
-        self._attr_native_step = spec.step
-        unit, device_class = UNITS.get(spec.unit or "", (spec.unit, None))
-        self._attr_native_unit_of_measurement = unit
-
-
-    @property
-    def native_value(self) -> float | None:
-        values = self.hub.reading(self._spec.key)
-        number = parse_number(values[0]) if values else None
-        return None if number is None else float(number)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -72,7 +61,7 @@ class SettingNumber(WeishauptEntity, NumberEntity):
                 "range_source": spec.range_source,
                 "pending": None if pending is None else pending.placeholders["requested"]}
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def _async_write(self, value: float) -> None:
         writer = self.hub.writer
         user_id = self._context.user_id if self._context else None
         try:
@@ -87,3 +76,24 @@ class SettingNumber(WeishauptEntity, NumberEntity):
                                      translation_placeholders=err.placeholders) from err
         finally:
             self.async_write_ha_state()
+
+
+class SettingNumber(SettingEntity, NumberEntity):
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, hub: Hub, description: NumberDescription, spec: WriteSpec) -> None:
+        super().__init__(hub, description, spec)
+        self._attr_native_min_value = spec.minimum
+        self._attr_native_max_value = spec.maximum
+        self._attr_native_step = spec.step
+        unit, _device_class = UNITS.get(spec.unit or "", (spec.unit, None))
+        self._attr_native_unit_of_measurement = unit
+
+    @property
+    def native_value(self) -> float | None:
+        values = self.hub.reading(self._spec.key)
+        number = parse_number(values[0]) if values else None
+        return None if number is None else float(number)
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self._async_write(value)

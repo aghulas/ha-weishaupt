@@ -49,6 +49,7 @@ async def _answers(data: dict[str, Any]) -> bool:
 
 class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 2
+    MINOR_VERSION = 2  # 2.1: 0.3.0b2 and before; 2.2 enables the numbers 0.3.0b2 created disabled
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors = {}

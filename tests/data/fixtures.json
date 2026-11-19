@@ -1,9 +1,9 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "0.5.5",
-  "commit": "75f943f",
-  "messages": 536
+  "version": "0.5.6",
+  "commit": "87d7caf",
+  "messages": 542
  },
  "verified": {
   "by": "ebusd",
@@ -11,9 +11,9 @@
   "loaded": "lot files only, no scan"
  },
  "coverage": {
-  "messages": 536,
-  "covered": 536,
-  "readings": 755,
+  "messages": 542,
+  "covered": 541,
+  "readings": 787,
   "by_kind": {
    "counter": {
     "messages": 18,
@@ -32,8 +32,8 @@
     "covered": 7
    },
    "setting": {
-    "messages": 73,
-    "covered": 73
+    "messages": 79,
+    "covered": 78
    },
    "program_slot": {
     "messages": 357,
@@ -46,16 +46,16 @@
     "covered": 26
    },
    "manager": {
-    "messages": 98,
-    "covered": 98
+    "messages": 100,
+    "covered": 100
    },
    "boiler2": {
     "messages": 26,
     "covered": 26
    },
    "room1": {
-    "messages": 121,
-    "covered": 121
+    "messages": 122,
+    "covered": 122
    },
    "module2": {
     "messages": 11,
@@ -66,19 +66,21 @@
     "covered": 11
    },
    "room2": {
-    "messages": 121,
-    "covered": 121
+    "messages": 122,
+    "covered": 122
    },
    "room3": {
-    "messages": 121,
-    "covered": 121
+    "messages": 122,
+    "covered": 122
    },
    "system": {
-    "messages": 1,
+    "messages": 2,
     "covered": 1
    }
   },
-  "not_covered": [],
+  "not_covered": [
+   "broadcast/Datetime"
+  ],
   "refused_by_ebusd": []
  },
  "readings": [
@@ -4679,6 +4681,742 @@
    },
    "text": "8.0",
    "evidence": "settings-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram1Tue1",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "5a 20 14 5a 1a",
+   "slave": "",
+   "telegram": "31355023055a20145a1a/00",
+   "device": "room1",
+   "expect": {
+    "totime": "22:30",
+    "toenabled": "Enabled",
+    "fromtime": "06:30",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "22:30",
+    "toenabled": "Enabled",
+    "fromtime": "06:30",
+    "fromenabled": "Enabled"
+   },
+   "text": "22:30;Enabled;06:30;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-10"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram1Tue1",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "52 20 14 48 1a",
+   "slave": "",
+   "telegram": "3135502305522014481a/00",
+   "device": "room1",
+   "expect": {
+    "totime": "18:00",
+    "toenabled": "Enabled",
+    "fromtime": "06:30",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "18:00",
+    "toenabled": "Enabled",
+    "fromtime": "06:30",
+    "fromenabled": "Enabled"
+   },
+   "text": "18:00;Enabled;06:30;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-17"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWLegionellaDay",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "0c 01 01 02 00",
+   "slave": "",
+   "telegram": "ff155023050c01010200/00",
+   "device": "manager",
+   "expect": {
+    "value": "Tuesday"
+   },
+   "decoded": {
+    "value": "Tuesday"
+   },
+   "text": "Tuesday",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWLegionellaDay",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "e8 01 01 01 00",
+   "slave": "",
+   "telegram": "ff15502305e801010100/00",
+   "device": "manager",
+   "expect": {
+    "value": "Monday"
+   },
+   "decoded": {
+    "value": "Monday"
+   },
+   "text": "Monday",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "CircWithLegionella",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "e8 f3 13 01 00",
+   "slave": "",
+   "telegram": "ff15502305e8f3130100/00",
+   "device": "manager",
+   "expect": {
+    "value": "on"
+   },
+   "decoded": {
+    "value": "on"
+   },
+   "text": "on",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "CircWithLegionella",
+   "type": "write",
+   "qq": "ff",
+   "zz": "15",
+   "pbsb": "5023",
+   "master": "b4 f3 13 00 00",
+   "slave": "",
+   "telegram": "ff15502305b4f3130000/00",
+   "device": "manager",
+   "expect": {
+    "value": "off"
+   },
+   "decoded": {
+    "value": "off"
+   },
+   "text": "off",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWLegionellaDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "5d 01 01",
+   "slave": "02 00",
+   "telegram": "31155022035d0101/020200",
+   "device": "manager",
+   "expect": {
+    "value": "Tuesday"
+   },
+   "decoded": {
+    "value": "Tuesday"
+   },
+   "text": "Tuesday",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "DHWLegionellaDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "5d 01 01",
+   "slave": "01 00",
+   "telegram": "31155022035d0101/020100",
+   "device": "manager",
+   "expect": {
+    "value": "Monday"
+   },
+   "decoded": {
+    "value": "Monday"
+   },
+   "text": "Monday",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "CircWithLegionella",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "f3 f3 13",
+   "slave": "01 00",
+   "telegram": "3115502203f3f313/020100",
+   "device": "manager",
+   "expect": {
+    "value": "on"
+   },
+   "decoded": {
+    "value": "on"
+   },
+   "text": "on",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "ka",
+   "message": "CircWithLegionella",
+   "type": "read",
+   "qq": "31",
+   "zz": "15",
+   "pbsb": "5022",
+   "master": "f3 f3 13",
+   "slave": "00 00",
+   "telegram": "3115502203f3f313/020000",
+   "device": "manager",
+   "expect": {
+    "value": "off"
+   },
+   "decoded": {
+    "value": "off"
+   },
+   "text": "off",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "54 3d 01 01 00",
+   "slave": "",
+   "telegram": "ff35502305543d010100/00",
+   "device": "room1",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "08 3d 01 00 00",
+   "slave": "",
+   "telegram": "ff35502305083d010000/00",
+   "device": "room1",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "01 00",
+   "telegram": "3135502203a53d01/020100",
+   "device": "room1",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "00 00",
+   "telegram": "3135502203a53d01/020000",
+   "device": "room1",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "54 3d 01 01 00",
+   "slave": "",
+   "telegram": "ff75502305543d010100/00",
+   "device": "room2",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "75",
+   "pbsb": "5023",
+   "master": "08 3d 01 00 00",
+   "slave": "",
+   "telegram": "ff75502305083d010000/00",
+   "device": "room2",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "01 00",
+   "telegram": "3175502203a53d01/020100",
+   "device": "room2",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs2",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "00 00",
+   "telegram": "3175502203a53d01/020000",
+   "device": "room2",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "54 3d 01 01 00",
+   "slave": "",
+   "telegram": "fff5502305543d010100/00",
+   "device": "room3",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HolidayTempLevel",
+   "type": "write",
+   "qq": "ff",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "08 3d 01 00 00",
+   "slave": "",
+   "telegram": "fff5502305083d010000/00",
+   "device": "room3",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "01 00",
+   "telegram": "31f5502203a53d01/020100",
+   "device": "room3",
+   "expect": {
+    "value": "Setback"
+   },
+   "decoded": {
+    "value": "Setback"
+   },
+   "text": "Setback",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HolidayTempLevel",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "a5 3d 01",
+   "slave": "00 00",
+   "telegram": "31f5502203a53d01/020000",
+   "device": "room3",
+   "expect": {
+    "value": "Antifreeze"
+   },
+   "decoded": {
+    "value": "Antifreeze"
+   },
+   "text": "Antifreeze",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram1Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "4c 72 14 09 08",
+   "slave": "",
+   "telegram": "31355023054c72140908/00",
+   "device": "room1",
+   "expect": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "02:15;Enabled;02:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram1Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "30 72 14 80 80",
+   "slave": "",
+   "telegram": "31355023053072148080/00",
+   "device": "room1",
+   "expect": {
+    "toenabled": "Disabled",
+    "fromenabled": "Disabled"
+   },
+   "decoded": {
+    "totime": "00:00",
+    "toenabled": "Disabled",
+    "fromtime": "00:00",
+    "fromenabled": "Disabled"
+   },
+   "text": "00:00;Disabled;00:00;Disabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram2Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "f0 72 15 09 08",
+   "slave": "",
+   "telegram": "3135502305f072150908/00",
+   "device": "room1",
+   "expect": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "02:15;Enabled;02:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram2Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "8c 72 15 80 80",
+   "slave": "",
+   "telegram": "31355023058c72158080/00",
+   "device": "room1",
+   "expect": {
+    "toenabled": "Disabled",
+    "fromenabled": "Disabled"
+   },
+   "decoded": {
+    "totime": "00:00",
+    "toenabled": "Disabled",
+    "fromtime": "00:00",
+    "fromenabled": "Disabled"
+   },
+   "text": "00:00;Disabled;00:00;Disabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram3Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "68 72 16 09 08",
+   "slave": "",
+   "telegram": "31355023056872160908/00",
+   "device": "room1",
+   "expect": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "02:15;Enabled;02:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "HCProgram3Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "14 72 16 80 80",
+   "slave": "",
+   "telegram": "31355023051472168080/00",
+   "device": "room1",
+   "expect": {
+    "toenabled": "Disabled",
+    "fromenabled": "Disabled"
+   },
+   "decoded": {
+    "totime": "00:00",
+    "toenabled": "Disabled",
+    "fromtime": "00:00",
+    "fromenabled": "Disabled"
+   },
+   "text": "00:00;Disabled;00:00;Disabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWProgramSun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "d4 72 17 09 08",
+   "slave": "",
+   "telegram": "3135502305d472170908/00",
+   "device": "room1",
+   "expect": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "02:15;Enabled;02:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "DHWProgramSun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "a8 72 17 80 80",
+   "slave": "",
+   "telegram": "3135502305a872178080/00",
+   "device": "room1",
+   "expect": {
+    "toenabled": "Disabled",
+    "fromenabled": "Disabled"
+   },
+   "decoded": {
+    "totime": "00:00",
+    "toenabled": "Disabled",
+    "fromtime": "00:00",
+    "fromenabled": "Disabled"
+   },
+   "text": "00:00;Disabled;00:00;Disabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "CircProgramSun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "3c 72 1a 4b 44",
+   "slave": "",
+   "telegram": "31355023053c721a4b44/00",
+   "device": "room1",
+   "expect": {
+    "totime": "18:45",
+    "toenabled": "Enabled",
+    "fromtime": "17:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "18:45",
+    "toenabled": "Enabled",
+    "fromtime": "17:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "18:45;Enabled;17:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs1",
+   "message": "CircProgramSun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5023",
+   "master": "f4 72 1a 4c 44",
+   "slave": "",
+   "telegram": "3135502305f4721a4c44/00",
+   "device": "room1",
+   "expect": {
+    "totime": "19:00",
+    "toenabled": "Enabled",
+    "fromtime": "17:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "19:00",
+    "toenabled": "Enabled",
+    "fromtime": "17:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "19:00;Enabled;17:00;Enabled",
+   "evidence": "choice-date-program-writes",
    "date": "2026-11-18"
   },
   {

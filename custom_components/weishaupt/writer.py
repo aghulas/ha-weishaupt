@@ -82,8 +82,13 @@ class Pending:
     placeholders: dict[str, str] = field(default_factory=dict)
 
 
-def _text(spec: WriteSpec, value: float) -> str:
-    """A value as the device holds it: the decimals of the step (8.0 °C, not 8 °C), and the unit."""
+def _text(spec: WriteSpec, value: float, language: str = "en") -> str:
+    """A value as the device holds it: the decimals of the step (8.0 °C, not 8 °C) and the unit, or the label of the
+    entry of a value list."""
+    if spec.values is not None:
+        raw = int(value)
+        label = (spec.value_labels or {}).get(raw, {})
+        return label.get(language) or label.get("en") or spec.values.get(raw, str(raw))
     return f"{value:.{spec.decimals}f}" + (f" {spec.unit}" if spec.unit else "")
 
 
@@ -134,8 +139,12 @@ class Writer:
         self.not_writable = {r.key: r.reason for r in refused}
         for key in specs.keys() - self.specs.keys():
             self.not_writable[key] = "its read definition differs from the metadata"
+        not_offered = {r.key for r in refused if not r.exposed}
         for key, reason in self.not_writable.items():
-            _LOGGER.warning("%s stays read-only: %s", key, reason)
+            if key not in not_offered:
+                _LOGGER.warning("%s stays read-only: %s", key, reason)
+        if not_offered:
+            _LOGGER.debug("writes not offered by this version: %s", ", ".join(sorted(not_offered)))
         await self.async_probe()
 
     async def async_probe(self) -> str:
@@ -210,9 +219,10 @@ class Writer:
         pending.placeholders = {
             "setting": message.label.get(language, message.label["en"]),
             "device": device.label.get(language, device.label["en"]),
-            "current": _text(spec, float(reading[0])) if reading and reading[0] not in ("", "-") else "-",
-            "requested": _text(spec, value),
-            "minimum": _text(spec, spec.minimum), "maximum": _text(spec, spec.maximum),
+            "current": self._current(spec, reading, language),
+            "requested": _text(spec, value, language),
+            "minimum": _text(spec, spec.minimum, language), "maximum": _text(spec, spec.maximum, language),
+            "allowed": self._allowed(spec, language),
             "step": f"{spec.step:g}",
             "address": spec.zz, "register": f"{spec.register[:2]} {spec.register[2:]}",
             "source": spec.source, "source_text": SOURCE_TEXT[language][spec.source],
@@ -229,6 +239,20 @@ class Writer:
                                              self._notification_id(spec.key))
         _LOGGER.info("change of %s to %s waits for its confirmation (repair %s)", spec.key, value, issue_id)
         raise ConfirmationPending(issue_id, pending.placeholders)
+
+    @staticmethod
+    def _current(spec: WriteSpec, reading: tuple[str, ...] | None, language: str) -> str:
+        raw = spec.raw_of_text(reading[0]) if reading and reading[0] not in ("", "-") else None
+        return "-" if raw is None else _text(spec, spec.value_of(raw), language)
+
+    @staticmethod
+    def _allowed(spec: WriteSpec, language: str) -> str:
+        """The values the setting takes: its range and step, or the entries of its value list."""
+        if spec.values is not None:
+            return ", ".join(_text(spec, raw, language) for raw in sorted(spec.values))
+        word = {"en": "to", "fr": "à"}[language]
+        step = {"en": "step", "fr": "pas de"}[language]
+        return f"{_text(spec, spec.minimum)} {word} {_text(spec, spec.maximum)}, {step} {spec.step:g}"
 
     def _language(self) -> str:
         return "fr" if self.hass.config.language.startswith("fr") else "en"
@@ -304,7 +328,9 @@ class Writer:
         entry: dict[str, Any] = {
             "time": time.time(), "key": key, "register": spec.register_id, "source": spec.source,
             "risk": spec.risk, "confirmed": confirmed, "user_id": user_id, "before": spec.value_of(before),
-            "requested": value, "telegram": telegram, "read_back": None, "result": None}
+            "requested": value, "telegram": telegram, "read_back": None, "result": None,
+            # the whole frame as it goes on the bus: source address first (ff, or ebusd's own address)
+            "frame": f"{source or self.hub.own_address or ''}{telegram}"}
         if raw == before:
             entry["result"] = "unchanged"
             self._trace(spec, entry)
@@ -331,8 +357,8 @@ class Writer:
         entry["result"] = "ok" if back == raw else ("not taken" if back == before else "different")
         self._trace(spec, entry)
         if back != raw:
-            raise WriteFailed("not_taken", setting=key, requested=_text(spec, value),
-                             read_back=_text(spec, spec.value_of(back)))
+            raise WriteFailed("not_taken", setting=key, requested=_text(spec, value, self._language()),
+                             read_back=_text(spec, spec.value_of(back), self._language()))
         return entry
 
     def _trace(self, spec: WriteSpec, entry: dict[str, Any]) -> None:

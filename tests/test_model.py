@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from weishaupt_core.ebusd import parse_definitions, parse_info
-from weishaupt_core.model import ON_OFF, Model, slug
+from weishaupt_core.model import ON_OFF, Model, single_setting, slug
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path(__file__).resolve().parent / "data"
@@ -24,8 +24,8 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.5"
-    assert len(model.messages) == 536
+    assert model.version == "0.5.6"
+    assert len(model.messages) == 542
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
@@ -94,7 +94,10 @@ def test_entities(model):
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):
     """The value of a writable setting stays a sensor; the number entity comes on top, with writes enabled."""
     writable = [e for e in model.value_entities if e.message.writable]
-    assert len(writable) == 63 and {e.platform for e in writable} == {"sensor"}
+    assert len(writable) == 68 and {e.platform for e in writable} == {"sensor", "binary_sensor"}
+    assert {e.message.key for e in writable if e.platform == "binary_sensor"} == {"ka/CircWithLegionella"}
+    # the date and time broadcast has no read: no sensor
+    assert not [e for e in model.value_entities if e.message.key == "broadcast/Datetime"]
 
 
 def test_one_number_per_writable_register(model):
@@ -102,10 +105,13 @@ def test_one_number_per_writable_register(model):
     of the system manager (ka, 15). Where both are writable (maximum flow temperature) the number of ka is the
     one; where only em1 is (normal and setback room temperature) the number writes through em1 and has the name
     of the sensor of ka."""
-    writable = {k for k, m in model.messages.items() if m.writable}
+    writable = {k for k, m in model.messages.items() if m.writable and single_setting(m) is not None}
     numbers = {n.message.key: n for n in model.number_entities}
-    assert len(writable) == 66 and len(numbers) == 65
-    assert writable - set(numbers) == {"em1/SupplyMaxTemp"}
+    selects = {n.message.key: n for n in model.select_entities}
+    assert len(writable) == 71 and len(numbers) == 65 and len(selects) == 5
+    assert writable - set(numbers) - set(selects) == {"em1/SupplyMaxTemp"}
+    day = selects["ka/DHWLegionellaDay"]
+    assert day.options["monday"] == "1" and day.option_labels("fr")["off"] == "Arrêt"
     assert numbers["em1/RoomNormalTemp"].translation_key == "manager_roomnormaltemp"
     assert numbers["ka/SupplyMaxTemp"].translation_key == "manager_supplymaxtemp"
 
@@ -164,7 +170,8 @@ def test_fixtures_of_the_release(model, golden):
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
-    assert len(readings) == 755 and {f"{r['circuit']}/{r['message']}" for r in readings} == set(model.messages)
+    assert len(readings) == 787 and {f"{r['circuit']}/{r['message']}" for r in readings} == {
+        k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"
@@ -182,7 +189,7 @@ def test_fixtures_of_the_release(model, golden):
                 assert text == expected, key
         if reading.get("case") == "first-byte-not-zero":
             assert values[message.guard.index] != "0"
-    assert set(golden["reads"]) == set(model.messages)
+    assert set(golden["reads"]) == {k for k, m in model.messages.items() if m.read or m.passive}
     for key, text in golden["reads"].items():
         assert text in texts[key], key
     assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp", "ka/RegulationP"]

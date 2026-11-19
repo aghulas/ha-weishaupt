@@ -171,4 +171,4 @@ async def test_read_only_unless_writes_are_enabled(hass, fake):
         calls = {n.func.attr for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
         if path.name != "writer.py":  # the only module that sends a write
             assert not calls & {"write_register", "probe_write"}, path.name
-        assert path.stem not in ("select", "button", "date", "time", "text", "climate", "water_heater"), path.name
+        assert path.stem not in ("button", "date", "time", "text", "climate", "water_heater"), path.name

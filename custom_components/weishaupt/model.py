@@ -98,6 +98,7 @@ class Message:
     same_as: str | None = None
     write: WriteConditions | None = None
     renamed_from: str | None = None  # key of the message in the releases before the rename
+    read: bool = True  # False: a write-only message (the date and time broadcast), which no read compares
 
     @property
     def writable(self) -> bool:
@@ -196,8 +197,8 @@ class ValueEntity:
 
 @dataclass(frozen=True)
 class NumberDescription:
-    """The number entity of a writable setting. It has the name and translation key of the sensor that shows the
-    same register, and writes through its own message."""
+    """The entity of a writable setting: a number, or a select when its field has a value list. It has the name
+    and translation key of the sensor that shows the same register, and writes through its own message."""
 
     message: Message
     field: Field
@@ -207,6 +208,19 @@ class NumberDescription:
     @property
     def key(self) -> str:
         return f"{self.message.key}/{self.field.name}"
+
+    @property
+    def platform(self) -> str:
+        return "select" if self.field.values else "number"
+
+    @property
+    def options(self) -> dict[str, str]:
+        """Option key (slug of the ebusd name) -> raw value, for a select."""
+        return {slug(name): raw for raw, name in (self.field.values or {}).items()}
+
+    def option_labels(self, language: str) -> dict[str, str]:
+        values, labels = self.field.values or {}, self.field.value_labels or {}
+        return {slug(name): labels[raw][language] for raw, name in values.items()}
 
 
 @dataclass(frozen=True)
@@ -246,7 +260,15 @@ class Model:
     groups: dict[str, Group]
     value_entities: tuple[ValueEntity, ...] = ()
     group_entities: tuple[GroupEntity, ...] = ()
-    number_entities: tuple[NumberDescription, ...] = ()
+    setting_entities: tuple[NumberDescription, ...] = ()
+
+    @property
+    def number_entities(self) -> tuple[NumberDescription, ...]:
+        return tuple(d for d in self.setting_entities if d.platform == "number")
+
+    @property
+    def select_entities(self) -> tuple[NumberDescription, ...]:
+        return tuple(d for d in self.setting_entities if d.platform == "select")
     _by_circuit: dict[str, Device] = field(default_factory=dict)
 
     @classmethod
@@ -270,7 +292,7 @@ class Model:
         model._by_circuit = {c.circuit: d for d in devices.values() for c in d.circuits}
         model.value_entities = _value_entities(model)
         model.group_entities = _group_entities(model)
-        model.number_entities = _number_entities(model)
+        model.setting_entities = _setting_entities(model)
         return model
 
     def device_of(self, message: Message) -> Device:
@@ -291,7 +313,7 @@ class Model:
         ebusd.Definition). ebusd cannot tell which release it runs, so this is done message by message."""
         mismatches = []
         for message in self.messages.values():
-            if message.circuit not in circuits:
+            if message.circuit not in circuits or not (message.read or message.passive):
                 continue
             candidates = [d for d in loaded.get(message.circuit, [])
                           if d.name == message.name and (d.is_passive if message.passive else d.is_read)]
@@ -317,7 +339,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
-                   conditions, data.get("renamed_from"))
+                   conditions, data.get("renamed_from"), bool(data.get("read", True)))
 
 
 def _base_type(name: str) -> str:
@@ -353,6 +375,8 @@ def _value_entities(model: Model) -> tuple[ValueEntity, ...]:
     for message in model.messages.values():
         if message.same_as or message.family in ("program", "fault_history"):
             continue
+        if not (message.read or message.passive):  # write-only (the date and time broadcast): nothing to show
+            continue
         shown = [f for f in message.fields if f.shown]
         for fld in shown:
             if fld.type.startswith(("TTQ",)):
@@ -378,14 +402,23 @@ def _value_entities(model: Model) -> tuple[ValueEntity, ...]:
     return tuple(entities)
 
 
-def _number_entities(model: Model) -> tuple[NumberDescription, ...]:
-    """One number per writable register of a device. A writable message that reads the same register as another
-    message of its device (`same_as`, e.g. the system manager's own circuit `em1` and `ka`) gets no number when
-    the other one is writable too, and otherwise takes the name of the other one's sensor, which is the one shown."""
+def single_setting(message: Message) -> Field | None:
+    """The field of a writable setting of one value, None for anything else (program slots, the date and time
+    broadcast: several fields, not exposed by this version)."""
+    shown = [f for f in message.fields if f.shown]
+    if not message.writable or message.kind != "setting" or message.family or len(shown) != 1:
+        return None
+    return shown[0]
+
+
+def _setting_entities(model: Model) -> tuple[NumberDescription, ...]:
+    """One entity per writable register of a device. A writable message that reads the same register as another
+    message of its device (`same_as`, e.g. the system manager's own circuit `em1` and `ka`) gets none when the
+    other one is writable too, and otherwise takes the name of the other one's sensor, which is the one shown."""
     shown = {e.message.key: e for e in model.value_entities}
     numbers = []
     for message in model.messages.values():
-        if not message.writable:
+        if single_setting(message) is None:
             continue
         if message.same_as:
             if model.messages[message.same_as].writable:

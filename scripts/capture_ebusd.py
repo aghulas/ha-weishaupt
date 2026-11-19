@@ -181,7 +181,8 @@ def main() -> None:
           f"{len(differ)} answers that differ from the fixtures")
     for key, got, expected in differ[:10]:
         print(" ", key, repr(got), "fixtures:", repr(expected))
-    if differ or len(reads) != len(metadata["messages"]):
+    readable = [k for k, m in metadata["messages"].items() if m.get("read") or m.get("passive")]
+    if differ or set(reads) != set(readable):  # a write-only message (the date and time broadcast) has no read
         raise SystemExit(1)
 
 

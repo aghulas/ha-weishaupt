@@ -66,14 +66,18 @@ def translations(model_module, language: str) -> dict:
     number_suffix = source.pop("number_suffix")
     result = dict(source)
     result["device"] = {key: {"name": device.label[language]} for key, device in sorted(model.devices.items())}
-    entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "sensor": {}, "switch": {"writes": {"name": switch_name}}}
+    entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "select": {}, "sensor": {},
+                               "switch": {"writes": {"name": switch_name}}}
     for description in model.value_entities:
         item = {"name": description.name[language]}
         if description.options:
             item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
-    for description in model.number_entities:  # the name of the sensor of its register, marked as the setting
-        entity["number"][description.translation_key] = {"name": description.name[language] + number_suffix}
+    for description in model.setting_entities:  # the name of the sensor of its register, marked as the setting
+        item = {"name": description.name[language] + number_suffix}
+        if description.platform == "select":
+            item["state"] = description.option_labels(language)
+        entity[description.platform][description.translation_key] = item
     for description in model.group_entities:
         item = {"name": description.name[language]}
         if description.group.family == "program":

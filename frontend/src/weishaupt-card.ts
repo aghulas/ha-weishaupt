@@ -338,6 +338,7 @@ export class WeishauptProgramCardEditor extends LitElement {
           </option>`)}
         </select>
       </label>
+      <p class="hint">${t(lang, "card_editor_hint")}</p>
       <label
         >${t(lang, "card_editor_title")}
         <input type="text" .value=${config.title ?? ""}
@@ -359,6 +360,11 @@ export class WeishauptProgramCardEditor extends LitElement {
     label {
       display: grid;
       gap: 4px;
+      color: var(--secondary-text-color);
+    }
+    .hint {
+      margin: -6px 0 0;
+      font-size: 0.85em;
       color: var(--secondary-text-color);
     }
     label.check {

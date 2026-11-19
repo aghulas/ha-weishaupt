@@ -161,6 +161,18 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   Programs not proven writable are read only.
 - **Setting the clock**: the header's *Set the clock* asks for the same confirmation as the
   button entity and sends at second 00.
+- **Faults** (read only), per device that has them: the boilers' fault memory, most recent first
+  when its pointer is read, each entry with its code, the text of the manual's fault list as the
+  definitions give it, and the values the automat stored with it (the automat stores no time);
+  the boilers' fault counters with their texts; the fault-log entry the system manager's operating
+  unit has selected, with its time (selecting another entry is a write, which the panel does not
+  do). Messages no enabled entity reads have *Read now*: read once, at the pace of the bus, after
+  what the entities wait for, with the number of requests shown.
+- **Report and CSV**: *Printable report* opens every setting of the installation (device, menu,
+  setting, value as read, unit, range and step, writable and its class) in a page the browser
+  prints; *Export CSV* saves the same rows, comma-separated in English and semicolon-separated in
+  French. The definitions carry no factory values yet; a value not read when the report is made
+  is empty.
 
 - **Devices and menus**: one node per device on the bus, with its bus address and software and
   hardware versions, and the menus of the definitions under it (*Info → Sensors*, *Process
@@ -543,6 +555,9 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
+- 0.7.0b1: fault tables in the panel (fault memory with texts, counters, the system manager's
+  fault-log entry), read on demand; a printable report and a CSV export of the settings; the write
+  switch's `writes_last_hour` follows each write.
 - 0.6.0b2: the write switch is off after every restart or reload; the hourly and per-register
   counters survive restarts; the panel never prefills a value it has not read, follows the switch
   live, shows "writing…", says when a call was interrupted, names the switch when it is the cause,

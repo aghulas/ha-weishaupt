@@ -98,8 +98,10 @@ register they do not describe is not shown. Limits a second installation should 
   telegram log for the settings written from the service tool's address. Without them everything is read only.
 - **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
   and the others the metadata marks comfort); the others are shown, read only.
-- **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module); the panel shows "no
-  sensor", the entities show the value.
+- **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module). With definitions 0.5.12
+  and later, which mark these values on each field concerned, the entity reads *unknown* with the attribute
+  `no_sensor: true` while the device sends exactly that value; any other value, even close, is shown. With older
+  definitions the entity shows the value. The panel shows "no sensor" either way.
 - **No time** is stored with a boiler's fault entry; the system manager's fault log shows the entry its operating
   unit has selected.
 - **One request at a time** on the bus, at the gap set in the options (2 s by default): after a start, all settings
@@ -625,6 +627,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.9.0b1: a dashboard card for one weekly program: its week grid for every user, editing for administrators
+  through the program-day entities; registered by the integration; sensors not fitted read unknown when the definitions mark them.
 - 0.8.0: the code of 0.8.0b2, checked on a heating system: ready for a second installation
   (devices that appear later reload the entry, a device absent for 7 days gets a repair offering
   its removal; diagnostics without address, path, user id or entry id in the integration's data;
@@ -636,8 +640,6 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
-- 0.9.0b1: a dashboard card for one weekly program: its week grid for every user, editing for administrators
-  through the program-day entities; registered by the integration.
 - 0.8.0b2: the diagnostics download redacts the config entry id too, wherever it appears.
 - 0.8.0b1: ready for a second installation: devices that appear later reload the entry, a device
   absent for 7 days gets a repair offering its removal (confirmed by the user); diagnostics

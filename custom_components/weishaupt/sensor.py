@@ -60,6 +60,9 @@ class ValueSensor(WeishauptEntity, SensorEntity):
         self._key, self._index = message.key, fld.index
         self._options = description.options
         self._text = fld.type.startswith(TEXT_TYPES)
+        # the value the device sends when this sensor is not fitted, when the metadata marks it (definitions 0.5.12
+        # and later): that exact value reads unknown, never as a temperature; no rule for unmarked fields
+        self._absent = fld.absent
         self._attr_entity_registry_enabled_default = description.enabled_default
         if description.diagnostic:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -89,7 +92,21 @@ class ValueSensor(WeishauptEntity, SensorEntity):
             return self._options.get(text)
         if self._text:
             return None if text == NOT_AVAILABLE else text
-        return parse_number(text)
+        value = parse_number(text)
+        if self._absent is not None and value is not None and float(value) == float(self._absent):
+            return None  # no sensor fitted: unknown, not -40.0 °C
+        return value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """`no_sensor: true` while the device sends the value the definitions give for a sensor not fitted."""
+        if self._absent is None:
+            return None
+        values = self.hub.reading(self._key)
+        value = parse_number(values[self._index]) if values is not None else None
+        if value is not None and float(value) == float(self._absent):
+            return {"no_sensor": True}
+        return None
 
 
 class GroupSensor(WeishauptEntity, SensorEntity):

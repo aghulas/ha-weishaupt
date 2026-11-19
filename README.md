@@ -211,7 +211,13 @@ its three slots are read; after a start they are read right after the live value
 settings (numbers and selects), not after the whole first pass.
 
 Setting a day writes its three slots and reads them back: comfort class, no confirmation, from
-ebusd's own address as the definitions prove. Only the slots that change are written. A slot with
+ebusd's own address as the definitions prove. Only the slots that change are written. It takes a few
+seconds: the three slots are read first, then each changed slot is written and read back, every
+request at the pace of the bus (one every 2 s by default), so about 8 s for one changed slot. Each
+day written gives an info line in the log (`PROGRAM <device> <program> <day>: <before> -> <after>,
+frames …: read back ok`); a write that fails or stops halfway gives a short notification. A text that
+is not up to three ranges in quarters of an hour is refused with a message that says why and shows
+the format. A slot with
 only one of its two times enabled is shown as unused and is rewritten unused.
 
 The action **`weishaupt.set_program`** (device, program, and the days to change) writes several
@@ -420,6 +426,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc5: a log line per program day written, a notification when a program write fails, clear
+  messages for a day that is not in the expected format.
 - 0.3.0rc4: after a start, the settings and the slots of enabled program days are read before the
   rest of the first pass.
 - 0.3.0rc3: definitions 0.5.8; 12 weekly programs of room units 1 and 3 and of the system manager (text per day, action

@@ -127,7 +127,7 @@ async def test_clock_set_from_the_panel_after_its_confirmation(hass, fake, log, 
                                       if i.translation_key == "confirm_clock"]
     result = (await _ask(client, type="weishaupt/panel/confirm", entry_id=entry.entry_id,
                          pending_id=answer["pending_id"]))["result"]
-    assert result["status"] == "written" and result["result"] == "sent"
+    assert result["status"] == "written" and result["result"] == "sent" and result["result_text"] == "sent"
     assert result["frame"] == "31fe070009000c00451118110326"
     assert fake.writes == [(None, "Broadcast", "fe070009000c00451118110326")]
 

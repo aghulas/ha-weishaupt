@@ -35,12 +35,53 @@ export interface Row {
   type: string;
   values: Record<string, Labels> | null; // ebusd name of a value-list entry -> its labels
   range: { min: number | null; max: number | null; step: number | null } | null;
-  writable: { risk: string; source: string; proof: string; through: string | null } | null;
+  writable: Writable | null;
   messages: string[]; // messages that read this register: the first with a reading is shown
   read: boolean;
   passive: boolean;
   absent: number | null; // the value the device sends when the sensor is not fitted
   entity_id: string | null;
+}
+
+export interface Writable {
+  risk: string;
+  source: string;
+  proof: string;
+  through: string | null;
+  key: string; // the message the writer knows the setting by
+  offered: boolean; // this installation offers the write (writes enabled, definition loaded, a range)
+  why_not: string | null;
+  register: string | null;
+  address: string | null;
+  minimum: number | null;
+  maximum: number | null;
+  step: number | null;
+  options: { raw: number; name: string; label: Labels }[] | null; // a choice
+}
+
+/** The answer of a write command. */
+export interface WriteAnswer {
+  status: "written" | "confirm" | "refused";
+  // confirm
+  pending_id?: string;
+  kind?: "setting" | "clock";
+  placeholders?: Record<string, string>;
+  // refused
+  code?: string;
+  message?: string;
+  // written
+  result?: string;
+  result_text?: string;
+  before?: string | null;
+  after?: string;
+  read_back?: string | null;
+  frame?: string | null;
+  requested?: string;
+  late?: number | null;
+  written?: number;
+  unchanged?: number;
+  days?: Record<string, { before?: string; after?: string; frames?: string[]; result?: string; result_text?: string }>;
+  guard?: { switch: boolean; writes_last_hour: number; max_per_hour: number };
 }
 
 export interface Menu {
@@ -93,6 +134,7 @@ export interface Tree {
     writes_last_hour: number;
     max_per_hour: number;
     switch_entity_id: string | null;
+    clock_writable: boolean;
     read_only: { key: string; reason: string }[]; // settings with write conditions left read-only, and why
   } | null;
   clock: { entity_id: string | null; set_entity_id: string | null };

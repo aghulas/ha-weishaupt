@@ -66,7 +66,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     not_editable: "read only: not proven writable on this device",
     not_read_program: "not loaded by ebusd",
     program_not_listened: "not read by any enabled entity: read it once now, or enable the program sensor to keep it up to date",
-    write_hint: "Changes are made in the entity (button Open); the panel only shows. Comfort: written at once; regulation: after a confirmation in Repairs.",
+    write_hint: "Change a setting with its button Change (the writes switch must be on). Comfort: written at once and read back; regulation: after a confirmation in this panel. Open shows the entity.",
     description: "Description",
     no_sensor: "no sensor",
     kept: "kept from before the reload, read again soon",
@@ -84,6 +84,41 @@ export const STRINGS: Record<string, Record<string, string>> = {
     disabled: "disabled",
     reloading: "The integration was reloaded: loading again…",
     read_only_settings: "Settings left read-only",
+    edit: "Change",
+    write_now: "Write",
+    cancel: "Cancel",
+    confirm: "Write to the controller",
+    confirm_clock: "Send the time",
+    confirm_title: "Confirm: {setting} — {device}",
+    current: "Current value",
+    new_value: "New value",
+    allowed: "Allowed",
+    path: "Written to bus address {address}, register {register}, from source address {source} ({source_text}). Read back right after.",
+    path_short: "bus address {address}, register {register}, from {source}",
+    regulation_note: "This setting changes how the heating is regulated: it is written after your confirmation.",
+    comfort_note: "Comfort setting: written at once and read back.",
+    writing: "Writing…",
+    written_line: "{before} → {after}{frame}: {result}",
+    not_written: "Not written: {message}",
+    not_offered_writes_disabled: "writes are not enabled in the options",
+    not_offered: "not offered on this installation: {reason}",
+    switch_off_hint: "The writes switch is off: turn it on to write.",
+    edit_days: "Edit",
+    write_days: "Write the changed days",
+    discard: "Discard changes",
+    copy_to: "Copy to",
+    copy: "Copy",
+    cost: "{days} days changed: up to {writes} writes (only changed slots are written); {used} of {max} this hour",
+    drag_hint: "Type the ranges, or drag on the bar to add one in quarters of an hour; a click on a range removes it.",
+    day_format: "use HH:MM-HH:MM, up to three ranges, or -",
+    day_quarter: "times must be quarters of an hour, from 00:00 to 24:00",
+    day_order: "a range must end after it starts",
+    day_too_many: "at most three ranges",
+    day_overlap: "ranges must not overlap",
+    set_clock: "Set the clock",
+    clock_confirm: "Will send Home Assistant's time at second 00 of the next minute ({send_at}), to bus address fe from source address 31. If the bus is not free within {late} s of second 00, nothing is sent.",
+    clock_sent: "Sent {requested} ({frame}): {result}",
+    clock_current: "Clock master now: {current}",
   },
   fr: {
     title: "Weishaupt",
@@ -145,7 +180,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     not_editable: "lecture seule : écriture non prouvée sur cet appareil",
     not_read_program: "non chargé par ebusd",
     program_not_listened: "lu par aucune entité activée : lisez-le une fois maintenant, ou activez le capteur du programme pour le tenir à jour",
-    write_hint: "Les modifications se font dans l'entité (bouton Ouvrir) ; le panneau ne fait qu'afficher. Confort : écrit aussitôt ; régulation : après une confirmation dans Réparations.",
+    write_hint: "Modifiez un réglage avec son bouton Modifier (l'interrupteur d'écriture doit être allumé). Confort : écrit aussitôt et relu ; régulation : après une confirmation dans ce panneau. Ouvrir affiche l'entité.",
     description: "Description",
     no_sensor: "pas de sonde",
     kept: "conservée d'avant le rechargement, relue bientôt",
@@ -163,6 +198,41 @@ export const STRINGS: Record<string, Record<string, string>> = {
     disabled: "désactivée",
     reloading: "L'intégration a été rechargée : nouveau chargement…",
     read_only_settings: "Réglages laissés en lecture seule",
+    edit: "Modifier",
+    write_now: "Écrire",
+    cancel: "Annuler",
+    confirm: "Écrire dans le régulateur",
+    confirm_clock: "Envoyer l'heure",
+    confirm_title: "Confirmer : {setting} — {device}",
+    current: "Valeur actuelle",
+    new_value: "Nouvelle valeur",
+    allowed: "Valeurs autorisées",
+    path: "Écrit à l'adresse de bus {address}, registre {register}, depuis l'adresse source {source} ({source_text}). Relu juste après.",
+    path_short: "adresse de bus {address}, registre {register}, depuis {source}",
+    regulation_note: "Ce réglage modifie la régulation du chauffage : il est écrit après votre confirmation.",
+    comfort_note: "Réglage de confort : écrit aussitôt et relu.",
+    writing: "Écriture…",
+    written_line: "{before} → {after}{frame} : {result}",
+    not_written: "Non écrit : {message}",
+    not_offered_writes_disabled: "l'écriture n'est pas activée dans les options",
+    not_offered: "non proposé sur cette installation : {reason}",
+    switch_off_hint: "L'interrupteur d'écriture est éteint : allumez-le pour écrire.",
+    edit_days: "Modifier",
+    write_days: "Écrire les jours modifiés",
+    discard: "Abandonner les modifications",
+    copy_to: "Copier vers",
+    copy: "Copier",
+    cost: "{days} jours modifiés : jusqu'à {writes} écritures (seuls les créneaux changés sont écrits) ; {used} sur {max} cette heure",
+    drag_hint: "Saisissez les plages, ou glissez sur la barre pour en ajouter une au quart d'heure ; un clic sur une plage la retire.",
+    day_format: "écrivez HH:MM-HH:MM, trois plages au plus, ou -",
+    day_quarter: "les heures doivent être des quarts d'heure, de 00:00 à 24:00",
+    day_order: "une plage doit finir après son début",
+    day_too_many: "trois plages au plus",
+    day_overlap: "les plages ne doivent pas se chevaucher",
+    set_clock: "Mettre à l'heure",
+    clock_confirm: "Enverra l'heure de Home Assistant à la seconde 00 de la minute suivante ({send_at}), à l'adresse de bus fe depuis l'adresse source 31. Si le bus n'est pas libre dans les {late} s après la seconde 00, rien n'est envoyé.",
+    clock_sent: "Envoyé {requested} ({frame}) : {result}",
+    clock_current: "Horloge maîtresse maintenant : {current}",
   },
 };
 
@@ -252,6 +322,62 @@ export function formatRange(row: Row): string {
   const unit = row.unit ? ` ${row.unit}` : "";
   const bounds = `${range.min ?? "…"} – ${range.max ?? "…"}${unit}`;
   return range.step ? `${bounds} (${range.step})` : bounds;
+}
+
+export const SLOTS = 3; // ranges a day holds
+export const QUARTER = 15;
+
+/** A day as typed (`06:30-18:00, 19:00-21:00`, `-` or nothing for none) -> its ranges in minutes, sorted, or the
+ * key of what is wrong (the integration checks it again and has the last word). */
+export function parseDay(text: string): { ranges: [number, number][] } | { error: string } {
+  const trimmed = text.trim();
+  if (trimmed === "" || trimmed === "-") return { ranges: [] };
+  const ranges: [number, number][] = [];
+  for (const part of trimmed.split(",")) {
+    const match = /^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/.exec(part);
+    if (!match) return { error: "day_format" };
+    const [h1, m1, h2, m2] = match.slice(1).map(Number);
+    const start = h1 * 60 + m1;
+    const end = h2 * 60 + m2;
+    if ([m1, m2].some((m) => m % QUARTER) || start > 1440 || end > 1440 || m1 > 45 || m2 > 45) {
+      return { error: "day_quarter" };
+    }
+    if (start >= end) return { error: "day_order" };
+    ranges.push([start, end]);
+  }
+  if (ranges.length > SLOTS) return { error: "day_too_many" };
+  ranges.sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < ranges.length; i++) if (ranges[i][0] < ranges[i - 1][1]) return { error: "day_overlap" };
+  return { ranges };
+}
+
+export function clockText(minutesOfDay: number): string {
+  const h = Math.floor(minutesOfDay / 60);
+  const m = minutesOfDay % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/** Ranges in minutes -> the text of a day, as the integration writes it. */
+export function formatDay(ranges: [number, number][]): string {
+  return ranges.length ? ranges.map(([a, b]) => `${clockText(a)}-${clockText(b)}`).join(", ") : "-";
+}
+
+/** A range dragged on the bar of a day (from and to as fractions of the day, either order), in quarters of an
+ * hour, added to the day: ranges it overlaps are merged into it. Null when the day would hold more than three. */
+export function addDragged(ranges: [number, number][], from: number, to: number): [number, number][] | null {
+  const q = (f: number): number => Math.round((Math.min(1, Math.max(0, f)) * 1440) / QUARTER) * QUARTER;
+  let start = Math.min(q(from), q(to));
+  let end = Math.max(q(from), q(to));
+  if (end === start) end = Math.min(1440, start + 60); // a click: one hour
+  const kept: [number, number][] = [];
+  for (const [a, b] of ranges) {
+    if (a <= end && b >= start) {
+      start = Math.min(start, a);
+      end = Math.max(end, b);
+    } else kept.push([a, b]);
+  }
+  const out = [...kept, [start, end] as [number, number]].sort((x, y) => x[0] - y[0]);
+  return out.length > SLOTS ? null : out;
 }
 
 /** "06:30" -> minutes since midnight; "24:00" -> 1440. */

@@ -11,15 +11,18 @@ import {
   formatValue,
   label,
   languageOf,
+  addDragged,
+  formatDay,
   menuTree,
   missingReason,
+  parseDay,
   notUsable,
   readingOf,
   redundant,
   t,
   WEEKDAYS,
 } from "./format.ts";
-import type { Days, Device, Hass, Installation, LiveEvent, Reading, Row, Tree } from "./types.ts";
+import type { Days, Device, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer } from "./types.ts";
 
 const DEFINITIONS = "__definitions__";
 
@@ -50,6 +53,13 @@ export class WeishauptPanel extends LitElement {
     _tick: { state: true },
     _queued: { state: true },
     _reloading: { state: true },
+    _editing: { state: true },
+    _draft: { state: true },
+    _rowResult: { state: true },
+    _busy: { state: true },
+    _dialog: { state: true },
+    _weekDraft: { state: true },
+    _weekResult: { state: true },
   };
 
   declare hass: Hass;
@@ -66,6 +76,14 @@ export class WeishauptPanel extends LitElement {
   declare _tick: number;
   declare _queued: Record<string, number>;
   declare _reloading: boolean;
+  declare _editing: string | undefined; // key of the row being changed
+  declare _draft: string;
+  declare _rowResult: Record<string, { text: string; error: boolean }>;
+  declare _busy: boolean;
+  declare _dialog: { answer: WriteAnswer; target: string } | undefined; // a confirmation asked by the writer
+  declare _weekDraft: Record<string, Record<string, string>>; // program -> day -> text being edited
+  declare _weekResult: Record<string, { text: string; error: boolean }>;
+  private _drag?: { program: string; day: string; from: number; element: HTMLElement };
 
   private _unsubscribe?: () => void;
   private _offset = 0; // browser clock minus Home Assistant's clock, in seconds
@@ -80,6 +98,11 @@ export class WeishauptPanel extends LitElement {
     this._tick = 0;
     this._queued = {};
     this._reloading = false;
+    this._draft = "";
+    this._rowResult = {};
+    this._busy = false;
+    this._weekDraft = {};
+    this._weekResult = {};
   }
 
   private get _lang(): string {
@@ -208,11 +231,290 @@ export class WeishauptPanel extends LitElement {
             >`
           : nothing}
         ${this._clock()}
+        ${this._tree?.writes?.clock_writable
+          ? html`<button class="link" ?disabled=${this._busy} @click=${() => this._setClock()}>
+              ${t(lang, "set_clock")}
+            </button>`
+          : nothing}
+        ${this._rowResult.__clock__
+          ? html`<span class=${this._rowResult.__clock__.error ? "error" : "secondary"} role="status"
+              >${this._rowResult.__clock__.text}</span
+            >`
+          : nothing}
       </header>
       ${this._available ? nothing : html`<div class="message warning" role="status">${t(lang, "unavailable")}</div>`}
       ${this._reloading ? html`<div class="message" role="status">${t(lang, "reloading")}</div>` : nothing}
       ${this._tree ? this._body(this._tree) : html`<div class="message">${t(lang, "loading")}</div>`}
+      ${this._dialog ? this._confirmDialog(this._dialog.answer) : nothing}
     `;
+  }
+
+  // ---- writes: through the integration's writer and its guard (panel.py); nothing is written here --------------
+
+  private async _call(message: Record<string, unknown>): Promise<WriteAnswer> {
+    this._busy = true;
+    try {
+      const answer = await this.hass.callWS<WriteAnswer>({ ...message, entry_id: this._entryId, language: this._lang });
+      if (answer.guard && this._tree?.writes) {
+        this._tree = { ...this._tree, writes: { ...this._tree.writes, ...answer.guard } };
+      }
+      return answer;
+    } catch (err) {
+      return { status: "refused", code: "error", message: (err as Error).message };
+    } finally {
+      this._busy = false;
+    }
+  }
+
+  private _resultText(answer: WriteAnswer): { text: string; error: boolean } {
+    const lang = this._lang;
+    if (answer.status === "refused") return { text: t(lang, "not_written", { message: answer.message ?? "" }), error: true };
+    if (answer.kind === "clock" || answer.requested !== undefined) {
+      return {
+        text: t(lang, "clock_sent", {
+          requested: answer.requested ?? "",
+          frame: answer.frame ?? "",
+          result: answer.result_text ?? answer.result ?? "",
+        }),
+        error: answer.result !== "sent",
+      };
+    }
+    return {
+      text: t(lang, "written_line", {
+        before: answer.before ?? "-",
+        after: answer.after ?? "",
+        frame: answer.frame ? ` (${answer.frame})` : "",
+        result: answer.result_text ?? answer.result ?? "",
+      }),
+      error: answer.result !== "ok" && answer.result !== "unchanged",
+    };
+  }
+
+  private async _writeRow(row: Row): Promise<void> {
+    const writable = row.writable!;
+    const value = Number(this._draft);
+    const answer = await this._call({ type: "weishaupt/panel/write", key: writable.key, value });
+    this._handle(answer, row.key);
+    if (answer.status !== "refused") this._editing = undefined;
+  }
+
+  private _handle(answer: WriteAnswer, target: string): void {
+    if (answer.status === "confirm") {
+      this._dialog = { answer, target };
+      return;
+    }
+    this._rowResult = { ...this._rowResult, [target]: this._resultText(answer) };
+  }
+
+  private async _setClock(): Promise<void> {
+    this._handle(await this._call({ type: "weishaupt/panel/clock" }), "__clock__");
+  }
+
+  private async _confirmed(): Promise<void> {
+    const dialog = this._dialog!;
+    this._dialog = undefined;
+    const answer = await this._call({ type: "weishaupt/panel/confirm", pending_id: dialog.answer.pending_id });
+    this._rowResult = { ...this._rowResult, [dialog.target]: this._resultText(answer) };
+  }
+
+  private async _withdrawn(): Promise<void> {
+    const dialog = this._dialog!;
+    this._dialog = undefined;
+    await this._call({ type: "weishaupt/panel/cancel", pending_id: dialog.answer.pending_id });
+  }
+
+  private _confirmDialog(answer: WriteAnswer): TemplateResult {
+    const lang = this._lang;
+    const p = answer.placeholders ?? {};
+    const clock = answer.kind === "clock";
+    return html`<div class="backdrop">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title"
+        @keydown=${(e: KeyboardEvent) => e.key === "Escape" && this._withdrawn()}>
+        <h2 id="confirm-title">${t(lang, "confirm_title", { setting: p.setting ?? "", device: p.device ?? "" })}</h2>
+        ${clock
+          ? html`<p>${t(lang, "clock_current", { current: p.current ?? "-" })}</p>
+              <p>${t(lang, "clock_confirm", { send_at: p.send_at ?? "", late: p.late ?? "" })}</p>`
+          : html`<dl>
+                <dt>${t(lang, "current")}</dt>
+                <dd>${p.current}</dd>
+                <dt>${t(lang, "new_value")}</dt>
+                <dd><strong>${p.requested}</strong></dd>
+                <dt>${t(lang, "allowed")}</dt>
+                <dd>${p.allowed}</dd>
+              </dl>
+              <p>${t(lang, "path", p)}</p>
+              <p class="secondary">${t(lang, "regulation_note")}</p>`}
+        <div class="actions">
+          <button class="link" @click=${() => this._withdrawn()}>${t(lang, "cancel")}</button>
+          <button class="primary" autofocus @click=${() => this._confirmed()}>
+            ${t(lang, clock ? "confirm_clock" : "confirm")}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  private _writeCell(row: Row): TemplateResult {
+    const lang = this._lang;
+    const writable = row.writable;
+    if (!writable) return html`<span class="secondary">${t(lang, "read_only")}</span>`;
+    const result = this._rowResult[row.key];
+    const badge = html`<span class="badge ${writable.risk}">${t(lang, writable.risk)}</span>${writable.through
+        ? html`<div class="secondary">${t(lang, "through", { circuit: writable.through })}</div>`
+        : nothing}`;
+    let action: TemplateResult | typeof nothing = nothing;
+    if (!writable.offered) {
+      action = html`<div class="secondary">
+        ${writable.why_not === "writes_disabled"
+          ? t(lang, "not_offered_writes_disabled")
+          : t(lang, "not_offered", { reason: writable.why_not ?? "" })}
+      </div>`;
+    } else if (this._editing === row.key) {
+      action = nothing; // the form is on its own line below the row
+    } else {
+      action = html`<button class="link" @click=${() => this._startEdit(row)}>${t(lang, "edit")}</button>`;
+    }
+    return html`${badge}${action}${result
+      ? html`<div class=${result.error ? "error" : "secondary"} role="status">${result.text}</div>`
+      : nothing}`;
+  }
+
+  private _editForm(row: Row): TemplateResult {
+    const lang = this._lang;
+    const writable = row.writable!;
+    const reading = readingOf(row, this._readings);
+    return html`<form
+        class="edit"
+        @submit=${(e: Event) => {
+          e.preventDefault();
+          void this._writeRow(row);
+        }}
+      >
+        ${writable.options
+          ? html`<select aria-label=${t(lang, "new_value")}
+              @change=${(e: Event) => (this._draft = (e.target as HTMLSelectElement).value)}>
+              ${writable.options.map(
+                (o) => html`<option value=${o.raw} ?selected=${String(o.raw) === this._draft}>${label(o.label, lang)}</option>`,
+              )}
+            </select>`
+          : html`<input type="number" aria-label=${t(lang, "new_value")} .value=${this._draft}
+              min=${writable.minimum ?? ""} max=${writable.maximum ?? ""} step=${writable.step ?? "any"}
+              @input=${(e: Event) => (this._draft = (e.target as HTMLInputElement).value)} />${row.unit
+              ? html` ${row.unit}`
+              : nothing}`}
+        <button class="primary" type="submit" ?disabled=${this._busy || this._draft === ""}>${t(lang, "write_now")}</button>
+        <button class="link" type="button" @click=${() => (this._editing = undefined)}>${t(lang, "cancel")}</button>
+        <div class="secondary">
+          ${formatValue(row, reading, lang) ?? "-"} ·
+          ${t(lang, "path_short", { address: writable.address ?? "", register: writable.register ?? "", source: writable.source })}
+        </div>
+        <div class="secondary">${t(lang, writable.risk === "comfort" ? "comfort_note" : "regulation_note")}</div>
+        ${this._tree?.writes && !this._tree.writes.switch
+          ? html`<div class="error">${t(lang, "switch_off_hint")}</div>`
+          : nothing}
+      </form>`
+  }
+
+  private _startEdit(row: Row): void {
+    const writable = row.writable!;
+    const raw = readingOf(row, this._readings)?.values[row.index];
+    if (writable.options) {
+      const found = writable.options.find((o) => o.name === raw);
+      this._draft = String(found?.raw ?? writable.options[0].raw);
+    } else {
+      this._draft = raw && raw !== "-" && !Number.isNaN(Number(raw)) ? raw : String(writable.minimum ?? "");
+    }
+    this._editing = row.key;
+  }
+
+  // ---- week grid editing --------------------------------------------------------------------------------------
+
+  private _dayText(week: Days | undefined, day: string): string | null {
+    const ranges = week?.[day];
+    if (ranges === undefined || ranges === null) return null;
+    return formatDay(ranges.map(([a, b]) => [minutesOf(a), minutesOf(b)]));
+  }
+
+  private _startWeek(program: Program): void {
+    const week = this._programs[program.key];
+    const draft: Record<string, string> = {};
+    for (let day = 1; day <= 7; day++) draft[String(day)] = this._dayText(week, String(day)) ?? "-";
+    this._weekDraft = { ...this._weekDraft, [program.key]: draft };
+    this._weekResult = { ...this._weekResult, [program.key]: undefined as never };
+  }
+
+  private _setDay(program: string, day: string, text: string): void {
+    this._weekDraft = { ...this._weekDraft, [program]: { ...this._weekDraft[program], [day]: text } };
+  }
+
+  private _changed(program: Program): string[] {
+    const draft = this._weekDraft[program.key] ?? {};
+    const week = this._programs[program.key];
+    return Object.keys(draft).filter((day) => {
+      const parsed = parseDay(draft[day]);
+      const text = "ranges" in parsed ? formatDay(parsed.ranges) : draft[day];
+      return text !== this._dayText(week, day);
+    });
+  }
+
+  private async _writeWeek(program: Program): Promise<void> {
+    const draft = this._weekDraft[program.key];
+    const days: Record<string, string> = {};
+    for (const day of this._changed(program)) days[day] = draft[day];
+    const answer = await this._call({ type: "weishaupt/panel/write_days", program: program.key, days });
+    const lang = this._lang;
+    if (answer.status === "refused") {
+      this._weekResult = { ...this._weekResult, [program.key]: this._resultText(answer) };
+      return;
+    }
+    const names = WEEKDAYS[lang] ?? WEEKDAYS.en;
+    const lines = Object.entries(answer.days ?? {}).map(([day, d]) =>
+      t(lang, "written_line", {
+        before: `${names[Number(day) - 1]} ${d.before ?? "-"}`,
+        after: d.after ?? "",
+        frame: d.frames?.length ? ` (${d.frames.join(", ")})` : "",
+        result: d.result_text ?? d.result ?? "",
+      }),
+    );
+    this._weekResult = { ...this._weekResult, [program.key]: { text: lines.join(" · "), error: false } };
+    const rest = { ...this._weekDraft };
+    delete rest[program.key];
+    this._weekDraft = rest;
+  }
+
+  private _copy(program: string, from: string, target: string): void {
+    const text = this._weekDraft[program][from];
+    const targets = target === "all" ? ["1", "2", "3", "4", "5", "6", "7"]
+      : target === "weekdays" ? ["1", "2", "3", "4", "5"]
+      : target === "weekend" ? ["6", "7"] : [target];
+    const next = { ...this._weekDraft[program] };
+    for (const day of targets) if (day !== from) next[day] = text;
+    this._weekDraft = { ...this._weekDraft, [program]: next };
+  }
+
+  private _dragStart(e: PointerEvent, program: string, day: string): void {
+    const element = e.currentTarget as HTMLElement;
+    if ((e.target as HTMLElement).classList.contains("bar")) return; // a click on a range removes it
+    const box = element.getBoundingClientRect();
+    this._drag = { program, day, from: (e.clientX - box.left) / box.width, element };
+    element.setPointerCapture(e.pointerId);
+  }
+
+  private _dragEnd(e: PointerEvent): void {
+    const drag = this._drag;
+    this._drag = undefined;
+    if (!drag) return;
+    const box = drag.element.getBoundingClientRect();
+    const parsed = parseDay(this._weekDraft[drag.program][drag.day]);
+    if (!("ranges" in parsed)) return;
+    const next = addDragged(parsed.ranges, drag.from, (e.clientX - box.left) / box.width);
+    if (next) this._setDay(drag.program, drag.day, formatDay(next));
+  }
+
+  private _removeRange(program: string, day: string, index: number): void {
+    const parsed = parseDay(this._weekDraft[program][day]);
+    if (!("ranges" in parsed)) return;
+    this._setDay(program, day, formatDay(parsed.ranges.filter((_, i) => i !== index)));
   }
 
   private _clock(): TemplateResult | typeof nothing {
@@ -352,20 +654,15 @@ export class WeishauptPanel extends LitElement {
                     : nothing}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
                 </td>
                 <td class="nowrap">${formatRange(row)}</td>
-                <td>
-                  ${row.writable
-                    ? html`<span class="badge ${row.writable.risk}">${t(lang, row.writable.risk)}</span>${row.writable
-                          .through
-                        ? html`<div class="secondary">${t(lang, "through", { circuit: row.writable.through })}</div>`
-                        : nothing}`
-                    : html`<span class="secondary">${t(lang, "read_only")}</span>`}
-                </td>
+                <td>${this._writeCell(row)}</td>
                 <td>
                   ${row.entity_id
                     ? html`<button class="link" @click=${() => this._open(row.entity_id!)}>${t(lang, "open")}</button>`
                     : nothing}
                 </td>
-              </tr>`;
+              </tr>${this._editing === row.key
+                ? html`<tr class="edit-row"><td colspan="6">${this._editForm(row)}</td></tr>`
+                : nothing}`;
             })}
           </tbody>
         </table>
@@ -375,20 +672,36 @@ export class WeishauptPanel extends LitElement {
   private _programs_view(device: Device): TemplateResult {
     const lang = this._lang;
     const days = WEEKDAYS[lang] ?? WEEKDAYS.en;
+    const writes = this._tree?.writes;
     return html`${device.programs.map((program) => {
       const week = this._programs[program.key];
+      const draft = this._weekDraft[program.key];
+      const editing = draft !== undefined;
+      const changed = editing ? this._changed(program) : [];
+      const errors = editing
+        ? Object.fromEntries(Object.entries(draft).map(([day, text]) => {
+            const parsed = parseDay(text);
+            return [day, "error" in parsed ? parsed.error : null];
+          }))
+        : {};
+      const invalid = Object.values(errors).some(Boolean);
+      const complete = [1, 2, 3, 4, 5, 6, 7].every((d) => week?.[String(d)] != null);
       const note = !program.read
         ? t(lang, "not_read_program")
         : !program.listened
           ? t(lang, "program_not_listened")
           : program.writable
-          ? t(lang, "editable")
-          : t(lang, "not_editable");
+            ? t(lang, "editable")
+            : t(lang, "not_editable");
+      const result = this._weekResult[program.key];
       return html`<section class="program">
         <h3>
           ${label(program.label, lang)}
           ${program.entity_id
             ? html`<button class="link" @click=${() => this._open(program.entity_id!)}>${t(lang, "open")}</button>`
+            : nothing}
+          ${program.writable && writes && !editing && complete
+            ? html`<button class="link" @click=${() => this._startWeek(program)}>${t(lang, "edit_days")}</button>`
             : nothing}
         </h3>
         <p class="secondary">${note}</p>
@@ -402,6 +715,7 @@ export class WeishauptPanel extends LitElement {
                 >
               </p>`
           : nothing}
+        ${editing ? html`<p class="secondary">${t(lang, "drag_hint")}</p>` : nothing}
         <table class="week">
           <caption class="visually-hidden">${label(program.label, lang)}</caption>
           <thead>
@@ -414,7 +728,58 @@ export class WeishauptPanel extends LitElement {
           </thead>
           <tbody>
             ${days.map((name, i) => {
-              const ranges = week?.[String(i + 1)];
+              const day = String(i + 1);
+              if (editing) {
+                const parsed = parseDay(draft[day]);
+                const ranges = "ranges" in parsed ? parsed.ranges : [];
+                const error = errors[day];
+                return html`<tr class=${changed.includes(day) ? "changed" : ""}>
+                  <th scope="row">${name}</th>
+                  <td>
+                    <div
+                      class="day editable"
+                      aria-hidden="true"
+                      @pointerdown=${(e: PointerEvent) => this._dragStart(e, program.key, day)}
+                      @pointerup=${(e: PointerEvent) => this._dragEnd(e)}
+                    >
+                      ${ranges.map(
+                        ([a, b], index) => html`<span
+                          class="bar"
+                          style="left:${(a / 1440) * 100}%;width:${((b - a) / 1440) * 100}%"
+                          @click=${() => this._removeRange(program.key, day, index)}
+                        ></span>`,
+                      )}
+                    </div>
+                    <div class="day-edit">
+                      <input
+                        type="text"
+                        aria-label=${name}
+                        aria-invalid=${error ? "true" : "false"}
+                        .value=${draft[day]}
+                        @input=${(e: Event) => this._setDay(program.key, day, (e.target as HTMLInputElement).value)}
+                      />
+                      <label class="secondary"
+                        >${t(lang, "copy_to")}
+                        <select
+                          @change=${(e: Event) => {
+                            const select = e.target as HTMLSelectElement;
+                            if (select.value) this._copy(program.key, day, select.value);
+                            select.value = "";
+                          }}
+                        >
+                          <option value="">…</option>
+                          <option value="all">${lang === "fr" ? "tous les jours" : "every day"}</option>
+                          <option value="weekdays">${lang === "fr" ? "lundi – vendredi" : "Monday – Friday"}</option>
+                          <option value="weekend">${lang === "fr" ? "samedi, dimanche" : "Saturday, Sunday"}</option>
+                          ${days.map((other, k) => (k === i ? nothing : html`<option value=${String(k + 1)}>${other}</option>`))}
+                        </select></label
+                      >
+                    </div>
+                    ${error ? html`<div class="error" role="alert">${t(lang, error)}</div>` : nothing}
+                  </td>
+                </tr>`;
+              }
+              const ranges = week?.[day];
               const text =
                 ranges === undefined || ranges === null
                   ? t(lang, program.listened ? "day_unread" : "not_listened")
@@ -437,6 +802,27 @@ export class WeishauptPanel extends LitElement {
             })}
           </tbody>
         </table>
+        ${editing && writes
+          ? html`<p class="secondary">
+                ${t(lang, "cost", {
+                  days: changed.length,
+                  writes: changed.length * 3,
+                  used: writes.writes_last_hour,
+                  max: writes.max_per_hour,
+                })}
+              </p>
+              ${writes.switch ? nothing : html`<p class="error">${t(lang, "switch_off_hint")}</p>`}
+              <div class="actions">
+                <button class="link" @click=${() => {
+                  const rest = { ...this._weekDraft };
+                  delete rest[program.key];
+                  this._weekDraft = rest;
+                }}>${t(lang, "discard")}</button>
+                <button class="primary" ?disabled=${this._busy || invalid || !changed.length}
+                  @click=${() => this._writeWeek(program)}>${t(lang, "write_days")}</button>
+              </div>`
+          : nothing}
+        ${result ? html`<p class=${result.error ? "error" : "secondary"} role="status">${result.text}</p>` : nothing}
       </section>`;
     })}`;
   }
@@ -708,6 +1094,94 @@ export class WeishauptPanel extends LitElement {
       margin: 0;
       padding-inline-start: 16px;
     }
+    .error {
+      color: var(--error-color);
+    }
+    button.primary {
+      border: 0;
+      border-radius: 6px;
+      padding: 4px 12px;
+      cursor: pointer;
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    form.edit {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 8px;
+      margin-top: 6px;
+    }
+    form.edit div {
+      flex-basis: 100%;
+    }
+    input {
+      font: inherit;
+      padding: 4px 6px;
+      color: var(--primary-text-color);
+      background: var(--card-background-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+    }
+    input[type="number"] {
+      width: 6em;
+    }
+    input[aria-invalid="true"] {
+      border-color: var(--error-color);
+    }
+    .day.editable {
+      cursor: crosshair;
+      height: 22px;
+      touch-action: none;
+    }
+    .day.editable .bar {
+      cursor: pointer;
+    }
+    .day-edit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin-top: 4px;
+      align-items: center;
+    }
+    .day-edit input {
+      flex: 1 1 14em;
+      min-width: 0;
+    }
+    tr.changed th {
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10;
+    }
+    .dialog {
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+      border-radius: var(--ha-card-border-radius, 12px);
+      padding: 16px 20px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
+    }
     .visually-hidden {
       position: absolute;
       width: 1px;
@@ -725,3 +1199,9 @@ export class WeishauptPanel extends LitElement {
 }
 
 if (!customElements.get("weishaupt-panel")) customElements.define("weishaupt-panel", WeishauptPanel);
+
+/** "06:30" -> minutes since midnight. */
+function minutesOf(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + (m || 0);
+}

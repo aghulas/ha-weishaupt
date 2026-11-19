@@ -307,8 +307,11 @@ async def ws_confirm(hass: HomeAssistant, connection, msg: dict[str, Any]) -> No
         connection.send_result(msg["id"], await _refusal(hass, err, language))
         return
     if pending is not None and pending.key == CLOCK_KEY:
+        from .writer import RESULT_TEXT
+        words = RESULT_TEXT.get(language, RESULT_TEXT["en"])
         connection.send_result(msg["id"], {
-            "status": "written", "result": entry["result"], "requested": entry["requested"],
+            "status": "written", "result": entry["result"], "result_text": words.get(entry["result"], entry["result"]),
+            "requested": entry["requested"],
             "frame": entry.get("frame"), "late": entry.get("late"), "guard": _guard_state(hub)})
         return
     connection.send_result(msg["id"], _written(hub, entry, language))

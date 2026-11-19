@@ -9,7 +9,7 @@ Not affiliated with Weishaupt or with the ebusd project.
 
 **Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
 read requests. With writes enabled in its options, it can change **the settings a release of the
-definitions proves writable** — 66 with definitions 0.5.5 — and nothing else, through a write
+definitions proves writable** — 71 with definitions 0.5.6 — and nothing else, through a write
 guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
@@ -44,12 +44,12 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.3 | 0.5.5 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
+| 0.3 | 0.5.6 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.5.5.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.5.6.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -67,7 +67,8 @@ ebusd those messages are missing and the comparison names them in a repair issue
 entities work. 0.5.4 differs from 0.5.3 only by the write definitions of the two flow limits of the
 system manager's own circuit: with 0.5.3 in ebusd everything is read, and those two settings stay
 read-only (64 writable instead of 66). 0.5.5 changes only the metadata (write ranges, risk
-classes), which the integration ships itself: an ebusd with 0.5.3 or 0.5.4 behaves the same. An entity
+classes), which the integration ships itself: an ebusd with 0.5.3 or 0.5.4 behaves the same. 0.5.6
+adds five choices: with an older release in ebusd they stay read-only, the rest is the same. An entity
 created under a former message name keeps its entity id and history when the name changes: the
 metadata says which name it had.
 
@@ -175,10 +176,11 @@ adds:
   off also withdraws every change waiting for a confirmation.
 
 What is writable is decided by the definitions, not by the integration: a setting gets a number
-entity only when the metadata of the release gives it **write conditions** (a lot of the
+entity (a select for a choice) only when the metadata of the release gives it **write conditions** (a lot of the
 definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
 definition as the release has it. Structural settings (circuit type, control variant, boiler
-sequence…) never have write conditions. With definitions 0.5.5, 66 settings, 16 of them comfort:
+sequence…) never have write conditions. With definitions 0.5.6, 71 settings of one value, 16 of them
+comfort:
 
 | Device | Comfort | Regulation | Source |
 |---|---|---|---|
@@ -187,6 +189,12 @@ sequence…) never have write conditions. With definitions 0.5.5, 66 settings, 1
 | Heating modules 2 and 3 (`em2`, `em3`, 7 each) | normal and setback room temperature | frost protection room temperature, heating curve gradient, summer / winter changeover | `ff` |
 | Heating modules 2 and 3 | | maximum and minimum flow temperature | `31` |
 | Room units 1, 2, 3 (`fs1`–`fs3`, 11 each) | normal and setback room temperature, hot-water setpoint | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, optimised switch-on lead time, frost protection limit, boiler boost offset | `ff` |
+| System manager, choices (2) | | legionella protection day (off, Monday … Sunday), circulation during legionella protection (off, on): **selects** | `ff` |
+| Room units 1, 2, 3, choice (1 each) | | holiday temperature level (antifreeze, setback): **select** | `ff` |
+
+The definitions 0.5.6 also prove writes this version does not offer: the weekly programs of room
+unit 1 (105 slots) and the date and time broadcast. They stay read-only (the programs as their
+sensors); how they could be offered is under discussion.
 
 The source is the one the metadata gives each setting: the address the device takes the value from
 (`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
@@ -196,7 +204,7 @@ circuit are taken from `ff` only, those of the heating modules from `31`.
 The system manager's own circuit reads three registers of the system manager: the integration
 shows each register once. The maximum flow temperature, writable on both, has one number (through
 `ka`); the normal and setback room temperatures, proven written through `em1` only, have a number
-that writes through `em1`. So 65 number entities for 66 settings.
+that writes through `em1`. So 65 numbers and 5 selects for 71 settings.
 
 Ranges and steps are those of the definitions. Twelve settings cannot carry one in the CSV
 (setback room temperature and heating curve of every heating circuit and room unit: fractional
@@ -225,6 +233,11 @@ the notification's link (or *Settings → Repairs*), the repair, *Write to the c
 *Close* on the result. Home Assistant gives an entity no way to open a dialog by itself, has no
 link to one repair's dialog, and always ends a repair with a result dialog: these steps cannot be
 merged without giving up the confirmation.
+
+Coming from 0.3.0b2, which created the numbers of the regulation settings disabled: the first start
+of 0.3.0rc2 enables, once, the numbers the integration itself disabled (never one you disabled) and
+reads them first. A reload of the integration keeps the values already read, so entities do not
+show *unknown* until the next round of reads.
 
 **Each write**, in this order, stops at the first refusal and tells you why:
 
@@ -269,12 +282,13 @@ file to attach to a report about another boiler model or software version.
 0.1 read and wrote registers with raw telegrams from its own table. 0.2 and 0.3 are a different
 integration under the same name:
 
-- **Only the proven settings can be written**: with definitions 0.5.5, the 66 numeric settings of
-  0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too). The
-  choices (legionella day, circulation with legionella, boiler sequence, holiday level, adaption,
-  control variation, circuit type), the holiday dates, the weekly programs and the clock are not
-  proven yet: the `select` and `date` entities and the actions `weishaupt.set_time_program` and
-  `weishaupt.set_clock` are gone, and automations that call them stop working. If you rely on
+- **Only the proven settings can be written**: with definitions 0.5.6, the 66 numeric settings of
+  0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too), and
+  five of its choices (legionella day, circulation with legionella, holiday level of the three room
+  units). The other choices (boiler sequence, adaption, control variation, circuit type), the
+  holiday dates, the weekly programs and the clock are not offered: the `date` entities and the
+  actions `weishaupt.set_time_program` and `weishaupt.set_clock` are gone, and automations that
+  call them stop working. If you rely on
   them, stay on 0.1 until the definitions prove them.
 - Regulation settings need a confirmation in *Repairs* for every change: an automation that sets
   one of them in 0.1 cannot do so any more. The hourly write limit is an option again, 30 by default
@@ -328,10 +342,10 @@ python3.14 -m venv .venv && .venv/bin/pip install -r requirements_test.txt && .v
   fails if ebusd answers anything else than the fixtures say.
 - The integration runs inside a Home Assistant test instance against a **simulated ebusd**
   (`tests/fake_ebusd.py`), a TCP server that replays those answers. It makes up no value.
-- **Writes.** The telegram built for each of the 66 settings equals, byte for byte, the 112 write
-  telegrams captured on the bus (changes and restores, fixtures of the release), from the source
-  the capture and the metadata give (`tests/test_writes.py`). The recording also holds the answers
-  of a real ebusd, the fork's build and a stock 26.1, to 448 write commands (the checksum probes, each captured
+- **Writes.** The telegram built for each of the 71 settings equals, byte for byte, the 122 write
+  telegrams captured on the bus for them (changes and restores, fixtures of the release), from the
+  source the capture and the metadata give (`tests/test_writes.py`). The recording also holds the
+  answers of a real ebusd, the fork's build and a stock 26.1, to 536 write commands (the checksum probes, each captured
   write, the same with a wrong checksum), recorded without a bus; the simulated ebusd matches
   writes as ebusd does and gives each of these answers. Inside Home Assistant
   (`tests/test_ha_writes.py`): entities, the comfort path, the confirmation of a regulation
@@ -360,6 +374,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc2: definitions 0.5.6, five choices as selects; numbers that 0.3.0b2 created disabled
+  enabled once; a successful confirmation ends in a "Success" dialog with the whole frame; values
+  kept across a reload of the entry.
 - 0.3.0rc1: the confirmation of a regulation setting is no error any more, says what it writes
   (device, register, source, values with their decimals) and what it did; numbers enabled and named
   "(setting)"; a newly enabled entity is read first.

@@ -145,8 +145,14 @@ what it does:
 
 - one request at a time, and **never two requests closer than 2 s** (option, 1 to 30 s);
 - live values every 5 minutes (option, 1 minute to 1 hour);
-- after a start: passive messages, live values, then what the entities that set a value show
-  (numbers and selects, then the slots of enabled program days), then the rest;
+- after a start, a **first pass** asks every enabled message once **from the device** (`read -m 0`):
+  ebusd, which may have stayed up, would otherwise answer from its own cache, with a value up to a
+  day old. Order: passive messages, live values, then what the entities that set a value show
+  (numbers and selects, then the slots of enabled program days), then the rest. During the pass a
+  message already read is asked again only when its value is older than 15 minutes, so that live
+  values do not hold the pass up. With everything enabled (540 messages) and the default gap, the
+  settings come from the device after about 5 minutes, the enabled program days after about 7, and
+  the pass ends after about 21 to 25 minutes; then each class keeps its own interval;
 - counters and fault memory at start and then every hour, settings every 6 hours, weekly programs
   once a day;
 - states the devices send by themselves (boiler status, room unit exchanges) are read from the
@@ -214,10 +220,14 @@ Setting a day writes its three slots and reads them back: comfort class, no conf
 ebusd's own address as the definitions prove. Only the slots that change are written. It takes a few
 seconds: the three slots are read first, then each changed slot is written and read back, every
 request at the pace of the bus (one every 2 s by default), so about 8 s for one changed slot. Each
-day written gives an info line in the log (`PROGRAM <device> <program> <day>: <before> -> <after>,
-frames …: read back ok`); a write that fails or stops halfway gives a short notification. A text that
-is not up to three ranges in quarters of an hour is refused with a message that says why and shows
-the format. A slot with
+day written is kept in the attribute `last_write` of its text entity (time, before, after, the frames
+sent, the result of the read-back; numbers and selects have the same attribute) and gives an info
+line in the log (`PROGRAM <device> <program> <day>: <before> -> <after>, frames …: read back ok`),
+visible only with `logger:` / `logs:` / `custom_components.weishaupt: info` in `configuration.yaml`,
+since Home Assistant logs warnings and above by default; a write that fails or stops halfway gives a short notification. The text entity declares the shape of a day as its pattern (up to three ranges HH:MM-HH:MM, or `-`):
+Home Assistant refuses a text of another shape with its own message; a text of the right shape that
+is wrong (not a quarter of an hour, start after end, overlap) is refused with a translated message
+that says why and shows the format. A slot with
 only one of its two times enabled is shown as unused and is rewritten unused.
 
 The action **`weishaupt.set_program`** (device, program, and the days to change) writes several
@@ -428,6 +438,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc6: a first pass that asks every enabled message from the device and ends, settings and
+  program days first; `last_write` attributes; the pattern of the program days back.
 - 0.3.0rc5: a log line per program day written, a notification when a program write fails, clear
   messages for a day that is not in the expected format; after a reload, values kept on screen and
   read again in the first pass.

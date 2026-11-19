@@ -38,9 +38,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     hub = entry.runtime_data
     entities: list[SensorEntity] = [
         ValueSensor(hub, description) for description in hub.model.value_entities
-        if description.platform == "sensor" and description.message.key in hub.usable]
+        if description.platform == "sensor" and description.message.key in hub.usable
+        and hub.named("sensor", description.translation_key, description.message.device)]
     for description in hub.model.group_entities:
-        if not all(member in hub.usable for member in description.group.members):
+        if not all(member in hub.usable for member in description.group.members) or not hub.named(
+                "sensor", description.translation_key, description.group.device):
             continue
         if description.group.family == "program":
             entities.append(ProgramSensor(hub, description))

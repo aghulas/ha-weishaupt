@@ -36,7 +36,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     if hub.writer is None:
         return
     async_add_entities(ProgramDayText(hub, program, day)
-                       for program in hub.writer.programs.values() for day in range(1, 8))
+                       for program in hub.writer.programs.values() for day in range(1, 8)
+                       if hub.named("text", f"program_{program.group}_{WEEKDAYS[day - 1]}", program.device))
 
 
 class ProgramDayText(WeishauptEntity, TextEntity):

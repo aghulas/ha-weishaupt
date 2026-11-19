@@ -39,7 +39,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     async_add_entities(
         SettingNumber(hub, description, hub.writer.specs[description.message.key])
         for description in hub.model.number_entities
-        if description.message.key in hub.writer.specs)
+        if description.message.key in hub.writer.specs
+        and hub.named("number", description.translation_key, description.message.device))
 
 
 class SettingEntity(WeishauptEntity):

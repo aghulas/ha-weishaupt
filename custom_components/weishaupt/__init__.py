@@ -7,6 +7,9 @@ settings the definitions prove writable become number entities, written through 
 """
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
@@ -19,7 +22,8 @@ from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
-from .model import ACCEPTED_DEFINITIONS, Model
+from .metadata_file import FOLDER as METADATA_FOLDER, choose
+from .model import ACCEPTED_DEFINITIONS
 from .services import async_register_services
 from .writer import Writer
 
@@ -36,8 +40,11 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
-    model = await hass.async_add_executor_job(Model.load)
-    hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), model)
+    choice = await hass.async_add_executor_job(choose, Path(hass.config.path(METADATA_FOLDER)))
+    hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), choice.model)
+    hub.metadata_source, hub.metadata_refused = choice.source, choice.refused
+    if choice.source != "bundled":
+        hub.translated = await hass.async_add_executor_job(_bundled_names)
 
     try:
         await hub.async_setup()
@@ -64,6 +71,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     _update_issues(hass, entry, hub)
     _follow_renames(hass, entry, hub)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _update_file_issue(hass, entry, hub)
     entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
@@ -80,6 +88,28 @@ def _follow_renames(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
         entity_id = registry.async_get_entity_id(description.platform, DOMAIN, old)
         if entity_id is not None and registry.async_get_entity_id(description.platform, DOMAIN, new) is None:
             registry.async_update_entity(entity_id, new_unique_id=new)
+
+
+def _bundled_names() -> set[tuple[str, str]]:
+    """(platform, translation key) and ("device", id) the translations shipped with the integration name."""
+    names = json.loads((Path(__file__).parent / "translations" / "en.json").read_text(encoding="utf-8"))
+    found = {(platform, key) for platform, items in names.get("entity", {}).items() for key in items}
+    return found | {("device", key) for key in names.get("device", {})}
+
+
+def _update_file_issue(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
+    """One repair issue when a metadata file beside the configuration was not used, or when entities of the file
+    in use wait for a release of the integration to be named."""
+    issue = f"definitions_file_{entry.entry_id}"
+    if not hub.metadata_refused and not hub.not_named:
+        ir.async_delete_issue(hass, DOMAIN, issue)
+        return
+    ir.async_create_issue(
+        hass, DOMAIN, issue, is_fixable=False, severity=ir.IssueSeverity.WARNING, translation_key="definitions_file",
+        learn_more_url=DOCUMENTATION_URL, translation_placeholders={
+            "source": hub.metadata_source, "version": hub.model.version,
+            "refused": "; ".join(f"{name}: {why}" for name, why in sorted(hub.metadata_refused.items())) or "-",
+            "waiting": str(len(hub.not_named))})
 
 
 def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
@@ -120,7 +150,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-    for issue in ("no_devices", "definitions_mismatch"):
+    for issue in ("no_devices", "definitions_mismatch", "definitions_file"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 
 

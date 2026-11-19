@@ -113,6 +113,12 @@ class Hub:
         # messages of entities the migration of the entry has just enabled: read first at the first set-up
         self.urgent_at_start: set[str] = set()
         self.writer = None  # writer.Writer, when writes are enabled in the options
+        # where the metadata comes from (metadata_file.py), and the names the bundled translations hold when it is
+        # not the bundled copy: an entity whose name they do not hold is not created (see `named`)
+        self.metadata_source = "bundled"
+        self.metadata_refused: dict[str, str] = {}
+        self.translated: set[tuple[str, str]] | None = None
+        self.not_named: set[str] = set()
 
     # ---- start-up -------------------------------------------------------------------------------------------
 
@@ -135,6 +141,17 @@ class Hub:
         bad = {m.key for m in self.mismatches}
         self.usable = {key for key, message in self.model.messages.items()
                        if message.circuit in circuits and key not in bad and (message.read or message.passive)}
+
+    def named(self, platform: str, key: str, device: str | None = None) -> bool:
+        """Whether the translations shipped with the integration name this entity (and its device). Always true
+        with the bundled metadata. With a newer metadata file, an entity they do not name is not created until a
+        release of the integration brings its name: no entity without a name, no state without its label."""
+        if self.translated is None:
+            return True
+        if (platform, key) in self.translated and (device is None or ("device", device) in self.translated):
+            return True
+        self.not_named.add(f"{platform}.{key}")
+        return False
 
     @property
     def own_address(self) -> str | None:

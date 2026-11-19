@@ -561,3 +561,72 @@ async def test_a_choice_through_its_confirmation(hass, fake, log):
     assert result["description_placeholders"]["telegram"] == "ff15502305e801010100"
     assert fake.writes == [("ff", "ka", "15502305e801010100")]
     assert hass.states.get(entity_id).state == "monday"
+
+
+async def test_new_definitions_with_a_reload_only(hass, fake, log):
+    """A definitions release placed beside the configuration takes effect at a reload of the entry, without a
+    release of the integration: here a narrower range of a setting; removed, the bundled copy is back."""
+    import copy
+    import hashlib
+    import json
+    from pathlib import Path
+    from custom_components.weishaupt.model import METADATA_FILE
+    entry, writer = await writing(hass, fake, log)
+    entity_id = number_id(hass, entry, "em2/RoomNormalTemp")
+    assert hass.states.get(entity_id).attributes["max"] == 35
+    data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
+    data["definitions"]["version"] = "0.5.9"
+    data["messages"]["em2/RoomNormalTemp"]["fields"][0]["max"] = 30
+    folder = Path(hass.config.path("weishaupt"))
+    folder.mkdir(exist_ok=True)
+    text = json.dumps(data).encode()
+    (folder / "weishaupt-metadata-0.5.9.json").write_bytes(text)
+    (folder / "sha256sums-0.5.9.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.5.9.json\n")
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    hub = entry.runtime_data
+    assert (hub.metadata_source, hub.model.version) == ("weishaupt-metadata-0.5.9.json", "0.5.9")
+    assert hass.states.get(entity_id).attributes["max"] == 30
+    assert hub.writer.specs["em2/RoomNormalTemp"].maximum == 30
+    assert not [i for i in ir.async_get(hass).issues.values() if i.translation_key == "definitions_file"]
+    for file in folder.iterdir():
+        file.unlink()
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.runtime_data.metadata_source == "bundled"
+    assert hass.states.get(entity_id).attributes["max"] == 35
+
+
+async def test_a_refused_file_and_an_unnamed_entity_raise_one_issue(hass, fake, log):
+    """A file with a bad checksum is not used (bundled copy, repair issue); a newer file with a message the shipped
+    translations do not name: the message is read, its entity waits for a release of the integration."""
+    import copy
+    import hashlib
+    import json
+    from pathlib import Path
+    from custom_components.weishaupt.model import METADATA_FILE
+    folder = Path(hass.config.path("weishaupt"))
+    folder.mkdir(exist_ok=True)
+    (folder / "weishaupt-metadata-0.5.10.json").write_text("{}")
+    (folder / "sha256sums-0.5.10.txt").write_text("0" * 64 + "  weishaupt-metadata-0.5.10.json\n")
+    data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
+    data["definitions"]["version"] = "0.5.9"
+    data["messages"]["ka/BlockingTimeCopy"] = dict(copy.deepcopy(data["messages"]["ka/BlockingTime"]),
+                                                   name="BlockingTimeCopy")
+    data["messages"]["ka/BlockingTimeCopy"].pop("write")
+    data["messages"]["ka/BlockingTimeCopy"]["label"] = {"en": "Blocking time copy", "fr": "Copie du temps de blocage"}
+    text = json.dumps(data).encode()
+    (folder / "weishaupt-metadata-0.5.9.json").write_bytes(text)
+    (folder / "sha256sums-0.5.9.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.5.9.json\n")
+    line = next(row for row in fake.definitions["ka"].splitlines() if row.split(",")[2] == "BlockingTime")
+    fake.definitions["ka"] += "\n" + line.replace(",BlockingTime,", ",BlockingTimeCopy,")
+    entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
+    await setup(hass, entry)
+    hub = entry.runtime_data
+    assert hub.model.version == "0.5.9", hub.metadata_refused
+    assert "weishaupt-metadata-0.5.10.json" in hub.metadata_refused
+    assert "ka/BlockingTimeCopy" in hub.usable and hub.not_named == {"sensor.manager_blockingtimecopy"}
+    assert er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTimeCopy/value") is None
+    issue = next(i for i in ir.async_get(hass).issues.values() if i.translation_key == "definitions_file")
+    assert issue.translation_placeholders["waiting"] == "1"
+    assert "sha256" in issue.translation_placeholders["refused"] or "schema" in issue.translation_placeholders["refused"]

@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 sys.modules.setdefault("weishaupt_core", types.ModuleType("weishaupt_core")).__path__ = [str(SRC)]
-for name in ("ebusd", "model", "guard", "writes", "programs", "clock"):
+for name in ("ebusd", "model", "guard", "writes", "programs", "clock", "metadata_file"):
     spec = importlib.util.spec_from_file_location(f"weishaupt_core.{name}", SRC / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -57,6 +57,20 @@ if HAVE_HA:
     @pytest.fixture(autouse=True)
     def _custom_integrations(enable_custom_integrations):
         yield
+
+    @pytest.fixture(autouse=True)
+    def _no_metadata_file(request):
+        """The folder of definitions files beside the configuration is the test package's, shared by every test
+        that runs Home Assistant: empty before and after each one."""
+        import shutil
+        if "hass" not in request.fixturenames:
+            yield
+            return
+        import pytest_homeassistant_custom_component as package
+        folder = Path(package.__file__).parent / "testing_config" / "weishaupt"
+        shutil.rmtree(folder, ignore_errors=True)
+        yield
+        shutil.rmtree(folder, ignore_errors=True)
 
     @pytest.fixture
     def entity_registry_enabled_by_default():

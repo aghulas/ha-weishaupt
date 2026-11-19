@@ -24,7 +24,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     async_add_entities(
         SettingSelect(hub, description, hub.writer.specs[description.message.key])
         for description in hub.model.select_entities
-        if description.message.key in hub.writer.specs)
+        if description.message.key in hub.writer.specs
+        and hub.named("select", description.translation_key, description.message.device))
 
 
 class SettingSelect(SettingEntity, SelectEntity):

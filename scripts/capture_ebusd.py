@@ -39,6 +39,9 @@ PORT = 18888
 # Scan answer of every device: manufacturer 0x50, identification "W", software 11.04 as the scan of the test
 # installation reports; the hardware version is made up (the scan answer is all the simulated ebusd needs).
 SCAN_ANSWER = "0a50570000000011040102"
+CLOCK_TELEGRAM = "f1fe070009000d05471418110326/"
+CLOCK_FIND = "find -p -h -vvv -c broadcast Datetime"
+CLOCK_EVIDENCE = "fe070009000c00451118110326"
 
 
 def command(text: str) -> str:
@@ -105,6 +108,9 @@ def probe_commands(fixtures: list[dict], write_definitions: dict[str, str]) -> l
         commands += [f"write -c weishaupt-probe -h {telegram}", f"write -c weishaupt-probe -h {placeholder}",
                      f"write {source}-c {reading['circuit']} -h {telegram}",
                      f"write {source}-c {reading['circuit']} -h {wrong}"]
+    # the date and time broadcast of the evidence record (2026-11-18 11:45:00, from 31): the circuit as written in
+    # the files, and in lower case
+    commands += [f"write -c Broadcast -h {CLOCK_EVIDENCE}", f"write -c broadcast -h {CLOCK_EVIDENCE}"]
     return list(dict.fromkeys(commands))
 
 
@@ -148,7 +154,10 @@ def main() -> None:
         if reading["type"] == "write" or reading.get("case") == "first-byte-not-zero" or key not in lines:
             continue
         chosen.setdefault(key, reading)
-    inject = scans + [reading["telegram"] for reading in chosen.values()]
+    # a date and time broadcast of the clock master f1 (evidence record choice-date-program-writes, 2026-11-18
+    # 14:48:04): ebusd keeps it in the passive Datetime of the general broadcast file, with its source and the time
+    # of receipt, which `find -p -h -vvv` gives without a bus request
+    inject = scans + [reading["telegram"] for reading in chosen.values()] + [CLOCK_TELEGRAM]
 
     # Second run without --scanconfig: every file is loaded at start-up, before the telegrams are injected
     # (with --scanconfig the files are loaded after the scan answers, too late for the injected telegrams).
@@ -167,6 +176,7 @@ def main() -> None:
         if reading["type"] == "write" and key not in reads and key in lines:
             written_only[key] = reading["text"]
     reads.update(written_only)
+    clock = command(CLOCK_FIND)
     subprocess.run(["docker", "rm", "-f", CONTAINER], capture_output=True, check=False)
 
     version = info.splitlines()[0].removeprefix("version: ")
@@ -174,6 +184,7 @@ def main() -> None:
         "note": "Answers of a real ebusd without a bus device; see scripts/capture_ebusd.py",
         "ebusd": version, "definitions_version": metadata["definitions"]["version"],
         "info": info, "definitions": definitions, "write_definitions": write_definitions, "writes": writes,
+        "clock": {"command": CLOCK_FIND, "telegram": CLOCK_TELEGRAM, "answer": clock},
         "reads": reads,
         "reads_not_decoded_here": sorted(written_only)}, indent=1, ensure_ascii=False) + "\n")
     print(f"{version}: {len(definitions)} circuits, {len(reads)} of {len(metadata['messages'])} messages read "

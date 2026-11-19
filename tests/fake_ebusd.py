@@ -24,6 +24,7 @@ import csv
 import io
 import re
 import time
+from datetime import datetime
 
 _READ = re.compile(r"^read (?:-m \d+|-f) -c (\S+) (\S+)$")
 _FIND = re.compile(r"^find -f (-w )?-c (\S+)$")
@@ -51,6 +52,10 @@ class FakeEbusd:
         self.not_taken: set[str] = set()  # settings whose device acknowledges a write and keeps its value
         self.writes: list[tuple[str | None, str, str]] = []  # (source, circuit, bytes) of every write "sent"
         self.signal = True
+        # the last date and time broadcast ebusd holds (passive Datetime of the general broadcast file): the bytes
+        # recorded from a real ebusd, received now unless a test says otherwise
+        self.clock_raw: str | None = golden["clock"]["telegram"].rstrip("/")
+        self.clock_received: datetime | None = None
         self.commands: list[tuple[float, str]] = []
         self.active = 0
         self.max_active = 0
@@ -103,6 +108,12 @@ class FakeEbusd:
     def answer(self, command: str) -> str:
         if command == "info":
             return self.info if self.signal else self.info.replace("signal: acquired", "signal: no signal")
+        if command == "find -p -h -vvv -c broadcast Datetime":
+            if self.clock_raw is None:
+                return "Broadcast Datetime = no data stored [ZZ=fe, passive read]"
+            received = self.clock_received or datetime.now()
+            return (f"Broadcast Datetime = {self.clock_raw} /  [ZZ=fe, lastup={received:%Y-%m-%d %H:%M:%S}, "
+                    "passive read]")
         if match := _FIND.match(command):
             table = self.write_definitions if match.group(1) else self.definitions
             return table.get(match.group(2).lower()) or "ERR: element not found"
@@ -140,8 +151,16 @@ class FakeEbusd:
         if not self.signal:
             return "ERR: no signal"
         self.writes.append((source, circuit, text))
+        if master[0] == 0xFE:  # a broadcast: no answer, and ebusd now holds it as the last one
+            self.clock_raw, self.clock_received = f"31{text}", datetime.now()
+            return "done broadcast"
         key = f"{row[1]}/{row[2]}"
-        if key not in self.not_taken:
+        if key not in self.not_taken and row[10] == "TTQ":  # a program slot: end, its flag, start, its flag
+            def part(byte: int) -> str:
+                quarter = byte & 0x7F
+                return f"{quarter // 4:02d}:{quarter % 4 * 15:02d};{'Disabled' if byte & 0x80 else 'Enabled'}"
+            self.reads[key] = f"{part(master[-2])};{part(master[-1])}"
+        elif key not in self.not_taken:
             raw = int.from_bytes(master[-2:], "little", signed=row[10] == "SIN")
             if "=" in row[11]:  # a value list: ebusd answers the name of the entry
                 names = dict(item.split("=", 1) for item in row[11].split(";"))

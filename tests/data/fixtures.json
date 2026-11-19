@@ -1,8 +1,8 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "0.5.6",
-  "commit": "87d7caf",
+  "version": "0.5.7",
+  "commit": "f9b1b43",
   "messages": 542
  },
  "verified": {
@@ -13,7 +13,7 @@
  "coverage": {
   "messages": 542,
   "covered": 541,
-  "readings": 787,
+  "readings": 789,
   "by_kind": {
    "counter": {
     "messages": 18,
@@ -5418,6 +5418,58 @@
    "text": "19:00;Enabled;17:00;Enabled",
    "evidence": "choice-date-program-writes",
    "date": "2026-11-18"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HCProgram1Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "4c 72 14 09 08",
+   "slave": "",
+   "telegram": "31f55023054c72140908/00",
+   "device": "room3",
+   "expect": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "decoded": {
+    "totime": "02:15",
+    "toenabled": "Enabled",
+    "fromtime": "02:00",
+    "fromenabled": "Enabled"
+   },
+   "text": "02:15;Enabled;02:00;Enabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-19"
+  },
+  {
+   "circuit": "fs3",
+   "message": "HCProgram1Sun3",
+   "type": "write",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5023",
+   "master": "30 72 14 80 80",
+   "slave": "",
+   "telegram": "31f55023053072148080/00",
+   "device": "room3",
+   "expect": {
+    "toenabled": "Disabled",
+    "fromenabled": "Disabled"
+   },
+   "decoded": {
+    "totime": "00:00",
+    "toenabled": "Disabled",
+    "fromtime": "00:00",
+    "fromenabled": "Disabled"
+   },
+   "text": "00:00;Disabled;00:00;Disabled",
+   "evidence": "choice-date-program-writes",
+   "date": "2026-11-19"
   },
   {
    "circuit": "ka",

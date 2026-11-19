@@ -25,6 +25,7 @@ import asyncio
 import csv
 import io
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 DEFAULT_PORT = 8888
@@ -37,6 +38,9 @@ FORBIDDEN_READ_OPTIONS = frozenset({"-h", "-def", "-s", "-d", "-i"})
 # value high), from the address of the vendor service tool (ff) or ebusd's own, matched by ebusd to a write
 # definition of the named circuit.
 REGISTER_WRITE = re.compile(r"^write (?:-s ff )?-c [a-z0-9_-]+ -h [0-9a-f]{2}502305[0-9a-f]{10}$")
+# The one broadcast: the date and time (fe 07 00, nine data bytes), from ebusd's own address, matched by ebusd to the
+# write definition of the circuit `Broadcast` (ebusd compares the circuit name as written).
+CLOCK_WRITE = re.compile(r"^write -c Broadcast -h fe070009[0-9a-f]{18}$")
 
 
 class EbusdError(Exception):
@@ -63,13 +67,17 @@ class EbusdInvalidArgument(EbusdError):
     """ebusd refused the arguments (for `write -h`: a definition matched, of another circuit)."""
 
 
+class EbusdLate(EbusdError):
+    """A command that had to go out by a deadline was not sent: the deadline had passed."""
+
+
 class CommandRefused(EbusdError):
     """The command is not one the client may send: it was not sent."""
 
 
 def check_command(command: str) -> None:
     """Raise CommandRefused unless the command reads through loaded definitions or is the one register write."""
-    if command.startswith("write ") and REGISTER_WRITE.match(command):
+    if command.startswith("write ") and (REGISTER_WRITE.match(command) or CLOCK_WRITE.match(command)):
         return
     check_read_only(command)
 
@@ -203,9 +211,11 @@ class EbusdClient:
         self._lock = asyncio.Lock()
         self.requests: dict[str, int] = dict.fromkeys(sorted(READ_VERBS | {"write"}), 0)
 
-    async def _command(self, text: str) -> str:
+    async def _command(self, text: str, in_time: Callable[[], bool] | None = None) -> str:
         check_command(text)
         async with self._lock:
+            if in_time is not None and not in_time():
+                raise EbusdLate(f"not sent, too late: {text}")
             try:
                 reader, writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), self.timeout)
             except (OSError, TimeoutError) as err:
@@ -254,6 +264,15 @@ class EbusdClient:
         matches a write definition of `circuit` it loaded. `source`: "ff", or None for ebusd's own address."""
         prefix = f"-s {source} " if source else ""
         return await self._command(f"write {prefix}-c {circuit} -h {telegram}")
+
+    async def write_broadcast(self, telegram: str, in_time: Callable[[], bool]) -> str:
+        """Send the date and time broadcast, from ebusd's own address, if `in_time()` still holds once the
+        connection is free (EbusdLate otherwise, nothing sent)."""
+        return await self._command(f"write -c Broadcast -h {telegram}", in_time)
+
+    async def last_broadcast_of_clock(self) -> str:
+        """What ebusd holds of the last date and time broadcast: source, data, time of receipt. From its cache."""
+        return await self._command("find -p -h -vvv -c broadcast Datetime")
 
     async def probe_write(self, telegram: str) -> str:
         """Ask ebusd to match a write telegram against its definitions under a circuit name no message has: it

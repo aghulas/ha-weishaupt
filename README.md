@@ -108,7 +108,8 @@ register they do not describe is not shown. Limits a second installation should 
 - **Not a climate entity**: settings are numbers, selects and texts; no `climate` or `water_heater` entity yet.
 
 **Reporting a problem**: open an issue with the diagnostics download (Settings → Devices & services → Weishaupt →
-⋮ → Download diagnostics). It holds no address of ebusd, no file path and no user id; it does hold the values read.
+⋮ → Download diagnostics). It holds no address of ebusd, no file path, no entry id and no user id; it does hold
+the values read.
 
 ## Installation
 
@@ -609,6 +610,7 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
+- 0.8.0b2: the diagnostics download redacts the config entry id too, wherever it appears.
 - 0.8.0b1: ready for a second installation: devices that appear later reload the entry, a device
   absent for 7 days gets a repair offering its removal (confirmed by the user); diagnostics
   without user ids or addresses; icons; issue templates; a section on supported devices and

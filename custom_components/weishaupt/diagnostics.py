@@ -1,7 +1,7 @@
 """Diagnostics download: what ebusd reported, what was compared, how the reader fares.
 
 Nothing that identifies a site or a person: the address of ebusd, the path of the telegram log, the title of the
-entry and the Home Assistant user ids of the write journal are redacted, and the bus gives no serial number. The
+entry, its id and the Home Assistant user ids of the write journal are redacted, and the bus gives no serial number. The
 values read are included (temperatures, counters, settings): they are what a report about another boiler model or
 software version needs. A test checks that none of the redacted values appears anywhere in the download."""
 from __future__ import annotations
@@ -18,14 +18,14 @@ from .const import DOMAIN
 from .model import ACCEPTED_DEFINITIONS
 
 # keys redacted wherever they appear (async_redact_data walks nested dicts and lists)
-TO_REDACT = {CONF_HOST, "unique_id", "title", "telegram_db", "user_id", "context_user_id"}
+TO_REDACT = {CONF_HOST, "unique_id", "entry_id", "title", "telegram_db", "user_id", "context_user_id"}
 
 
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]:
     # the values behind the redacted keys also appear inside texts (an error naming ebusd's address, a path):
     # replaced wherever they are found
-    secrets = [str(v) for v in (entry.data.get(CONF_HOST), entry.options.get("telegram_db"), entry.unique_id)
-               if v and len(str(v)) > 2]
+    secrets = [str(v) for v in (entry.data.get(CONF_HOST), entry.options.get("telegram_db"), entry.unique_id,
+                                entry.entry_id) if v and len(str(v)) > 2]
     secrets += [user.id for user in await hass.auth.async_get_users()]
     data = async_redact_data(_collect(hass, entry), TO_REDACT)
     return _scrub(data, sorted(set(secrets), key=len, reverse=True)) | {"redacted": sorted(TO_REDACT)}

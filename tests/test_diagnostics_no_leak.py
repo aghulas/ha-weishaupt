@@ -18,10 +18,14 @@ async def test_no_host_path_or_user_id_leaks(hass, fake, log, hass_admin_user):
     await writer.async_write("em2/RoomNormalTemp", 22.0, hass_admin_user.id)
     # an error that names ebusd's address, as a lost connection does
     hub.statistics.last_error = f"cannot connect to ebusd: Connect call failed ('127.0.0.1', {fake.port})"
+    # the entry id inside a text and a nested snapshot, as an issue id or a unique id would carry it
+    hub.metadata_refused = {"note": f"definitions_file_{entry.entry_id}"}
     data = await async_get_config_entry_diagnostics(hass, entry)
     text = json.dumps(data)
     assert hass_admin_user.id not in text
     assert "127.0.0.1" not in text
+    assert entry.entry_id not in text  # the entry id, as a key's value and inside texts
+    assert data["entry"]["entry_id"] == "**REDACTED**"
     assert str(log) not in text
     assert data["writes"]["journal"][0]["user_id"] == "**REDACTED**"
     assert "user_id" in data["redacted"]

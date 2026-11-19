@@ -98,6 +98,8 @@ class Hub:
         self.available = True
         self._listeners: dict[str, list[CALLBACK_TYPE]] = {}
         self._availability_listeners: list[CALLBACK_TYPE] = []
+        # told of each reading without causing any (the panel): key of the message, or None for the availability
+        self._observers: list[Callable[[str | None], None]] = []
         self._due: dict[str, float] = {}
         self._failures: dict[str, int] = {}
         self._last_request = 0.0
@@ -375,11 +377,27 @@ class Hub:
     def _notify(self, key: str) -> None:
         for update in list(self._listeners.get(key, ())):
             update()
+        for observer in list(self._observers):
+            observer(key)
+
+    @callback
+    def async_observe(self, observer: Callable[[str | None], None]) -> CALLBACK_TYPE:
+        """Call `observer` with the key of each message read (None when the availability changes). Unlike
+        `async_listen`, observing asks nothing: what nobody listens to is not read (the panel shows it as such)."""
+        self._observers.append(observer)
+
+        @callback
+        def remove() -> None:
+            self._observers.remove(observer)
+
+        return remove
 
     def _set_available(self, available: bool, reason: str = "") -> None:
         if available == self.available:
             return
         self.available = available
+        for observer in list(self._observers):
+            observer(None)
         if available:
             _LOGGER.info("ebusd answers again")
         else:

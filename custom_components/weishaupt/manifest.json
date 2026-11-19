@@ -1,7 +1,15 @@
 {
   "domain": "weishaupt",
   "name": "Weishaupt WTC / WCM (ebusd, unofficial)",
-  "codeowners": ["@aghulas"],
+  "after_dependencies": [
+    "frontend",
+    "http",
+    "panel_custom",
+    "websocket_api"
+  ],
+  "codeowners": [
+    "@aghulas"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/aghulas/ha-weishaupt",
   "integration_type": "hub",

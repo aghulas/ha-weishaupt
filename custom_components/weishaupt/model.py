@@ -56,6 +56,7 @@ class Field:
     minimum: float | None = None
     maximum: float | None = None
     step: float | None = None
+    description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
 
     @property
     def shown(self) -> bool:
@@ -99,6 +100,7 @@ class Message:
     write: WriteConditions | None = None
     renamed_from: str | None = None  # key of the message in the releases before the rename
     read: bool = True  # False: a write-only message (the date and time broadcast), which no read compares
+    description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
 
     @property
     def writable(self) -> bool:
@@ -110,6 +112,15 @@ class Message:
 
     def field(self, name: str) -> Field | None:
         return next((f for f in self.fields if f.name == name), None)
+
+
+@dataclass(frozen=True)
+class Menu:
+    """A menu of a type of device, as the vendor's controllers and service tool organise their values."""
+
+    id: str
+    parent: str  # "" for a top menu
+    label: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -276,6 +287,7 @@ class Model:
         return tuple(g for g in self.groups.values() if g.family == "program"
                      and all(self.messages[k].write is not None for k in g.members))
     _by_circuit: dict[str, Device] = field(default_factory=dict)
+    menus: dict[str, tuple[Menu, ...]] = field(default_factory=dict)  # device type -> its menus, in order
 
     @classmethod
     def load(cls, path: Path = METADATA_FILE) -> Model:
@@ -296,6 +308,8 @@ class Model:
         model = cls(data["definitions"]["version"], data["definitions"].get("commit", ""),
                     tuple(data["languages"]), devices, messages, groups)
         model._by_circuit = {c.circuit: d for d in devices.values() for c in d.circuits}
+        model.menus = {kind: tuple(Menu(m["id"], m.get("parent") or "", m["label"]) for m in items)
+                       for kind, items in data.get("menus", {}).items()}
         model.value_entities = _value_entities(model)
         model.group_entities = _group_entities(model)
         model.setting_entities = _setting_entities(model)
@@ -336,7 +350,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
               f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
-              f.get("min"), f.get("max"), f.get("step"))
+              f.get("min"), f.get("max"), f.get("step"), f.get("description"))
         for index, f in enumerate(data["fields"]))
     write = data.get("write")
     conditions = None if write is None else WriteConditions(
@@ -345,7 +359,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
-                   conditions, data.get("renamed_from"), bool(data.get("read", True)))
+                   conditions, data.get("renamed_from"), bool(data.get("read", True)), data.get("description"))
 
 
 def _base_type(name: str) -> str:

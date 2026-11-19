@@ -18,6 +18,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv, device_registry as dr, entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.loader import async_get_integration
 
 from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
 from .ebusd import EbusdClient, EbusdError
@@ -25,6 +26,7 @@ from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
 from .metadata_file import FOLDER as METADATA_FOLDER, choose
 from .model import ACCEPTED_DEFINITIONS
+from .panel import async_setup_panel
 from .services import async_register_services
 from .writer import Writer
 
@@ -36,8 +38,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """The action of the integration (`services.py`), registered once whatever the entries."""
+    """The action of the integration (`services.py`) and the panel (`panel.py`), registered once whatever the
+    entries."""
     async_register_services(hass)
+    integration = await async_get_integration(hass, DOMAIN)
+    await async_setup_panel(hass, str(integration.version))
     return True
 
 

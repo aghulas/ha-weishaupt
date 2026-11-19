@@ -470,6 +470,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.4.0: the code of 0.4.0b2. On a heating system: definitions 0.5.9 beside the configuration
+  used at a reload without a restart, a corrupted copy refused with the bundled definitions kept.
 - 0.4.0b2: no repair issue for a file in use, only for a refused one; entities of messages the
   shipped translations do not name yet are named from the labels of the definitions.
 - 0.4.0b1: definitions from a verified file beside the configuration, used at a reload.

@@ -31,5 +31,6 @@ DOCUMENTATION_URL = "https://github.com/aghulas/ha-weishaupt"
 
 # Writes
 EVENT_WRITE = f"{DOMAIN}_write"
+EVENT_CHANGE = f"{DOMAIN}_change"  # one per change asked by a user, for the logbook (logbook.py)
 PENDING_TTL = 900  # seconds a requested change of a regulation setting waits for its confirmation
 JOURNAL_SIZE = 50  # writes kept for the diagnostics download

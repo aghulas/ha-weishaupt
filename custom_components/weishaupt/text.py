@@ -4,8 +4,9 @@ when writes are enabled, and only for the programs whose slots have write condit
 heating program 1 of room unit 3; never room unit 2). Heating program 1 is enabled when created, the others not.
 Comfort class: setting a day writes its three slots at once, through the guard, and reads them back.
 
-The pattern gives the shape (Home Assistant marks a text of another shape and refuses it with its own message);
-the integration checks the rest — quarters of an hour, order, overlap — with translated messages. The last write
+The entity has no pattern: Home Assistant would refuse a text that does not match it with its own message, the raw
+regular expression. Every text reaches the integration, which checks the shape, the quarters of an hour, the order
+and the overlap, and refuses with a translated message that shows the expected format. The last write
 of the day is in the attribute `last_write`: time, before -> after, the frames, the result of the read-back."""
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ from .entity import WeishauptEntity
 from .guard import WriteRefused
 from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import WEEKDAYS
-from .programs import MAX_LENGTH, PATTERN, Program
+from .programs import MAX_LENGTH, Program
 from .writer import WriteFailed
 
 PARALLEL_UPDATES = 1
@@ -41,7 +42,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
 class ProgramDayText(WeishauptEntity, TextEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_max = MAX_LENGTH
-    _attr_pattern = PATTERN
     # its three slots are read right after the numbers and selects (within that class the 24-hour interval of the
     # programs comes after the 6 hours of the settings), not after the whole first pass
     _read_priority = SETTING_PRIORITY
@@ -52,6 +52,10 @@ class ProgramDayText(WeishauptEntity, TextEntity):
                          f"program_{program.group}_{name}", program.day_keys(day))
         self._program, self._day = program, day
         self._attr_entity_registry_enabled_default = program.group == ENABLED_PROGRAM
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.hub.writer.entity_ids[(self._program.key, self._day)] = self.entity_id
 
     @property
     def native_value(self) -> str | None:

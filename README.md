@@ -221,13 +221,16 @@ ebusd's own address as the definitions prove. Only the slots that change are wri
 seconds: the three slots are read first, then each changed slot is written and read back, every
 request at the pace of the bus (one every 2 s by default), so about 8 s for one changed slot. Each
 day written is kept in the attribute `last_write` of its text entity (time, before, after, the frames
-sent, the result of the read-back; numbers and selects have the same attribute) and gives an info
-line in the log (`PROGRAM <device> <program> <day>: <before> -> <after>, frames …: read back ok`),
-visible only with `logger:` / `logs:` / `custom_components.weishaupt: info` in `configuration.yaml`,
-since Home Assistant logs warnings and above by default; a write that fails or stops halfway gives a short notification. The text entity declares the shape of a day as its pattern (up to three ranges HH:MM-HH:MM, or `-`):
-Home Assistant refuses a text of another shape with its own message; a text of the right shape that
-is wrong (not a quarter of an hour, start after end, overlap) is refused with a translated message
-that says why and shows the format. A slot with
+sent, the result of the read-back; numbers and selects have the same attribute) and gives an entry
+in the **logbook** of the entity (*Activity*, or the logbook panel): `<before> → <after> (<frames>):
+read back ok`, one entry per day, per setting and per clock broadcast, visible without any setting.
+The same facts go to the log at info level (`PROGRAM <device> <program> <day>: …`, `WRITE …`),
+which Home Assistant shows only with `logger:` / `logs:` / `custom_components.weishaupt: info` in
+`configuration.yaml`; a write that fails or stops halfway gives a short notification. A text that is
+not a valid day (`2h-3h`, `25:00-26:00`, start after end, overlap, more than three ranges) is
+refused with a translated message that says why and shows the format: the text entity has no
+pattern, since Home Assistant would refuse a text that does not match it with the raw regular
+expression as its message. A slot with
 only one of its two times enabled is shown as unused and is rewritten unused.
 
 The action **`weishaupt.set_program`** (device, program, and the days to change) writes several
@@ -319,7 +322,9 @@ programs).
 
 A value equal to the current one is not written. Every write sent gives a log line (`WRITE …`), an
 event `weishaupt_write` (setting, register, source, value before, requested, read back, result,
-telegram, user) and an entry in the diagnostics download (the last 50).
+telegram, user) and an entry in the diagnostics download (the last 50). Each change asked by a user
+(a setting, a program day, the clock) also gives an event `weishaupt_change`, which the logbook
+shows on the entity.
 
 **How the run-time checksum is checked.** Today's builds do not announce it, and the version
 string of the fork's build is the same as a stock one's. At start-up (only when writes are
@@ -438,11 +443,12 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.1: each change written gives a logbook entry on its entity, visible without a `logger:`
+  setting; a malformed program day gets the translated message, not Home Assistant's raw pattern.
 - 0.3.0: the code of 0.3.0rc6, proven on a heating system: after a restart the settings were read
-  from the devices within 5 minutes and the enabled program days within 12; writes of numbers,
-  choices, program days and the clock, each read back. Known limits: the log lines are at info
-  level (see the `logger:` setting above); a malformed program day is refused by Home Assistant
-  with its raw pattern.
+  from the devices within 5 minutes and the enabled program days within 6; writes of numbers,
+  choices, program days and the clock, each read back. Known limits (fixed in 0.3.1): the log lines
+  are at info level; a malformed program day is refused by Home Assistant with its raw pattern.
 - 0.3.0rc6: a first pass that asks every enabled message from the device and ends, settings and
   program days first; `last_write` attributes; the pattern of the program days back.
 - 0.3.0rc5: a log line per program day written, a notification when a program write fails, clear

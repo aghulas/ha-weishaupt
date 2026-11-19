@@ -46,6 +46,7 @@ from .const import (
     CONF_TELEGRAM_DB,
     DEFAULT_TELEGRAM_DB,
     DOMAIN,
+    EVENT_CHANGE,
     EVENT_WRITE,
     JOURNAL_SIZE,
     PENDING_TTL,
@@ -100,6 +101,19 @@ def _text(spec: WriteSpec, value: float, language: str = "en") -> str:
     return f"{value:.{spec.decimals}f}" + (f" {spec.unit}" if spec.unit else "")
 
 
+# The result of a change, in the words of the logbook entry.
+RESULT_TEXT = {
+    "en": {"ok": "read back ok", "read back ok": "read back ok", "unchanged": "unchanged, nothing sent",
+           "nothing to write": "unchanged, nothing sent", "not taken": "not taken over by the device",
+           "different": "the device holds another value", "not sent": "not sent", "connection lost": "not sent",
+           "no read-back": "sent, not read back", "sent": "sent", "given up": "given up, nothing sent"},
+    "fr": {"ok": "relu correct", "read back ok": "relu correct", "unchanged": "inchangé, rien envoyé",
+           "nothing to write": "inchangé, rien envoyé", "not taken": "non repris par l'appareil",
+           "different": "l'appareil a une autre valeur", "not sent": "non envoyé", "connection lost": "non envoyé",
+           "no read-back": "envoyé, non relu", "sent": "envoyé", "given up": "abandonné, rien envoyé"},
+}
+
+
 # What the source address of a write is, in the words of the confirmation and of the notification.
 SOURCE_TEXT = {
     "en": {"ff": "address of the vendor service tool", "31": "ebusd's own address"},
@@ -145,6 +159,8 @@ class Writer:
         self.pending: dict[str, Pending] = {}
         self.programs: dict[str, Program] = {}  # programs whose slots the definitions prove writable
         self.last_day_writes: dict[tuple[str, int], dict[str, Any]] = {}  # (program, day) -> last write
+        # entity of each setting key, (program, day) and the clock, for the logbook entry of a change
+        self.entity_ids: dict[Any, str] = {}
         self.slot_specs: dict[str, SlotSpec] = {}
         self.clock_writable = False  # the date and time broadcast: write conditions and its write definition
         self.last_clock: clock.Broadcast | None = None
@@ -492,6 +508,7 @@ class Writer:
             self.last_day_writes[(program.key, day)] = {
                 "time": dt_util.now().isoformat(timespec="seconds"), "before": before.get(day, "?"), "after": after,
                 "frames": frames, "result": result}
+            self._change((program.key, day), before.get(day, "?"), after, frames, result)
             self.hub.notify(keys[0])  # the text shows its new attribute
 
     def _notify_program_failure(self, program: Program, written: int, total: int, err: Exception) -> None:
@@ -604,6 +621,20 @@ class Writer:
         _LOGGER.log(level, "CLOCK %s (telegram %s from 31): %s", entry["requested"], entry["telegram"],
                     entry["result"])
         self.hass.bus.async_fire(EVENT_WRITE, {"entry_id": self.hub.entry.entry_id} | entry)
+        self._change(CLOCK_KEY, None, entry["requested"], [entry["frame"]] if entry["result"] == "sent" else [],
+                     entry["result"])
+
+    def _change(self, target: Any, before: str | None, after: str, frames: list[str], result: str) -> None:
+        """One event per change a user asked for, which the logbook shows on the entity (logbook.py): visible
+        without any log setting. A program day is one change, whatever the number of its slots written."""
+        language = self._language()
+        words = RESULT_TEXT[language]
+        text = after if before is None else f"{before} → {after}"
+        if frames:
+            text += f" ({', '.join(frames)})"
+        self.hass.bus.async_fire(EVENT_CHANGE, {
+            "entry_id": self.hub.entry.entry_id, "entity_id": self.entity_ids.get(target),
+            "message": f"{text}: {words.get(result, result)}"})
 
     def _trace(self, spec: WriteSpec, entry: dict[str, Any]) -> None:
         """A log line, an event and a line of the journal for each write attempted past the guard."""
@@ -613,6 +644,11 @@ class Writer:
                     entry["requested"], entry["telegram"], spec.source, entry["before"], entry["read_back"],
                     entry["result"])
         self.hass.bus.async_fire(EVENT_WRITE, {"entry_id": self.hub.entry.entry_id} | entry)
+        if spec.key not in self.slot_specs:  # a slot is part of a program day, which has its own entry
+            language = self._language()
+            sent = entry["result"] not in ("unchanged", "not sent", "connection lost")
+            self._change(spec.key, _text(spec, entry["before"], language), _text(spec, entry["requested"], language),
+                         [entry["frame"]] if sent else [], entry["result"])
 
     def snapshot(self) -> dict[str, Any]:
         return {

@@ -35,6 +35,10 @@ class SetClockButton(WeishauptEntity, ButtonEntity):
     def __init__(self, hub: Hub, device) -> None:
         super().__init__(hub, device, "broadcast/Datetime/set", "set_clock", ())
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.hub.writer.entity_ids[CLOCK_KEY] = self.entity_id
+
     async def async_press(self) -> None:
         user_id = self._context.user_id if self._context else None
         try:

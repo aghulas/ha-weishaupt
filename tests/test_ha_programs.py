@@ -52,8 +52,9 @@ async def test_program_entities(hass, fake, log):
     assert text_id(hass, entry, "em1/dhw", "monday") is not None
     await settled(hass, entry)
     monday = hass.states.get(text_id(hass, entry, "fs1/heating1", "monday"))
-    # the pattern gives the shape of a day; the integration checks the rest
-    assert monday.state == "06:30-18:00" and monday.attributes["pattern"] and monday.attributes["max"] == 50
+    # no pattern: every text reaches the integration and its translated messages (Home Assistant's own refusal of a
+    # pattern shows the raw regular expression)
+    assert monday.state == "06:30-18:00" and monday.attributes["pattern"] is None and monday.attributes["max"] == 255
     assert monday.attributes["last_write"] is None
     assert monday.attributes["friendly_name"].endswith("Heating program 1 – Monday (setting)")
     assert hass.states.get(text_id(hass, entry, "fs1/heating1", "sunday")).state == "-"
@@ -79,6 +80,8 @@ async def test_a_day_written_and_read_back(hass, fake, log):
 @pytest.mark.parametrize("text,code,part", [
     ("06:20-18:00", "bad_day_quarter", "06:20-18:00"),
     ("6h30 to 18h", "bad_day_format", "6h30 to 18h"),
+    ("2h-3h", "bad_day_format", "2h-3h"),
+    ("x" * 120, "bad_day_format", "x" * 120),
     ("18:00-06:30", "bad_day_order", "18:00-06:30"),
     ("06:30-12:00, 11:00-18:00", "bad_day_overlap", ""),
     ("00:00-01:00, 02:00-03:00, 04:00-05:00, 06:00-07:00", "bad_day_too_many", ""),
@@ -93,17 +96,11 @@ async def test_a_day_that_is_no_day_is_refused(hass, fake, log, text, code, part
     assert err.value.placeholders["part"] == part
     assert fake.writes == [] and fake.reads_of() == []
     entity_id = text_id(hass, entry, "fs1/heating1", "monday")
-    if code in ("bad_day_format", "bad_day_too_many"):
-        # not the shape of a day: Home Assistant refuses it through the pattern of the text entity, before the
-        # integration; the action set_program, which has no pattern, gets the translated message
-        with pytest.raises(ValueError):
-            await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text},
-                                           blocking=True)
-    else:
-        with pytest.raises(ServiceValidationError) as shown:
-            await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text},
-                                           blocking=True)
-        assert shown.value.translation_key == code
+    # whatever is wrong, the entity gets the translated message, not Home Assistant's raw pattern refusal
+    with pytest.raises(ServiceValidationError) as shown:
+        await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text},
+                                       blocking=True)
+    assert shown.value.translation_key == code
     from custom_components.weishaupt import DOMAIN as _domain  # noqa: F401
     import json
     from pathlib import Path
@@ -127,6 +124,21 @@ async def test_a_program_write_is_logged_day_by_day(hass, fake, log, caplog):
     last = hass.states.get(text_id(hass, entry, "fs1/heating1", "sunday")).attributes["last_write"]
     assert (last["before"], last["after"], last["frames"], last["result"]) == ("-", "02:00-02:15", [frame],
                                                                                "read back ok")
+
+
+async def test_a_program_day_gives_one_logbook_entry(hass, fake, log):
+    """One logbook entry for the day on its text entity, not one per slot."""
+    from pytest_homeassistant_custom_component.common import async_capture_events
+    from custom_components.weishaupt.const import EVENT_CHANGE
+    entry, writer = await writing(hass, fake, log)
+    changes = async_capture_events(hass, EVENT_CHANGE)
+    await writer.async_write_day("fs1/heating1", 7, "02:00-02:15, 03:00-03:15", None)
+    await hass.async_block_till_done()
+    assert len(changes) == 1
+    data = changes[0].data
+    assert data["entity_id"] == text_id(hass, entry, "fs1/heating1", "sunday")
+    assert data["message"].startswith("- → 02:00-02:15, 03:00-03:15 (31") and data["message"].endswith(
+        "): read back ok")
 
 
 async def test_a_failed_program_write_notifies(hass, fake, log, monkeypatch):

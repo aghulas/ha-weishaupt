@@ -8,7 +8,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er, issue_registry as ir
 from pytest_homeassistant_custom_component.common import async_capture_events
 
-from custom_components.weishaupt.const import DOMAIN, EVENT_WRITE
+from custom_components.weishaupt.const import DOMAIN, EVENT_CHANGE, EVENT_WRITE
 from custom_components.weishaupt.guard import WriteRefused
 from custom_components.weishaupt.writer import ConfirmationPending, WriteFailed
 from ha_common import make_entry, settled, setup, state_of
@@ -117,6 +117,22 @@ async def test_comfort_setting_written_directly(hass, fake, log):
     assert (event["key"], event["before"], event["requested"], event["read_back"], event["result"]) == (
         "em2/RoomNormalTemp", 21.5, 22.0, 22.0, "ok")
     assert event["telegram"] == "51502305640500dc00" and event["source"] == "ff" and event["risk"] == "comfort"
+
+
+async def test_a_change_gives_a_logbook_entry(hass, fake, log):
+    """Each change asked by a user gives one logbook entry on its entity: visible without any log setting, unlike
+    the info line. Before -> after with the unit, the frame, the result in words."""
+    from custom_components.weishaupt.logbook import async_describe_events
+    entry, writer = await writing(hass, fake, log)
+    changes = async_capture_events(hass, EVENT_CHANGE)
+    entity_id = number_id(hass, entry, "em2/RoomNormalTemp")
+    await hass.services.async_call("number", "set_value", {"entity_id": entity_id, "value": 22}, blocking=True)
+    await hass.async_block_till_done()
+    described = {}
+    async_describe_events(hass, lambda domain, event_type, describe: described.update({event_type: describe}))
+    [first] = (described[EVENT_CHANGE](event) for event in changes)
+    assert first["entity_id"] == entity_id and first["name"] == hass.states.get(entity_id).name
+    assert first["message"] == "21.5 °C → 22.0 °C (ff51502305640500dc00): read back ok"
 
 
 async def test_regulation_setting_needs_a_confirmation(hass, fake, log, entity_registry_enabled_by_default):

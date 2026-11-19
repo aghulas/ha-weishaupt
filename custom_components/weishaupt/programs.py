@@ -26,10 +26,10 @@ _RANGE = re.compile(r"^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$")
 # What a text entity accepts: the shape of a day (up to three ranges HH:MM-HH:MM, or -). Home Assistant checks it,
 # in its form and in the action, and refuses with its own message; what the shape lets through but is wrong
 # (not a quarter of an hour, start after end, overlap) is refused by `parse_day` with a translated message.
-PATTERN = r"^\s*(-|(\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2})(\s*,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}){0,2})?\s*$"
-# Up to three ranges of 11 characters and their separators, with room for spaces around them; a longer text cannot
-# be a valid day (the pattern refuses it anyway).
-MAX_LENGTH = 50
+# Longest text a day entity takes: Home Assistant's own limit for a state. A valid day is at most 37 characters;
+# anything else, of whatever length or shape, reaches `parse_day` and gets its translated message. A pattern on the
+# entity would be refused by Home Assistant itself, with its raw regular expression as the message.
+MAX_LENGTH = 255
 
 
 class DayError(ValueError):

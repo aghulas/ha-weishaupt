@@ -54,6 +54,10 @@ class SettingEntity(WeishauptEntity):
                          (message.key,))
         self._spec = spec
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.hub.writer.entity_ids[self._spec.key] = self.entity_id
+
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         spec = self._spec

@@ -1,0 +1,17 @@
+{
+  "name": "weishaupt-panel",
+  "private": true,
+  "description": "The read-only panel of the ha-weishaupt integration, built into custom_components/weishaupt/frontend/dist",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && node build.mjs",
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "lit": "3.2.1",
+    "typescript": "5.6.3"
+  }
+}

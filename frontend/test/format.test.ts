@@ -1,0 +1,59 @@
+// The pure functions of the panel, run by `node --test` on the TypeScript sources (type stripping).
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { bars, formatAge, formatRange, formatValue, languageOf, menuTree, missingReason, STRINGS, t } from "../src/format.ts";
+import type { Row } from "../src/types.ts";
+
+const row = (extra: Partial<Row> = {}): Row => ({
+  key: "em2/RoomNormalTemp/value", message: "em2/RoomNormalTemp", index: 0, menu: "settings", kind: "setting",
+  label: { en: "Normal room temperature", fr: "Température ambiante normale" }, description: null, unit: "°C",
+  type: "UIN", values: null, range: { min: 16, max: 35, step: 0.5 }, writable: null, read: true, passive: false,
+  entity_id: "number.x", ...extra,
+});
+
+test("both languages have the same words", () => {
+  assert.deepEqual(Object.keys(STRINGS.fr).sort(), Object.keys(STRINGS.en).sort());
+});
+
+test("language: base of a regional code, English for any other", () => {
+  assert.equal(languageOf("fr-CA"), "fr");
+  assert.equal(languageOf("de"), "en");
+  assert.equal(languageOf(undefined), "en");
+  assert.equal(t("fr", "seconds_ago", { n: 5 }), "il y a 5 s");
+});
+
+test("values: unit, value-list label, not available, unread", () => {
+  assert.equal(formatValue(row(), { values: ["21.5"], when: 0 }, "en"), "21.5 °C");
+  const list = row({ unit: null, values: { Monday: { en: "Monday", fr: "Lundi" } } });
+  assert.equal(formatValue(list, { values: ["Monday"], when: 0 }, "fr"), "Lundi");
+  assert.equal(formatValue(row(), { values: ["-"], when: 0 }, "fr"), "non disponible");
+  assert.equal(formatValue(row(), undefined, "en"), null);
+});
+
+test("why a row has no value", () => {
+  assert.equal(missingReason(row({ read: false })), "not_loaded");
+  assert.equal(missingReason(row({ entity_id: null })), "not_listened");
+  assert.equal(missingReason(row({ entity_id: null, passive: true })), "waiting");
+  assert.equal(missingReason(row()), "waiting");
+});
+
+test("ages and ranges", () => {
+  assert.equal(formatAge(42, "en"), "42 s ago");
+  assert.equal(formatAge(600, "fr"), "il y a 10 min");
+  assert.equal(formatAge(7200, "en"), "2 h ago");
+  assert.equal(formatRange(row()), "16 – 35 °C (0.5)");
+  assert.equal(formatRange(row({ range: null })), "");
+});
+
+test("week grid bars in percent of the day", () => {
+  assert.deepEqual(bars([["06:00", "18:00"]]), [{ left: 25, width: 50, text: "06:00-18:00" }]);
+  assert.equal(bars([["00:00", "24:00"]])[0].width, 100);
+});
+
+test("menus as a tree, children after their parent", () => {
+  const menus = [
+    { id: "info", parent: "" }, { id: "process", parent: "" }, { id: "info_sensors", parent: "info" },
+    { id: "orphan", parent: "gone" },
+  ];
+  assert.deepEqual(menuTree(menus).map(([m, d]) => `${m.id}:${d}`), ["info:0", "info_sensors:1", "process:0", "orphan:0"]);
+});

@@ -7,7 +7,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && node build.mjs",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.ts"
   },
   "devDependencies": {
     "esbuild": "0.24.0",

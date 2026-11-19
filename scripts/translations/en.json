@@ -134,6 +134,25 @@
           "removed": "{count} entities of version 0.1 were removed from the registry."
         }
       }
+    },
+    "device_absent": {
+      "title": "{device} has not been on the bus for {days} days",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Remove {device}",
+            "description": "{device} has not answered on the bus for days. If it was removed from the installation, remove it from Home Assistant: the device and its entities are deleted from the registries, their history stays in the recorder until it is purged.\n\nIf it is only switched off, leave it: it comes back by itself when it answers again, and this repair goes away.\n\nNothing is removed until you confirm here.",
+            "submit": "Remove the device"
+          }
+        },
+        "abort": {
+          "no_entry": "The integration entry is not loaded: nothing was removed.",
+          "device_back": "The device answers again or was already removed: nothing to do."
+        },
+        "create_entry": {
+          "removed": "{device} and its entities were removed."
+        }
+      }
     }
   },
   "exceptions": {

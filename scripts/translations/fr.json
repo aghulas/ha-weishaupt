@@ -134,6 +134,25 @@
           "removed": "{count} entités de la version 0.1 ont été retirées du registre."
         }
       }
+    },
+    "device_absent": {
+      "title": "{device} n'est plus sur le bus depuis {days} jours",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Supprimer {device}",
+            "description": "{device} ne répond plus sur le bus depuis plusieurs jours. S'il a été retiré de l'installation, retirez-le de Home Assistant : l'appareil et ses entités sont supprimés des registres, leur historique reste dans l'enregistreur jusqu'à sa purge.\n\nS'il est seulement éteint, laissez-le : il revient de lui-même quand il répond de nouveau, et cette réparation disparaît.\n\nRien n'est supprimé tant que vous ne confirmez pas ici.",
+            "submit": "Supprimer l'appareil"
+          }
+        },
+        "abort": {
+          "no_entry": "L'entrée de l'intégration n'est pas chargée : rien n'a été supprimé.",
+          "device_back": "L'appareil répond de nouveau ou a déjà été supprimé : rien à faire."
+        },
+        "create_entry": {
+          "removed": "{device} et ses entités ont été supprimés."
+        }
+      }
     }
   },
   "exceptions": {

@@ -23,7 +23,44 @@ from .writer import CLOCK_KEY, WriteFailed, _text
 async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None) -> RepairsFlow:
     if (data or {}).get("kind") == "old_entities":
         return RemoveOlderEntitiesFlow(data or {})
+    if (data or {}).get("kind") == "device_absent":
+        return RemoveAbsentDeviceFlow(data or {})
     return ConfirmWriteFlow(data or {})
+
+
+class RemoveAbsentDeviceFlow(RepairsFlow):
+    """A device missing from the bus for days: removed with its entities only when the user confirms, and only if
+    it is still missing then."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._entry_id = data.get("entry_id")
+        self._device = data.get("device")
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        from homeassistant.helpers import device_registry as dr
+        from homeassistant.helpers import issue_registry as ir
+
+        from .const import DOMAIN
+        from .devices import issue_id, registered
+        entry = self.hass.config_entries.async_get_entry(self._entry_id) if self._entry_id else None
+        if entry is None:
+            return self.async_abort(reason="no_entry")
+        watch = self.hass.data.get(f"{DOMAIN}_device_watch", {}).get(entry.entry_id)
+        device = registered(self.hass, entry).get(self._device or "")
+        if device is None or watch is None or self._device not in watch.absent:
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id(entry, self._device or ""))
+            return self.async_abort(reason="device_back")
+        name = device.name_by_user or device.name or self._device
+        if user_input is None:
+            return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}),
+                                        description_placeholders={"device": name})
+        dr.async_get(self.hass).async_update_device(device.id, remove_config_entry_id=entry.entry_id)
+        watch.absent.pop(self._device, None)
+        ir.async_delete_issue(self.hass, DOMAIN, issue_id(entry, self._device))
+        return self.async_create_entry(data={}, description="removed", description_placeholders={"device": name})
 
 
 class RemoveOlderEntitiesFlow(RepairsFlow):

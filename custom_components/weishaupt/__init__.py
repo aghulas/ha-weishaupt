@@ -22,6 +22,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
 from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
+from .devices import DeviceWatch
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
@@ -99,6 +100,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _update_file_issue(hass, entry, hub)
     _remove_stale(hass, entry, hub)
+    watch = DeviceWatch(hass, entry, hub)
+    hass.data.setdefault(f"{DOMAIN}_device_watch", {})[entry.entry_id] = watch
+    await watch.async_start()
     entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
@@ -270,6 +274,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -
     # what was read before the reload: a message missing from it after the reload is read first
     hub = entry.runtime_data
     hub.async_close()  # the panel looks for the hub of the reloaded entry
+    hass.data.get(f"{DOMAIN}_device_watch", {}).pop(entry.entry_id, None)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"listened": hub.listened(), "readings": dict(hub.readings)}
     if entry.runtime_data.writer is not None:
         entry.runtime_data.writer.drop_all_pending()
@@ -280,6 +285,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     from homeassistant.helpers.storage import Store
     await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.writes").async_remove()
+    await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.devices").async_remove()
     for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities", "old_entities"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 

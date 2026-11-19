@@ -15,6 +15,7 @@ from homeassistant.components.repairs import RepairsFlow
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
+from . import clock
 from .guard import WriteRefused
 from .writer import CLOCK_KEY, WriteFailed, _text
 
@@ -42,8 +43,11 @@ class ConfirmWriteFlow(RepairsFlow):
         if pending is None:
             return self.async_abort(reason="expired")
         if user_input is None:
+            shown = dict(pending.placeholders)
+            if pending.key == CLOCK_KEY:  # the time it would send if confirmed now: second 00 of the next minute
+                shown["send_at"] = clock.next_minute(writer._now()).strftime("%H:%M:%S")
             return self.async_show_form(step_id="confirm", data_schema=vol.Schema({}),
-                                        description_placeholders=pending.placeholders)
+                                        description_placeholders=shown)
         placeholders = dict(pending.placeholders)
         try:
             entry = await writer.async_confirm(self._pending_id, self.context.get("user_id"))

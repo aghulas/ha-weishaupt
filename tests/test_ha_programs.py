@@ -243,6 +243,8 @@ async def test_set_clock_at_second_00(hass, fake, log):
     manager = repairs_flow_manager(hass)
     result = await manager.async_init(DOMAIN, data={"issue_id": issue.issue_id})
     assert result["step_id"] == "confirm"
+    # the dialog shows the time it would send, computed when it opens
+    assert result["description_placeholders"]["send_at"] == "11:45:00"
     result = await manager.async_configure(result["flow_id"], {})
     assert result["type"] == "create_entry" and result["description"] == "sent"
     assert result["description_placeholders"]["sent"] == "11:45:00"

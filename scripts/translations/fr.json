@@ -93,7 +93,7 @@
         "step": {
           "confirm": {
             "title": "Régler l'horloge — {device}",
-            "description": "- Maître d'horloge actuellement : {current} par rapport à l'horloge de l'hôte d'ebusd\n- Enverra : **{requested}**, à la seconde 00 de la minute suivante exactement\n- Diffusé à l'adresse de bus `{address}`, commande `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nTous les régulateurs reprennent l'heure, secondes comprises. Si le bus n'est pas libre dans les {late} s suivant la seconde 00, rien n'est envoyé.",
+            "description": "- Maître d'horloge actuellement : {current} par rapport à l'horloge de l'hôte d'ebusd\n- Enverra **{send_at}** à {send_at} exactement ({requested}, à la seconde 00 de la minute suivante). Si vous confirmez après le début de cette minute, c'est la minute suivante qui est utilisée\n- Diffusé à l'adresse de bus `{address}`, commande `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nTous les régulateurs reprennent l'heure, secondes comprises. Si le bus n'est pas libre dans les {late} s suivant la seconde 00, rien n'est envoyé.",
             "submit": "Envoyer l'heure"
           }
         },

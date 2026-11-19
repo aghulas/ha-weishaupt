@@ -93,7 +93,7 @@
         "step": {
           "confirm": {
             "title": "Set the clock — {device}",
-            "description": "- Clock master now: {current} against the clock of ebusd's host\n- Will send: **{requested}**, at second 00 of the next minute exactly\n- Broadcast to bus address `{address}`, command `{register}`, from source address `{source}` ({source_text})\n\nEvery controller takes the time over, seconds included. If the bus is not free within {late} s of second 00, nothing is sent.",
+            "description": "- Clock master now: {current} against the clock of ebusd's host\n- Will send **{send_at}** at {send_at} exactly ({requested}, at second 00 of the next minute). If you confirm after that minute has begun, the next minute is used\n- Broadcast to bus address `{address}`, command `{register}`, from source address `{source}` ({source_text})\n\nEvery controller takes the time over, seconds included. If the bus is not free within {late} s of second 00, nothing is sent.",
             "submit": "Send the time"
           }
         },

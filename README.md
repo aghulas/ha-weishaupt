@@ -540,6 +540,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
+  program days and the clock through the guard of the entities; the writes switch is off after
+  every restart or reload; the hourly counter survives restarts; no value is prefilled.
 - 0.6.0b2: the write switch is off after every restart or reload; the hourly and per-register
   counters survive restarts; the panel never prefills a value it has not read, follows the switch
   live, shows "writing…", says when a call was interrupted, names the switch when it is the cause,

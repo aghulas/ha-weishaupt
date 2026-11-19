@@ -518,6 +518,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.5.0: the code of 0.5.0b3, checked on a heating system: the Weishaupt panel (read only) with the
+  devices, their menus, tables, week grids, the definitions in use and the clock; absent sensors
+  shown as such; stale entities of the current scheme removed, others only from a confirmed repair.
 - 0.5.0b3: automatic removal limited to stale entities of the current identifier scheme; the
   entities of 0.1 are removed only from a repair the user confirms; options Home Assistant writes
   itself no longer count as a change by the user; long entity ids wrap on the panel.

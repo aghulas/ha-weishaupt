@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A register, a value list or a write that the definitions do not have
+    url: https://github.com/aghulas/ebusd-configuration/issues
+    about: The definitions decide what is read and written; propose it there, with what you observed.

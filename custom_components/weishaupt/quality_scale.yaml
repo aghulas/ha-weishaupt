@@ -77,15 +77,19 @@ rules:
   reconfiguration-flow: done
   repair-issues: done
   stale-devices:
-    status: todo
-    comment: A device that left the bus can be deleted by hand; it is not removed automatically.
+    status: done
+    comment: >-
+      A device missing from the bus for 7 days gets a repair offering its removal; only the user's confirmation
+      removes it (devices.py). It can also be deleted by hand at any time.
   dynamic-devices:
-    status: todo
-    comment: The bus is looked at when the entry is set up; a device that appears later needs a reload.
+    status: done
+    comment: >-
+      ebusd's info is read every 10 minutes (nothing on the bus); a known device that now answers reloads the entry
+      once, which adds its entities (devices.py).
   discovery:
     status: exempt
     comment: ebusd announces itself by no discovery protocol.
   exception-translations: done
   icon-translations:
-    status: todo
-    comment: No icons.json yet; entities use the icons of their device class.
+    status: done
+    comment: icons.json, generated with the translations by scripts/vendor_metadata.py and checked in CI.

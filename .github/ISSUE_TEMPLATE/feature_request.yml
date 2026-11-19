@@ -1,0 +1,19 @@
+name: Feature request
+description: A setting, a value or a view the integration does not have yet.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        What the integration reads and writes comes from the Weishaupt definitions for ebusd: a new register usually
+        starts there (aghulas/ebusd-configuration), with evidence of what it means.
+  - type: textarea
+    id: what
+    attributes:
+      label: What you would like, and why
+    validations:
+      required: true
+  - type: textarea
+    id: equipment
+    attributes:
+      label: Equipment and versions concerned

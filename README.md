@@ -45,6 +45,7 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
+| 0.4 – 0.8 | 0.5.8 shipped; a newer 0.5.x metadata file can be placed beside the configuration | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.3 | 0.5.8 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
@@ -76,6 +77,38 @@ metadata says which name it had.
 
 Checked on one installation only (see the definitions): two WTC boilers in cascade, a system
 manager, three heating circuits. Other models and software versions may differ.
+
+## Supported devices and limits
+
+Weishaupt heating systems whose controllers speak eBUS, as the definitions describe them:
+
+| Device | Bus address(es) | Read | Written (with the run-time checksum build) |
+|---|---|---|---|
+| WTC gas condensing boiler (automat W-FM, one per boiler) | 08, 18 | live values, statistics and counters, fault memory and fault counters | — |
+| WCM-SG system manager (cascade manager), and its own heating circuit | 15, 50 | live values, cascade and hot-water settings, its fault-log entry, weekly programs | settings, choices, programs proven writable, the clock |
+| WCM-EM heating module (up to two) | 51, 52 | live values, settings | settings |
+| WCM-FS room unit (up to three) | 35, 75, f5 | room values, settings, weekly programs | settings, programs proven writable |
+
+What is read or written is decided by the definitions release, message by message, with evidence; a device or a
+register they do not describe is not shown. Limits a second installation should know:
+
+- **Tested on one installation**: two WTC boilers in cascade, one system manager, two heating modules, three room
+  units, one software version each. Another model or version may answer differently: the comparison at start-up
+  names what ebusd did not load as described, and a diagnostics download shows what was read.
+- **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), and the
+  telegram log for the settings written from the service tool's address. Without them everything is read only.
+- **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
+  and the others the metadata marks comfort); the others are shown, read only.
+- **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module); the panel shows "no
+  sensor", the entities show the value.
+- **No time** is stored with a boiler's fault entry; the system manager's fault log shows the entry its operating
+  unit has selected.
+- **One request at a time** on the bus, at the gap set in the options (2 s by default): after a start, all settings
+  are read within about 5 minutes and the program days within about 6.
+- **Not a climate entity**: settings are numbers, selects and texts; no `climate` or `water_heater` entity yet.
+
+**Reporting a problem**: open an issue with the diagnostics download (Settings → Devices & services → Weishaupt →
+⋮ → Download diagnostics). It holds no address of ebusd, no file path and no user id; it does hold the values read.
 
 ## Installation
 
@@ -506,6 +539,15 @@ integration under the same name:
 
 ### Tests
 
+A new definitions release can be checked before it is shipped or placed beside a configuration:
+
+```bash
+WEISHAUPT_NEXT_METADATA=/path/to/weishaupt-metadata-0.5.14.json scripts/test.sh tests/test_next_metadata.py -s
+```
+
+(its `sha256sums-<version>.txt` beside it): accepted as a file beside the configuration, every message named,
+what it adds or removes.
+
 ```bash
 scripts/test.sh
 ```
@@ -567,6 +609,10 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
+- 0.8.0b1: ready for a second installation: devices that appear later reload the entry, a device
+  absent for 7 days gets a repair offering its removal (confirmed by the user); diagnostics
+  without user ids or addresses; icons; issue templates; a section on supported devices and
+  limits; a test hook for the next definitions release.
 - 0.7.0b2: the printed report has page margins, its header on each page and no row split across
   pages; choices list their entries instead of a numeric range; ranges read `−10 … −1 (0,5)` in the
   language of Home Assistant; a value not read says why; *Read now* counts only the requests it

@@ -39,10 +39,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     entities: list[SensorEntity] = [
         ValueSensor(hub, description) for description in hub.model.value_entities
         if description.platform == "sensor" and description.message.key in hub.usable
-        and hub.named("sensor", description.translation_key, description.message.device)]
+        and hub.named("sensor", description.translation_key, description.message.device, description.name)]
     for description in hub.model.group_entities:
         if not all(member in hub.usable for member in description.group.members) or not hub.named(
-                "sensor", description.translation_key, description.group.device):
+                "sensor", description.translation_key, description.group.device, description.name):
             continue
         if description.group.family == "program":
             entities.append(ProgramSensor(hub, description))
@@ -60,7 +60,7 @@ class ValueSensor(WeishauptEntity, SensorEntity):
     def __init__(self, hub: Hub, description: ValueEntity) -> None:
         message, fld = description.message, description.field
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
-                         (message.key,))
+                         (message.key,), description.name)
         self._key, self._index = message.key, fld.index
         self._options = description.options
         self._text = fld.type.startswith(TEXT_TYPES)
@@ -102,7 +102,7 @@ class GroupSensor(WeishauptEntity, SensorEntity):
     def __init__(self, hub: Hub, description: GroupEntity, extra: tuple[str, ...] = ()) -> None:
         group = description.group
         super().__init__(hub, hub.model.devices[group.device], description.key, description.translation_key,
-                         group.members + extra)
+                         group.members + extra, description.name)
         self._group = group
         self._attr_entity_registry_enabled_default = description.enabled_default
 

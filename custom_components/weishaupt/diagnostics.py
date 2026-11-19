@@ -26,6 +26,7 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Weishau
         "definitions": {
             "metadata_version": hub.model.version, "metadata_commit": hub.model.commit,
             "metadata_source": hub.metadata_source, "metadata_files_refused": hub.metadata_refused,
+            "entities_named_from_metadata": sorted(hub.named_from_metadata),
             "entities_waiting_for_names": sorted(hub.not_named),
             "accepted": ACCEPTED_DEFINITIONS, "messages_in_metadata": len(hub.model.messages),
             "messages_usable": len(hub.usable),

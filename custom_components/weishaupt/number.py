@@ -40,7 +40,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
         SettingNumber(hub, description, hub.writer.specs[description.message.key])
         for description in hub.model.number_entities
         if description.message.key in hub.writer.specs
-        and hub.named("number", description.translation_key, description.message.device))
+        and hub.named("number", description.translation_key, description.message.device, description.name))
+
+
+# What the shipped translations add to the name of a setting (scripts/translations, `number_suffix`), for a setting
+# named from the metadata.
+SETTING_SUFFIX = {"en": " (setting)", "fr": " (réglage)"}
 
 
 class SettingEntity(WeishauptEntity):
@@ -52,8 +57,11 @@ class SettingEntity(WeishauptEntity):
     def __init__(self, hub: Hub, description: NumberDescription, spec: WriteSpec) -> None:
         message = description.message
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
-                         (message.key,))
+                         (message.key,), description.name)
         self._spec = spec
+
+    def _name_suffix(self, hub: Hub) -> str:
+        return hub.label(SETTING_SUFFIX)
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

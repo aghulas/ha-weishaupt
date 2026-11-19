@@ -44,21 +44,38 @@ class WeishauptEntity(Entity):
     _attr_should_poll = False
     _read_priority: int | None = None  # class of its messages in the reader (hub.SETTING_PRIORITY for settings)
 
-    def __init__(self, hub: Hub, device: Device, key: str, translation_key: str, messages: tuple[str, ...]) -> None:
+    def __init__(self, hub: Hub, device: Device, key: str, translation_key: str, messages: tuple[str, ...],
+                 name: dict[str, str] | None = None) -> None:
         self.hub = hub
         self._messages = messages
         self._attr_unique_id = f"{hub.entry.entry_id}_{key}"
         self._attr_translation_key = translation_key
+        if name and hub.untranslated(self._platform(), translation_key):
+            # a message of a newer metadata file than the translations shipped: the label of the metadata
+            self._attr_translation_key = None
+            self._attr_name = hub.label(name) + self._name_suffix(hub)
+        device_name = hub.label(device.label) if hub.untranslated("device", device.id) else None
         scan = hub.address_of(device)
         self._attr_device_info = DeviceInfo(
             identifiers={device_identifier(hub, device)},
-            translation_key=device.id,
+            translation_key=None if device_name else device.id,
+            name=device_name,
             manufacturer=MANUFACTURER,
             model=MODELS.get(device.type),
             sw_version=_version(scan.software) if scan else None,
             hw_version=_version(scan.hardware) if scan else None,
             via_device_id=hub.device_id,
         )
+
+    @classmethod
+    def _platform(cls) -> str:
+        """`sensor`, `number`…: the Home Assistant entity component this class belongs to."""
+        return next(c.__module__.split(".")[2] for c in cls.__mro__
+                    if c.__module__.startswith("homeassistant.components."))
+
+    def _name_suffix(self, hub: Hub) -> str:
+        """What the shipped translations add to the name of this kind of entity (a setting's " (setting)")."""
+        return ""
 
     async def async_added_to_hass(self) -> None:
         self.async_on_remove(self.hub.async_listen(self._messages, self.async_write_ha_state, self._read_priority))

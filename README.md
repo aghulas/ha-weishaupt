@@ -350,13 +350,17 @@ the integration, without waiting for a release of the integration:
 The file is used only if its sha256 matches the `sha256sums` file beside it, its schema is the one
 this version of the integration reads, and its version is newer than the definitions the integration
 ships and within the range it accepts. Otherwise the shipped definitions are used and a repair issue
-says why. The diagnostics download names the definitions in use.
+says why; a file that is used raises none. The definitions in use go to an info line of the log
+(`definitions in use: …`) and to the diagnostics download.
 
-What a file cannot bring: names. Entity names and the labels of their states come from the
-translations shipped with the integration; an entity of the file that they do not name (a message
-added since) is not created — its value is read, nothing is shown without its name — and the repair
-issue counts these entities until a release of the integration names them. Changes to existing
-entities (writable or not, write conditions, ranges, classes) take effect at the reload.
+Names: the translations shipped with the integration name an entity first. A message added in a
+newer release, which they do not name yet, gets the label of the definitions (English and French,
+in the language of Home Assistant, English otherwise), so that it has an entity with no new release
+of the integration; a setting gets the suffix " (setting)" as the others. Unnamed fields of the
+definitions (`ukn…`, marked skip) have no entity, as with the shipped definitions. The states of a
+new value list are shown by their keys until a release of the integration translates them. The
+diagnostics list the entities named from the definitions. Changes to existing entities (writable or
+not, write conditions, ranges, classes) take effect at the reload.
 
 ## Diagnostics
 
@@ -466,6 +470,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.4.0b2: no repair issue for a file in use, only for a refused one; entities of messages the
+  shipped translations do not name yet are named from the labels of the definitions.
 - 0.4.0b1: definitions from a verified file beside the configuration, used at a reload.
 - 0.3.1: each change written gives a logbook entry on its entity, visible without a `logger:`
   setting; a malformed program day gets the translated message, not Home Assistant's raw pattern.

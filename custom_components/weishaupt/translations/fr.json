@@ -109,8 +109,8 @@
       }
     },
     "definitions_file": {
-      "title": "Fichier de définitions à côté de la configuration : pas entièrement utilisé",
-      "description": "Définitions utilisées : {version} ({source}).\n\nFichiers du dossier `weishaupt` de la configuration non utilisés, et pourquoi : {refused}.\n\nEntités de ces définitions qui attendent une version de l'intégration pour être nommées : {waiting}.\n\nUn fichier de définitions n'est utilisé que si son sha256 correspond au fichier `sha256sums` de la même version posé à côté, que son schéma est celui que lit cette version, et que sa version est plus récente que celle livrée et dans la plage acceptée. Corrigez ou retirez le fichier, puis rechargez l'intégration."
+      "title": "Fichier de définitions à côté de la configuration : non utilisé",
+      "description": "Définitions utilisées : {version} ({source}).\n\nFichiers du dossier `weishaupt` de la configuration non utilisés, et pourquoi : {refused}.\n\nUn fichier de définitions n'est utilisé que si son sha256 correspond au fichier `sha256sums` de la même version posé à côté, que son schéma est celui que lit cette version, et que sa version est plus récente que celle livrée et dans la plage acceptée. Corrigez ou retirez le fichier, puis rechargez l'intégration."
     }
   },
   "exceptions": {

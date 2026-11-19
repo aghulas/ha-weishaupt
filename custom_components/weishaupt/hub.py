@@ -119,6 +119,7 @@ class Hub:
         self.metadata_refused: dict[str, str] = {}
         self.translated: set[tuple[str, str]] | None = None
         self.not_named: set[str] = set()
+        self.named_from_metadata: set[str] = set()
 
     # ---- start-up -------------------------------------------------------------------------------------------
 
@@ -142,16 +143,29 @@ class Hub:
         self.usable = {key for key, message in self.model.messages.items()
                        if message.circuit in circuits and key not in bad and (message.read or message.passive)}
 
-    def named(self, platform: str, key: str, device: str | None = None) -> bool:
-        """Whether the translations shipped with the integration name this entity (and its device). Always true
-        with the bundled metadata. With a newer metadata file, an entity they do not name is not created until a
-        release of the integration brings its name: no entity without a name, no state without its label."""
+    def named(self, platform: str, key: str, device: str | None = None,
+              name: dict[str, str] | None = None) -> bool:
+        """Whether this entity has a name. Always true with the bundled metadata. With a newer metadata file, the
+        translations shipped with the integration name it first; when they do not hold its key, the label the
+        metadata gives it (`name`, English and French) is its name (`untranslated`). An entity with neither is not
+        created until a release of the integration brings its name: no entity without a name."""
         if self.translated is None:
             return True
         if (platform, key) in self.translated and (device is None or ("device", device) in self.translated):
             return True
+        if name:
+            self.named_from_metadata.add(f"{platform}.{key}")
+            return True
         self.not_named.add(f"{platform}.{key}")
         return False
+
+    def untranslated(self, platform: str, key: str) -> bool:
+        """True when a newer metadata file is in use and the shipped translations do not hold this key."""
+        return self.translated is not None and (platform, key) not in self.translated
+
+    def label(self, text: dict[str, str]) -> str:
+        """A label of the metadata in the language of Home Assistant, English when it has none in that language."""
+        return text.get(self.hass.config.language.split("-")[0]) or text["en"]
 
     @property
     def own_address(self) -> str | None:

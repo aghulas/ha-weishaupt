@@ -19,14 +19,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
     async_add_entities(
         ValueBinarySensor(hub, description) for description in hub.model.value_entities
         if description.platform == "binary_sensor" and description.message.key in hub.usable
-        and hub.named("binary_sensor", description.translation_key, description.message.device))
+        and hub.named("binary_sensor", description.translation_key, description.message.device,
+                      description.name))
 
 
 class ValueBinarySensor(WeishauptEntity, BinarySensorEntity):
     def __init__(self, hub: Hub, description: ValueEntity) -> None:
         message = description.message
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
-                         (message.key,))
+                         (message.key,), description.name)
         self._key, self._index = message.key, description.field.index
         self._attr_entity_registry_enabled_default = description.enabled_default
         if description.diagnostic:

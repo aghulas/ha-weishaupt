@@ -597,9 +597,9 @@ async def test_new_definitions_with_a_reload_only(hass, fake, log):
     assert hass.states.get(entity_id).attributes["max"] == 35
 
 
-async def test_a_refused_file_and_an_unnamed_entity_raise_one_issue(hass, fake, log):
-    """A file with a bad checksum is not used (bundled copy, repair issue); a newer file with a message the shipped
-    translations do not name: the message is read, its entity waits for a release of the integration."""
+def _newer_file_with_a_new_message(hass, fake, refused: bool) -> None:
+    """A newer metadata file beside the configuration, with a message the shipped translations do not name
+    (labelled in English and French), and, if `refused`, a second file with a bad checksum."""
     import copy
     import hashlib
     import json
@@ -607,8 +607,9 @@ async def test_a_refused_file_and_an_unnamed_entity_raise_one_issue(hass, fake, 
     from custom_components.weishaupt.model import METADATA_FILE
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
-    (folder / "weishaupt-metadata-0.5.10.json").write_text("{}")
-    (folder / "sha256sums-0.5.10.txt").write_text("0" * 64 + "  weishaupt-metadata-0.5.10.json\n")
+    if refused:
+        (folder / "weishaupt-metadata-0.5.10.json").write_text("{}")
+        (folder / "sha256sums-0.5.10.txt").write_text("0" * 64 + "  weishaupt-metadata-0.5.10.json\n")
     data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
     data["definitions"]["version"] = "0.5.9"
     data["messages"]["ka/BlockingTimeCopy"] = dict(copy.deepcopy(data["messages"]["ka/BlockingTime"]),
@@ -620,13 +621,47 @@ async def test_a_refused_file_and_an_unnamed_entity_raise_one_issue(hass, fake, 
     (folder / "sha256sums-0.5.9.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.5.9.json\n")
     line = next(row for row in fake.definitions["ka"].splitlines() if row.split(",")[2] == "BlockingTime")
     fake.definitions["ka"] += "\n" + line.replace(",BlockingTime,", ",BlockingTimeCopy,")
+
+
+async def test_a_new_message_is_named_from_the_metadata(hass, fake, log, caplog):
+    """A newer file with a message the shipped translations do not name: its entity is created with the label of
+    the metadata, in the language of Home Assistant. A correct installation has no repair issue; what is in use
+    goes to an info line and the diagnostics."""
+    import logging
+    from custom_components.weishaupt.diagnostics import async_get_config_entry_diagnostics
+    caplog.set_level(logging.INFO, logger="custom_components.weishaupt")
+    hass.config.language = "fr"
+    _newer_file_with_a_new_message(hass, fake, refused=False)
+    entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
+    await setup(hass, entry)
+    hub = entry.runtime_data
+    assert hub.model.version == "0.5.9" and hub.metadata_refused == {}
+    assert hub.not_named == set() and hub.named_from_metadata == {"sensor.manager_blockingtimecopy"}
+    entity_id = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTimeCopy/value")
+    assert entity_id is not None
+    assert er.async_get(hass).async_get(entity_id).original_name == "Copie du temps de blocage"
+    # an entity the shipped translations name keeps its translated name
+    named = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value")
+    assert er.async_get(hass).async_get(named).translation_key is not None
+    assert not [i for i in ir.async_get(hass).issues.values() if i.translation_key == "definitions_file"]
+    line = next(r.getMessage() for r in caplog.records if r.getMessage().startswith("definitions in use"))
+    assert line == ("definitions in use: 0.5.9 (weishaupt-metadata-0.5.9.json); 1 entities named from the metadata, "
+                    "0 waiting for a name")
+    shown = (await async_get_config_entry_diagnostics(hass, entry))["definitions"]
+    assert shown["entities_named_from_metadata"] == ["sensor.manager_blockingtimecopy"]
+    assert shown["metadata_version"] == "0.5.9" and shown["entities_waiting_for_names"] == []
+
+
+async def test_a_refused_file_raises_an_issue(hass, fake, log):
+    """A file with a bad checksum is not used: a repair issue names it and why; the newer valid file is used."""
+    _newer_file_with_a_new_message(hass, fake, refused=True)
     entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
     await setup(hass, entry)
     hub = entry.runtime_data
     assert hub.model.version == "0.5.9", hub.metadata_refused
     assert "weishaupt-metadata-0.5.10.json" in hub.metadata_refused
-    assert "ka/BlockingTimeCopy" in hub.usable and hub.not_named == {"sensor.manager_blockingtimecopy"}
-    assert er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTimeCopy/value") is None
+    entity_id = er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTimeCopy/value")
+    assert er.async_get(hass).async_get(entity_id).original_name == "Blocking time copy"
     issue = next(i for i in ir.async_get(hass).issues.values() if i.translation_key == "definitions_file")
-    assert issue.translation_placeholders["waiting"] == "1"
+    assert "waiting" not in issue.translation_placeholders
     assert "sha256" in issue.translation_placeholders["refused"] or "schema" in issue.translation_placeholders["refused"]

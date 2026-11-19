@@ -8,6 +8,7 @@ settings the definitions prove writable become number entities, written through 
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
@@ -31,6 +32,7 @@ PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.
              Platform.SWITCH, Platform.TEXT]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 EXAMPLES = 8  # messages named in the repair issue
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -98,18 +100,21 @@ def _bundled_names() -> set[tuple[str, str]]:
 
 
 def _update_file_issue(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
-    """One repair issue when a metadata file beside the configuration was not used, or when entities of the file
-    in use wait for a release of the integration to be named."""
+    """A repair issue only when a metadata file beside the configuration was refused: a correct installation has
+    none. Which definitions are in use, the entities named from the metadata and those waiting for a name go to an
+    info line of the log and to the diagnostics."""
+    _LOGGER.info("definitions in use: %s (%s); %d entities named from the metadata, %d waiting for a name%s",
+                 hub.model.version, hub.metadata_source, len(hub.named_from_metadata), len(hub.not_named),
+                 f" ({', '.join(sorted(hub.not_named))})" if hub.not_named else "")
     issue = f"definitions_file_{entry.entry_id}"
-    if not hub.metadata_refused and not hub.not_named:
+    if not hub.metadata_refused:
         ir.async_delete_issue(hass, DOMAIN, issue)
         return
     ir.async_create_issue(
         hass, DOMAIN, issue, is_fixable=False, severity=ir.IssueSeverity.WARNING, translation_key="definitions_file",
         learn_more_url=DOCUMENTATION_URL, translation_placeholders={
             "source": hub.metadata_source, "version": hub.model.version,
-            "refused": "; ".join(f"{name}: {why}" for name, why in sorted(hub.metadata_refused.items())) or "-",
-            "waiting": str(len(hub.not_named))})
+            "refused": "; ".join(f"{name}: {why}" for name, why in sorted(hub.metadata_refused.items()))})
 
 
 def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:

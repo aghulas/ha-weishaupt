@@ -335,6 +335,29 @@ refused by ebusd before sending: nothing reaches the bus. The result is the attr
 `run_time_checksum` of the write switch (`present`, `absent`, `unknown`); anything but `present`
 refuses every write.
 
+## Newer definitions without a new release of the integration
+
+A release of the definitions that changes nothing the code has to know (settings that become
+writable, write conditions, ranges, risk classes, labels, messages added) can be used with a reload of
+the integration, without waiting for a release of the integration:
+
+1. From the release page of the definitions, take `weishaupt-metadata-<version>.json` and
+   `sha256sums-<version>.txt`.
+2. Put both in the folder `weishaupt` of Home Assistant's configuration (beside `configuration.yaml`;
+   create it). Updates of the integration do not touch it; backups keep it.
+3. Reload the integration (*Devices & services → Weishaupt → ⋮ → Reload*).
+
+The file is used only if its sha256 matches the `sha256sums` file beside it, its schema is the one
+this version of the integration reads, and its version is newer than the definitions the integration
+ships and within the range it accepts. Otherwise the shipped definitions are used and a repair issue
+says why. The diagnostics download names the definitions in use.
+
+What a file cannot bring: names. Entity names and the labels of their states come from the
+translations shipped with the integration; an entity of the file that they do not name (a message
+added since) is not created — its value is read, nothing is shown without its name — and the repair
+issue counts these entities until a release of the integration names them. Changes to existing
+entities (writable or not, write conditions, ranges, classes) take effect at the reload.
+
 ## Diagnostics
 
 *Devices & services → Weishaupt → ⋮ → Download diagnostics* gives the ebusd version, the scan
@@ -443,6 +466,7 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.4.0b1: definitions from a verified file beside the configuration, used at a reload.
 - 0.3.1: each change written gives a logbook entry on its entity, visible without a `logger:`
   setting; a malformed program day gets the translated message, not Home Assistant's raw pattern.
 - 0.3.0: the code of 0.3.0rc6, proven on a heating system: after a restart the settings were read

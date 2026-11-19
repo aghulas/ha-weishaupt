@@ -205,6 +205,13 @@ and nothing has to be installed apart from the integration.
 
 ## Load on the bus
 
+**After a restart of ebusd, the integration waits for its scan.** ebusd answers before it has scanned the
+bus and loaded the definitions of every device. When a device seen before is not on the bus yet, or a device
+on the bus has no definitions loaded yet, the integration does not compare with that partial view: it waits
+and tries again (Home Assistant's retry, 5 s growing to 80 s), for up to 5 minutes, its entities kept and
+unavailable meanwhile. After 5 minutes it goes on with what ebusd has and names what is missing; stale
+entities are never looked for on such a partial view.
+
 No measurement says how often these devices may be asked, so the integration is cautious and says
 what it does:
 
@@ -557,7 +564,8 @@ the boilers are only sent then), and the values of an installation other than th
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
 - 0.7.0b1: fault tables in the panel (fault memory with texts, counters, the system manager's
   fault-log entry), read on demand; a printable report and a CSV export of the settings; the write
-  switch's `writes_last_hour` follows each write.
+  switch's `writes_last_hour` follows each write; after a restart of ebusd, the entry waits for its
+  scan instead of comparing with a partial view.
 - 0.6.0b2: the write switch is off after every restart or reload; the hourly and per-register
   counters survive restarts; the panel never prefills a value it has not read, follows the switch
   live, shows "writing…", says when a call was interrupted, names the switch when it is the cause,

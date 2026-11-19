@@ -127,11 +127,16 @@ class Hub:
         self.translated: set[tuple[str, str]] | None = None
         self.not_named: set[str] = set()
         self.named_from_metadata: set[str] = set()
+        self.scan_incomplete: list[str] = []  # what ebusd has not scanned or loaded yet (async_setup)
 
     # ---- start-up -------------------------------------------------------------------------------------------
 
-    async def async_setup(self) -> None:
+    async def async_setup(self, expected: set[str] | None = None) -> None:
         """Ask ebusd what is on the bus and what it loaded, and compare with the metadata.
+
+        `expected`: the devices seen at an earlier start (the device registry of the entry). One of them not on
+        the bus, or a device on the bus whose definitions ebusd has not loaded yet, means ebusd is still scanning
+        (after its restart): `scan_incomplete` names them, and the entry waits (__init__.py).
 
         Raises EbusdError when ebusd cannot be asked. Sends `info` and one `find -f` per circuit: nothing goes to
         the bus."""
@@ -145,6 +150,13 @@ class Hub:
         loaded: dict[str, list[Definition]] = {}
         for circuit in sorted(circuits):
             loaded[circuit] = await self.client.definitions(circuit)
+        self.scan_incomplete = sorted(
+            [f"{device_id}: not on the bus yet" for device_id in (expected or set()) - set(self.devices)
+             if device_id in self.model.devices]
+            + [f"{c.circuit} ({c.address}): definitions not loaded yet"
+               for d in self.devices.values() for c in d.circuits
+               if c.address != "fe" and c.address in slaves
+               and (not loaded.get(c.circuit) or not (self.info.slave(c.address) or BusAddress(c.address, "slave")).files)])
         self.mismatches = self.model.compare(circuits, loaded)
         bad = {m.key for m in self.mismatches}
         self.circuits = circuits

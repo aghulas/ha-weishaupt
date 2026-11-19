@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
@@ -34,6 +35,7 @@ PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.
              Platform.SWITCH, Platform.TEXT]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 EXAMPLES = 8  # messages named in the repair issue
+SCAN_WAIT = 300  # seconds an entry waits for ebusd to finish its scan before going on with a partial view
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -53,11 +55,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     if choice.source != "bundled":
         hub.translated = await hass.async_add_executor_job(_bundled_names)
 
+    registry = dr.async_get(hass)
+    prefix = f"{entry.entry_id}_"
+    expected = {identifier.removeprefix(prefix) for device in dr.async_entries_for_config_entry(registry, entry.entry_id)
+                for domain, identifier in device.identifiers if domain == DOMAIN and identifier.startswith(prefix)}
     try:
-        await hub.async_setup()
+        await hub.async_setup(expected)
     except EbusdError as err:
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                   translation_placeholders={"error": str(err)}) from err
+    waiting = hass.data.setdefault(f"{DOMAIN}_waiting_for_scan", {})
+    if hub.scan_incomplete:
+        # ebusd answers but is still scanning the bus (after its restart): wait for it rather than compare with a
+        # partial view, which would raise a mismatch, offer fewer writes and could take entities for stale. Home
+        # Assistant retries with a growing delay; the entities stay in the registry, unavailable, meanwhile.
+        started = waiting.setdefault(entry.entry_id, time.monotonic())
+        if time.monotonic() - started < SCAN_WAIT:
+            _LOGGER.info("ebusd has not finished its scan (%s): waiting", "; ".join(hub.scan_incomplete))
+            raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="scan_incomplete",
+                                      translation_placeholders={"missing": "; ".join(hub.scan_incomplete)})
+        _LOGGER.warning("ebusd has still not scanned everything after %d s (%s): going on with what it has",
+                        SCAN_WAIT, "; ".join(hub.scan_incomplete))
+    waiting.pop(entry.entry_id, None)
     kept = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
     if kept is not None:  # a reload: what was read and listened to before
         hub.previously_listened = kept["listened"]
@@ -136,6 +155,11 @@ def _remove_stale(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
 
     Entities of another scheme (left by version 0.1) are never removed here: one repair lists them and removes them
     only when the user confirms it."""
+    if hub.scan_incomplete or any(m.reason == "missing" for m in hub.mismatches):
+        # a partial view of the bus (ebusd still scanning, definitions not loaded): nothing is removed from it
+        _LOGGER.info("stale entities not looked for: ebusd's view of the bus is not complete")
+        update_older_issue(hass, entry)
+        return
     registry = er.async_get(hass)
     keep = yielded(hub)
     prefix = f"{entry.entry_id}_"

@@ -137,6 +137,9 @@
     }
   },
   "exceptions": {
+    "scan_incomplete": {
+      "message": "ebusd n'a pas fini de scanner le bus ({missing}) : l'intégration l'attend et réessaie."
+    },
     "cannot_connect": {
       "message": "ebusd ne peut pas être interrogé : {error}"
     },

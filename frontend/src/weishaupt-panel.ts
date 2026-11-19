@@ -12,6 +12,9 @@ import {
   label,
   languageOf,
   addDragged,
+  reportHtml,
+  reportRows,
+  toCsv,
   formatDay,
   initialDraft,
   menuTree,
@@ -23,9 +26,12 @@ import {
   t,
   WEEKDAYS,
 } from "./format.ts";
-import type { Days, Device, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer } from "./types.ts";
+import type {
+  Days, Device, FaultTable, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer,
+} from "./types.ts";
 
 const DEFINITIONS = "__definitions__";
+const FAULTS = "__faults__";
 
 /** Whether `menu` is under `ancestor` in the menus of a device. */
 function descends(menus: { id: string; parent: string }[], menu: string, ancestor: string): boolean {
@@ -61,6 +67,7 @@ export class WeishauptPanel extends LitElement {
     _dialog: { state: true },
     _weekDraft: { state: true },
     _weekResult: { state: true },
+    _faults: { state: true },
   };
 
   declare hass: Hass;
@@ -84,6 +91,8 @@ export class WeishauptPanel extends LitElement {
   declare _dialog: { answer: WriteAnswer; target: string } | undefined; // a confirmation asked by the writer
   declare _weekDraft: Record<string, Record<string, string>>; // program -> day -> text being edited
   declare _weekResult: Record<string, { text: string; error: boolean }>;
+  declare _faults: FaultTable[] | undefined;
+  private _faultTimer?: number;
   private _drag?: { program: string; day: string; from: number; element: HTMLElement };
 
   private _unsubscribe?: () => void;
@@ -149,6 +158,7 @@ export class WeishauptPanel extends LitElement {
     try {
       const tree = await this.hass.callWS<Tree>({ type: "weishaupt/panel/tree", entry_id: entryId });
       this._tree = tree;
+      this._loadFaults(0);
       // after a reload, stay on the device and menu shown
       if (!tree.devices.some((d) => d.id === this._device)) {
         this._device = tree.devices[0]?.id;
@@ -159,6 +169,154 @@ export class WeishauptPanel extends LitElement {
       if (again) throw err;
       this._error = (err as Error).message;
     }
+  }
+
+  /** The fault tables, again shortly after one of their messages was read (several arrive together). */
+  private _loadFaults(delay: number): void {
+    window.clearTimeout(this._faultTimer);
+    this._faultTimer = window.setTimeout(async () => {
+      if (!this._entryId) return;
+      try {
+        this._faults = await this.hass.callWS<FaultTable[]>({ type: "weishaupt/panel/faults", entry_id: this._entryId });
+      } catch {
+        // the tables stay as they were; the next reading asks again
+      }
+    }, delay);
+  }
+
+  private async _readFaults(device: string): Promise<void> {
+    const answer = await this.hass.callWS<{ queued: number; seconds: number }>({
+      type: "weishaupt/panel/read_faults",
+      entry_id: this._entryId,
+      device,
+    });
+    this._queued = { ...this._queued, [`faults:${device}`]: answer.queued };
+  }
+
+  private _report(): void {
+    const tree = this._tree!;
+    const lang = this._lang;
+    const rows = reportRows(tree, this._readings, lang);
+    const date = new Date().toLocaleString(lang === "fr" ? "fr-FR" : "en-GB");
+    const page = reportHtml(rows, lang, {
+      title: t(lang, "report_title"),
+      subtitle: t(lang, "report_subtitle", { date, version: tree.definitions.version }),
+    });
+    const view = window.open("", "_blank");
+    if (!view) {
+      this._rowResult = { ...this._rowResult, __report__: { text: t(lang, "report_blocked"), error: true } };
+      return;
+    }
+    view.document.open();
+    view.document.write(page);
+    view.document.close();
+    view.focus();
+    view.print();
+  }
+
+  private _csv(): void {
+    const tree = this._tree!;
+    const lang = this._lang;
+    const blob = new Blob([toCsv(reportRows(tree, this._readings, lang), lang)], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `weishaupt-settings-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }
+
+  private _faultsView(table: FaultTable): TemplateResult {
+    const lang = this._lang;
+    const queued = this._queued[`faults:${table.device}`];
+    const value = (v: unknown): string => (v === null || v === undefined ? "-" : String(v));
+    return html`<h2>${label(table.label, lang)} — ${t(lang, "faults")}</h2>
+      ${table.not_listened
+        ? html`<p class="secondary">${t(lang, "faults_unread", { n: table.not_listened })}</p>
+            ${table.unread === 0
+              ? html`<p class="secondary">${t(lang, "faults_read_once")}</p>`
+              : queued !== undefined
+              ? html`<p class="secondary" role="status">${t(lang, "read_queued", { n: queued })}</p>`
+              : html`<p>
+                  <button class="link" @click=${() => this._readFaults(table.device)}>${t(lang, "read_now")}</button>
+                  <span class="secondary"
+                    >${t(lang, "read_cost", { n: table.unread, s: Math.round(table.unread * 2.2) })}</span
+                  >
+                </p>`}`
+        : nothing}
+      ${table.history
+        ? html`<h3>${t(lang, "fault_history")}</h3>
+            ${table.history.entries === null
+              ? html`<p class="secondary">${t(lang, "day_unread")}</p>`
+              : table.history.entries.length === 0
+                ? html`<p class="secondary">${t(lang, "fault_none")}</p>`
+                : html`${table.history.ordered ? nothing : html`<p class="secondary">${t(lang, "fault_unordered")}</p>`}
+                    <div class="scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th scope="col">${t(lang, "fault_code")}</th>
+                            <th scope="col">${t(lang, "fault_text")}</th>
+                            <th scope="col">${t(lang, "fault_values")}</th>
+                            <th scope="col">${t(lang, "fault_slot")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${table.history.entries.map(
+                            (e) => html`<tr>
+                              <th scope="row" class="nowrap">${e.code}</th>
+                              <td>${label(e.text, lang) || "-"}</td>
+                              <td class="secondary">
+                                ${e.values
+                                  .map((v) => `${label(v.label, lang)} ${v.value_labels ? label(v.value_labels, lang)
+                                    : v.value === null ? "-" : `${v.value}${v.unit ? ` ${v.unit}` : ""}`}`)
+                                  .join(" · ")}
+                              </td>
+                              <td>${e.slot}</td>
+                            </tr>`,
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p class="secondary">${t(lang, "fault_no_time")}</p>`}`
+        : nothing}
+      ${table.counters
+        ? html`<h3>${t(lang, "fault_counters")}</h3>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">${t(lang, "fault_number")}</th>
+                    <th scope="col">${t(lang, "fault_count")}</th>
+                    <th scope="col">${t(lang, "fault_text")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${table.counters.map(
+                    (c) => html`<tr>
+                      <th scope="row">${c.number}</th>
+                      <td class=${c.count ? "" : "secondary"}>${c.count === null ? t(lang, "day_unread") : c.count}</td>
+                      <td>${label(c.text, lang) || "-"}</td>
+                    </tr>`,
+                  )}
+                </tbody>
+              </table>
+            </div>`
+        : nothing}
+      ${table.log
+        ? html`<h3>${t(lang, "fault_log")}</h3>
+            <p>
+              ${table.log.entry
+                ? t(lang, "fault_log_fields", {
+                    id: value(table.log.entry.id),
+                    code: value(table.log.entry.code),
+                    type: value(table.log.entry.type),
+                    device: value(table.log.entry.device),
+                    time: value(table.log.entry.time),
+                  })
+                : t(lang, "day_unread")}
+            </p>
+            <p class="secondary">${t(lang, "fault_log_hint")}</p>`
+        : nothing}`;
   }
 
   private async _readProgram(key: string): Promise<void> {
@@ -198,7 +356,11 @@ export class WeishauptPanel extends LitElement {
       return;
     }
     if (event.available !== undefined) this._available = event.available;
-    if (event.readings) this._readings = { ...this._readings, ...event.readings };
+    if (event.readings) {
+      this._readings = { ...this._readings, ...event.readings };
+      const keys = new Set((this._faults ?? []).flatMap((f) => f.keys));
+      if (Object.keys(event.readings).some((k) => keys.has(k))) this._loadFaults(1000);
+    }
     if (event.programs) this._programs = { ...this._programs, ...event.programs };
   }
 
@@ -232,6 +394,13 @@ export class WeishauptPanel extends LitElement {
             >`
           : nothing}
         ${this._clock()}
+        ${this._tree
+          ? html`<button class="link" @click=${() => this._report()}>${t(lang, "report")}</button>
+              <button class="link" @click=${() => this._csv()}>${t(lang, "export_csv")}</button>`
+          : nothing}
+        ${this._rowResult.__report__
+          ? html`<span class="error" role="alert">${this._rowResult.__report__.text}</span>`
+          : nothing}
         ${this._tree?.writes?.clock_writable
           ? html`<button class="link" ?disabled=${this._busy} @click=${() => this._setClock()}>
               ${t(lang, "set_clock")}
@@ -560,7 +729,18 @@ export class WeishauptPanel extends LitElement {
     const device = tree.devices.find((d) => d.id === this._device);
     return html`<div class=${this.narrow ? "layout narrow" : "layout"}>
       <nav aria-label=${t(this._lang, "devices")}>${this._nav(tree)}</nav>
-      <main>${this._menu === DEFINITIONS ? this._definitions(tree) : device ? this._device_view(device) : nothing}</main>
+      <main>
+        ${this._menu === DEFINITIONS
+          ? this._definitions(tree)
+          : this._menu === FAULTS
+            ? (() => {
+                const table = this._faults?.find((f) => f.device === this._device);
+                return table ? this._faultsView(table) : html`<p class="secondary">${t(this._lang, "loading")}</p>`;
+              })()
+            : device
+              ? this._device_view(device)
+              : nothing}
+      </main>
     </div>`;
   }
 
@@ -586,6 +766,11 @@ export class WeishauptPanel extends LitElement {
                     ${"\u00a0\u00a0".repeat(depth)}${label(menu.label, lang)}
                   </option>`,
               )}
+              ${this._faults?.some((f) => f.device === device.id)
+                ? html`<option value=${`${device.id}|${FAULTS}`} ?selected=${current === `${device.id}|${FAULTS}`}>
+                    ${t(lang, "faults")}
+                  </option>`
+                : nothing}
             </optgroup>`,
           )}
           <option value=${`${this._device ?? ""}|${DEFINITIONS}`} ?selected=${this._menu === DEFINITIONS}>
@@ -615,6 +800,7 @@ export class WeishauptPanel extends LitElement {
           <span class="device">${label(device.label, lang)}</span>
           <ul>
             ${menuTree(device.menus).map(([menu, depth]) => item(device.id, menu.id, label(menu.label, lang), depth))}
+            ${this._faults?.some((f) => f.device === device.id) ? item(device.id, FAULTS, t(lang, "faults"), 0) : nothing}
           </ul>
         </li>`,
       )}

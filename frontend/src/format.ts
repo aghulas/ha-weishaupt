@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Labels, Reading, Row } from "./types.ts";
+import type { Labels, Reading, Row, Tree } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -121,6 +121,36 @@ export const STRINGS: Record<string, Record<string, string>> = {
     clock_confirm: "Will send Home Assistant's time at second 00 of the next minute ({send_at}), to bus address fe from source address 31. If the bus is not free within {late} s of second 00, nothing is sent.",
     clock_sent: "Sent {requested} ({frame}): {result}",
     clock_current: "Clock master now: {current}",
+    col_device: "Device",
+    col_menu: "Menu",
+    col_label: "Setting",
+    col_value: "Value",
+    col_unit: "Unit",
+    col_range: "Range (step)",
+    col_writable: "Writable",
+    report: "Printable report",
+    export_csv: "Export CSV",
+    report_title: "Settings of the installation",
+    report_subtitle: "{date} · definitions {version} · read by the Weishaupt integration of Home Assistant",
+    report_no_factory: "Factory values: the definitions do not carry them yet. An empty value was not read when the report was made.",
+    report_blocked: "The browser blocked the report window: allow pop-ups for Home Assistant and try again.",
+    faults: "Faults",
+    fault_history: "Fault history",
+    fault_counters: "Fault counters",
+    fault_log: "Fault log of the system manager (selected entry)",
+    fault_code: "Code",
+    fault_text: "Text",
+    fault_slot: "Slot",
+    fault_values: "Values stored with it",
+    fault_number: "Fault",
+    fault_count: "Count",
+    fault_none: "no fault stored",
+    fault_unordered: "Order unknown: the pointer to the last entry is not read.",
+    fault_no_time: "The boiler stores no time with an entry.",
+    fault_log_fields: "Entry {id}: code {code}, type {type}, origin {device}, {time}",
+    fault_log_hint: "The operating unit of the system manager selects the entry shown; selecting another one is a write, which the panel does not do.",
+    faults_unread: "{n} of these messages are read by no enabled entity.",
+    faults_read_once: "Read once on demand: not kept up to date unless their entities are enabled.",
   },
   fr: {
     title: "Weishaupt",
@@ -237,6 +267,36 @@ export const STRINGS: Record<string, Record<string, string>> = {
     clock_confirm: "Enverra l'heure de Home Assistant à la seconde 00 de la minute suivante ({send_at}), à l'adresse de bus fe depuis l'adresse source 31. Si le bus n'est pas libre dans les {late} s après la seconde 00, rien n'est envoyé.",
     clock_sent: "Envoyé {requested} ({frame}) : {result}",
     clock_current: "Horloge maîtresse maintenant : {current}",
+    col_device: "Appareil",
+    col_menu: "Menu",
+    col_label: "Réglage",
+    col_value: "Valeur",
+    col_unit: "Unité",
+    col_range: "Plage (pas)",
+    col_writable: "Inscriptible",
+    report: "Rapport imprimable",
+    export_csv: "Exporter en CSV",
+    report_title: "Réglages de l'installation",
+    report_subtitle: "{date} · définitions {version} · lus par l'intégration Weishaupt de Home Assistant",
+    report_no_factory: "Valeurs d'usine : les définitions ne les donnent pas encore. Une valeur vide n'était pas lue au moment du rapport.",
+    report_blocked: "Le navigateur a bloqué la fenêtre du rapport : autorisez les fenêtres pour Home Assistant et réessayez.",
+    faults: "Défauts",
+    fault_history: "Mémoire de défauts",
+    fault_counters: "Compteurs de défauts",
+    fault_log: "Journal de défauts du manager système (entrée sélectionnée)",
+    fault_code: "Code",
+    fault_text: "Texte",
+    fault_slot: "Emplacement",
+    fault_values: "Valeurs enregistrées avec lui",
+    fault_number: "Défaut",
+    fault_count: "Nombre",
+    fault_none: "aucun défaut enregistré",
+    fault_unordered: "Ordre inconnu : le pointeur de la dernière entrée n'est pas lu.",
+    fault_no_time: "La chaudière n'enregistre pas d'heure avec une entrée.",
+    fault_log_fields: "Entrée {id} : code {code}, type {type}, origine {device}, {time}",
+    fault_log_hint: "Le tableau de commande du manager système choisit l'entrée affichée ; en choisir une autre est une écriture, que le panneau ne fait pas.",
+    faults_unread: "{n} de ces messages ne sont lus par aucune entité activée.",
+    faults_read_once: "Lus une fois à la demande : pas tenus à jour tant que leurs entités ne sont pas activées.",
   },
 };
 
@@ -429,4 +489,95 @@ export function menuTree<M extends { id: string; parent: string }>(menus: M[]): 
   // a menu whose parent is not shown still appears, at the top
   for (const menu of menus) if (!out.some(([m]) => m.id === menu.id)) out.push([menu, 0]);
   return out;
+}
+
+// ---- the report of the settings and its CSV ---------------------------------------------------------------------
+
+export interface ReportRow {
+  device: string;
+  menu: string;
+  label: string;
+  value: string;
+  unit: string;
+  range: string;
+  writable: string;
+}
+
+/** Every setting of the installation, device by device in the order of the menus: device, menu (with its parent
+ * menus), label, value as read (empty when not read), unit, range and step, writable (and its class) or not. The
+ * definitions carry no factory values yet: the report says so instead of a column. */
+export function reportRows(tree: Tree, readings: Record<string, Reading | null>, language: string): ReportRow[] {
+  const out: ReportRow[] = [];
+  for (const device of tree.devices) {
+    const menus = new Map(device.menus.map((m) => [m.id, m]));
+    const path = (id: string): string => {
+      const names: string[] = [];
+      for (let menu = menus.get(id); menu; menu = menus.get(menu.parent)) names.unshift(label(menu.label, language));
+      return names.join(" › ");
+    };
+    const order = new Map(menuTree(device.menus).map(([m], i) => [m.id, i]));
+    const rows = device.rows
+      .filter((row) => row.kind === "setting")
+      .sort((a, b) => (order.get(a.menu) ?? 999) - (order.get(b.menu) ?? 999));
+    for (const row of rows) {
+      const reading = readingOf(row, readings);
+      const raw = reading?.values[row.index];
+      let value = "";
+      if (raw !== undefined && raw !== NOT_AVAILABLE) value = row.values ? label(row.values[raw], language) || raw : raw;
+      const range = row.writable?.minimum != null
+        ? { min: row.writable.minimum, max: row.writable.maximum, step: row.writable.step }
+        : row.range;
+      out.push({
+        device: label(device.label, language),
+        menu: path(row.menu),
+        label: label(row.label, language),
+        value,
+        unit: row.values ? "" : (row.unit ?? ""),
+        range: range ? `${range.min ?? ""} – ${range.max ?? ""}${range.step ? ` (${range.step})` : ""}` : "",
+        writable: row.writable ? t(language, row.writable.risk) : t(language, "read_only"),
+      });
+    }
+  }
+  return out;
+}
+
+const COLUMNS: (keyof ReportRow)[] = ["device", "menu", "label", "value", "unit", "range", "writable"];
+
+export function reportHeaders(language: string): string[] {
+  return COLUMNS.map((c) => t(language, `col_${c}`));
+}
+
+/** The rows as CSV: comma-separated in English, semicolon-separated in French (as spreadsheets of that language
+ * expect, the comma being the decimal separator there; values keep the device's decimal point), quoted, with a
+ * byte-order mark so that spreadsheets read the accents. */
+export function toCsv(rows: ReportRow[], language: string): string {
+  const separator = language === "fr" ? ";" : ",";
+  const quote = (text: string): string => (/[";,\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text);
+  const lines = [reportHeaders(language), ...rows.map((row) => COLUMNS.map((c) => row[c]))];
+  return "\ufeff" + lines.map((line) => line.map(quote).join(separator)).join("\r\n") + "\r\n";
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+/** A self-contained page of the report, printed by the browser: a table per device, headers repeated on each
+ * printed page, no colour needed. */
+export function reportHtml(rows: ReportRow[], language: string, heading: { title: string; subtitle: string }): string {
+  const devices = [...new Set(rows.map((r) => r.device))];
+  const columns = COLUMNS.filter((c) => c !== "device");
+  const headers = reportHeaders(language).slice(1);
+  const tables = devices.map((device) => `<section><h2>${escapeHtml(device)}</h2><table><thead><tr>${headers
+    .map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>${rows
+    .filter((r) => r.device === device)
+    .map((r) => `<tr>${columns.map((c) => `<td>${escapeHtml(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`);
+  return `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><title>${escapeHtml(heading.title)}</title>
+<style>
+body{font:11pt system-ui,sans-serif;margin:16px;color:#000;background:#fff}
+h1{font-size:16pt;margin:0 0 4px}h2{font-size:13pt;margin:18px 0 6px}p{margin:0 0 8px;color:#333}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:3px 6px;text-align:left;vertical-align:top}
+th{background:#eee}thead{display:table-header-group}tr{break-inside:avoid}section{break-inside:auto}
+@media print{body{margin:0}h2{break-after:avoid}@page{margin:12mm}}
+</style></head><body><h1>${escapeHtml(heading.title)}</h1><p>${escapeHtml(heading.subtitle)}</p>${tables.join("")}
+<p>${escapeHtml(t(language, "report_no_factory"))}</p></body></html>`;
 }

@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
 from homeassistant.util import dt as dt_util
 
-from . import clock
+from . import clock, faults
 from .ebusd import EbusdError
 from .entity import NOT_AVAILABLE, TEXT_TYPES, WeishauptEntity, parse_number
 from .hub import Hub, WeishauptConfigEntry
@@ -27,10 +27,6 @@ UNITS = {
     "min": (UnitOfTime.MINUTES, SensorDeviceClass.DURATION),
     "s": (UnitOfTime.SECONDS, SensorDeviceClass.DURATION),
 }
-# Address arithmetic of the fault history of the boiler automat, from the evidence record `bc-fault-history` of
-# the definitions: the pointer is the address of the last byte written; slot n is the 8 bytes ending at
-# 0x0201 + 8 n. The metadata does not carry it yet.
-FAULT_SLOT_BASE, FAULT_SLOT_SIZE = 0x0201, 8
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
@@ -155,29 +151,10 @@ class FaultHistorySensor(GroupSensor):
         super().__init__(hub, description, (pointer,) if self._pointer else ())
 
     def _entries(self) -> list[dict[str, Any]] | None:
-        slots = []
-        for key in self._group.members:
-            fields = self._fields(key)
-            if fields is None:
-                return None
-            message = self.hub.model.messages[key]
-            number = parse_number(fields.get("number"))
-            entry: dict[str, Any] = {"slot": (message.position or {}).get("n")}
-            if number:  # an empty slot reads 0
-                entry["code"] = f"{'W' if fields.get('kind') == 'warning' else 'F'}{number}"
-                for fld in message.fields:
-                    if fld.shown and fld.name not in ("number", "kind"):
-                        text = fields[fld.name]
-                        entry[fld.name] = text if fld.values else parse_number(text)
-            slots.append(entry)
-        newest = None
-        if self._pointer and (pointer := self._fields(self._pointer)) is not None:
-            position = parse_number(pointer.get("value"))
-            if isinstance(position, int) and (position - FAULT_SLOT_BASE) % FAULT_SLOT_SIZE == 0:
-                newest = (position - FAULT_SLOT_BASE) // FAULT_SLOT_SIZE
-        if newest is not None and 1 <= newest <= len(slots):
-            slots = [slots[(newest - 1 - i) % len(slots)] for i in range(len(slots))]
-        return [entry for entry in slots if "code" in entry]
+        entries = faults.history(self.hub.model, self.hub.reading, self._group, self._pointer)
+        if entries is None:
+            return None
+        return [{k: v for k, v in entry.items() if k != "number"} for entry in entries]
 
     @property
     def native_value(self) -> str | None:

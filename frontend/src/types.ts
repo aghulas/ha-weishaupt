@@ -157,3 +157,24 @@ export interface LiveEvent {
   readings?: Record<string, Reading | null>;
   programs?: Record<string, Days>;
 }
+
+/** The fault tables of a device (weishaupt/panel/faults). */
+export interface FaultTable {
+  device: string;
+  label: Labels;
+  history: {
+    entries: {
+      slot: number;
+      code: string;
+      number: number;
+      text: Labels | null;
+      values: { label: Labels; value: string | null; value_labels: Labels | null; unit: string | null }[];
+    }[] | null;
+    ordered: boolean;
+  } | null;
+  counters: { number: number; count: number | null; text: Labels | null }[] | null;
+  log: { entry: { id: number | null; code: number | null; type: number | null; device: number | null; time: string | null } | null } | null;
+  keys: string[];
+  not_listened: number;
+  unread: number;
+}

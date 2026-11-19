@@ -2,10 +2,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, initialDraft, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, initialDraft, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
-import type { Row } from "../src/types.ts";
+import type { Row, Tree } from "../src/types.ts";
 
 const row = (extra: Partial<Row> = {}): Row => ({
   key: "em2/RoomNormalTemp/value", message: "em2/RoomNormalTemp", index: 0, menu: "settings", kind: "setting",
@@ -113,4 +113,39 @@ test("the edit field starts with the value read, never with the minimum", () => 
     { raw: 1, name: "Monday", label: { en: "Monday" } }] } });
   assert.equal(initialDraft(choice, { values: ["Monday"], when: 0 }), "1");
   assert.equal(initialDraft(choice, undefined), ""); // not the first entry of the list
+});
+
+test("the report: settings only, in the order of the menus, values as read, CSV by language", () => {
+  const setting = (extra: Partial<Row>): Row => row({ kind: "setting", ...extra });
+  const tree = {
+    devices: [{
+      id: "module2", type: "module", label: { en: "Heating module 2", fr: "Module de chauffage 2" }, addresses: ["51"],
+      software: null, hardware: null, programs: [],
+      menus: [{ id: "info", parent: "", label: { en: "Info", fr: "Info" } },
+        { id: "settings", parent: "", label: { en: "Settings", fr: "Réglage" } },
+        { id: "holiday", parent: "settings", label: { en: "Holiday", fr: "Congés" } }],
+      rows: [
+        setting({ key: "a", message: "em2/HolidayLevel", messages: ["em2/HolidayLevel"], menu: "holiday", unit: null, range: null,
+          label: { en: "Holiday level", fr: "Niveau, vacances" },
+          values: { Setback: { en: "Setback", fr: "Réduit" } } }),
+        setting({ key: "b", message: "em2/RoomNormalTemp", menu: "settings" }),
+        row({ key: "c", message: "em2/FlowTemp", menu: "info", kind: "live" }),
+      ],
+    }],
+  } as unknown as Tree;
+  const readings = { "em2/RoomNormalTemp": { values: ["21.5"], when: 0 }, "em2/HolidayLevel": { values: ["Setback"], when: 0 } };
+  const rows = reportRows(tree, readings, "fr");
+  assert.deepEqual(rows.map((r) => [r.menu, r.label, r.value, r.unit]), [
+    ["Réglage", "Température ambiante normale", "21.5", "°C"],
+    ["Réglage › Congés", "Niveau, vacances", "Réduit", ""],
+  ]);
+  assert.equal(rows[0].range, "16 – 35 (0.5)");
+  const csv = toCsv(rows, "fr");
+  assert.ok(csv.startsWith("\ufeffAppareil;Menu;Réglage;Valeur;Unité;Plage (pas);Inscriptible\r\n"));
+  assert.ok(csv.includes("Module de chauffage 2;Réglage;Température ambiante normale;21.5;°C;16 – 35 (0.5);lecture seule"));
+  assert.ok(toCsv(reportRows(tree, readings, "en"), "en").includes("Heating module 2,Settings,Normal room temperature,21.5"));
+  assert.ok(toCsv([{ ...rows[0], label: 'a "b"; c' }], "fr").includes('"a ""b""; c"'));
+  const page = reportHtml(rows, "fr", { title: "Réglages <x>", subtitle: "s" });
+  assert.ok(page.includes("<h2>Module de chauffage 2</h2>") && page.includes("Réglages &lt;x&gt;"));
+  assert.ok(page.includes("@media print"));
 });

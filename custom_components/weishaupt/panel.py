@@ -36,7 +36,7 @@ async def async_setup_panel(hass: HomeAssistant, version: str) -> None:
     the entities, nor on an installation without it). The URL of the file carries the version, so that an update
     is not hidden by the browser's cache."""
     for command in (ws_installations, ws_tree, ws_subscribe, ws_read_program, ws_write, ws_write_days, ws_clock,
-                    ws_confirm, ws_cancel):
+                    ws_confirm, ws_cancel, ws_faults, ws_read_faults):
         websocket_api.async_register_command(hass, command)
     if "frontend" not in hass.config.components or hass.http is None or not PANEL_FILE.is_file():
         return
@@ -326,6 +326,89 @@ def ws_cancel(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
     hub = _writer_or_error(hass, connection, msg)
     if hub is not None:
         connection.send_result(msg["id"], {"withdrawn": hub.writer.drop_pending(msg["pending_id"])})
+
+
+# ---- fault tables (read only) ----------------------------------------------------------------------------------
+
+
+def fault_tables(hub: Hub) -> list[dict[str, Any]]:
+    """Per device present: its fault memory (entries with their text), its fault counters, the fault-log entry of
+    the system manager; the keys behind them, and how many of them no enabled entity reads (asked once on demand)."""
+    from . import faults
+    model, listened = hub.model, hub.listened()
+    out = []
+    for device in hub.devices.values():
+        circuits = [c.circuit for c in device.circuits]
+        keys: list[str] = []
+        history = None
+        for group in model.groups.values():
+            if group.family == "fault_history" and group.device == device.id:
+                pointer = f"{group.circuit}/FaultHistoryPointer"
+                pointer = pointer if pointer in hub.usable else None
+                known = faults.texts(model, group.circuit)
+                entries = faults.history(model, hub.reading, group, pointer)
+                if entries is not None:
+                    fields = {f.name: f for f in model.messages[group.members[0]].fields}
+                    entries = [_fault_entry(entry, fields, known) for entry in entries]
+                history = {"entries": entries, "ordered": bool(pointer and hub.reading(pointer) is not None)}
+                keys += [*group.members, *([pointer] if pointer else [])]
+        counters = [row for circuit in circuits for row in faults.counters(model, hub.reading, circuit)]
+        keys += sorted({row.pop("key") for row in counters})
+        log = None
+        for circuit in circuits:
+            if faults.log_keys(model, circuit):
+                log = {"entry": faults.log_entry(model, hub.reading, circuit)}
+                keys += faults.log_keys(model, circuit)
+        keys = [key for key in keys if key in hub.usable]
+        if not keys:
+            continue
+        out.append({"device": device.id, "label": device.label, "history": history, "counters": counters or None,
+                    "log": log, "keys": keys, "not_listened": sum(1 for key in keys if key not in listened),
+                    "unread": sum(1 for key in keys if key not in hub.readings)})
+    return out
+
+
+def _fault_entry(entry: dict[str, Any], fields: dict[str, Field], known: dict[int, dict[str, str]]) -> dict[str, Any]:
+    """An entry of a fault memory for the panel: code, text, and each value the automat stored with its label,
+    unit and, for a value list, the labels of its entry."""
+    values = []
+    for name, value in entry.items():
+        fld = fields.get(name)
+        if fld is None or name in ("number", "kind"):  # already in the code (F11, W12)
+            continue
+        labels = (fld.value_labels or {}).get(next((r for r, n in (fld.values or {}).items() if n == value), ""))
+        values.append({"label": fld.label or {"en": name}, "value": None if value is None else str(value),
+                       "value_labels": labels, "unit": fld.unit})
+    return {"slot": entry["slot"], "code": entry["code"], "number": entry["number"],
+            "text": known.get(entry["number"]), "values": values}
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/faults", vol.Required("entry_id"): str})
+@callback
+def ws_faults(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """The fault tables from what the reader holds: nothing is asked from the bus."""
+    hub = _hub(hass, connection, msg)
+    if hub is not None:
+        connection.send_result(msg["id"], fault_tables(hub))
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/read_faults", vol.Required("entry_id"): str,
+                                  vol.Required("device"): str})
+@callback
+def ws_read_faults(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Read once the fault messages of a device that no enabled entity reads, at the pace of the reader and after
+    what the entities wait for, as for a program."""
+    hub = _hub(hass, connection, msg)
+    if hub is None:
+        return
+    table = next((t for t in fault_tables(hub) if t["device"] == msg["device"]), None)
+    if table is None:
+        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "no fault messages on this device")
+        return
+    queued = hub.async_read_once(tuple(table["keys"]))
+    connection.send_result(msg["id"], {"queued": queued, "seconds": round(queued * max(hub.request_gap, 1.0))})
 
 
 def _reading(hub: Hub, key: str) -> dict[str, Any] | None:

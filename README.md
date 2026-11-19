@@ -9,7 +9,8 @@ Not affiliated with Weishaupt or with the ebusd project.
 
 **Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
 read requests. With writes enabled in its options, it can change **the settings a release of the
-definitions proves writable** — 71 with definitions 0.5.6 — and nothing else, through a write
+definitions proves writable** — 71 settings, the weekly programs of two room units and the clock with
+definitions 0.5.7 — and nothing else, through a write
 guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
@@ -44,12 +45,12 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.3 | 0.5.6 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
+| 0.3 | 0.5.7 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.5.6.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.5.7.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -68,7 +69,8 @@ entities work. 0.5.4 differs from 0.5.3 only by the write definitions of the two
 system manager's own circuit: with 0.5.3 in ebusd everything is read, and those two settings stay
 read-only (64 writable instead of 66). 0.5.5 changes only the metadata (write ranges, risk
 classes), which the integration ships itself: an ebusd with 0.5.3 or 0.5.4 behaves the same. 0.5.6
-adds five choices: with an older release in ebusd they stay read-only, the rest is the same. An entity
+adds five choices, the program writes of room unit 1 and the clock, 0.5.7 heating program 1 of room unit
+3: with an older release in ebusd these stay read-only, the rest is the same. An entity
 created under a former message name keeps its entity id and history when the name changes: the
 metadata says which name it had.
 
@@ -179,7 +181,7 @@ What is writable is decided by the definitions, not by the integration: a settin
 entity (a select for a choice) only when the metadata of the release gives it **write conditions** (a lot of the
 definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
 definition as the release has it. Structural settings (circuit type, control variant, boiler
-sequence…) never have write conditions. With definitions 0.5.6, 71 settings of one value, 16 of them
+sequence…) never have write conditions. With definitions 0.5.7, 71 settings of one value, 16 of them
 comfort:
 
 | Device | Comfort | Regulation | Source |
@@ -192,9 +194,42 @@ comfort:
 | System manager, choices (2) | | legionella protection day (off, Monday … Sunday), circulation during legionella protection (off, on): **selects** | `ff` |
 | Room units 1, 2, 3, choice (1 each) | | holiday temperature level (antifreeze, setback): **select** | `ff` |
 
-The definitions 0.5.6 also prove writes this version does not offer: the weekly programs of room
-unit 1 (105 slots) and the date and time broadcast. They stay read-only (the programs as their
-sensors); how they could be offered is under discussion.
+### Weekly programs
+
+Where the definitions prove the slots writable — the five programs of room unit 1 and heating program
+1 of room unit 3 with definitions 0.5.7; never room unit 2, which does not keep slot writes — each
+program has **one text entity per day** (*Heating program 1 – Monday (setting)*), in the
+configuration section of the room unit. Its value is the day as the program sensors show it:
+`06:30-18:00, 19:00-21:00`, up to three ranges in quarters of an hour, `-` for none. Heating program
+1 is enabled when created, the others not.
+
+Setting a day writes its three slots and reads them back: comfort class, no confirmation, from
+ebusd's own address as the definitions prove. Only the slots that change are written. A slot with
+only one of its two times enabled is shown as unused and is rewritten unused.
+
+The action **`weishaupt.set_program`** (device, program, and the days to change) writes several
+days at once, for an automation or to copy a week. A whole week costs 21 writes at most (3 a day),
+fewer when slots do not change. Every day is checked, then the slots are read from the device; if
+more slots would change than writes are left within the hour (option *Maximum writes per hour*, 30
+by default), **nothing is written** and the action fails with the count. A failure midway stops the
+rest and says how many slots were written. It returns `written` and `unchanged` when asked for a
+response.
+
+### The clock
+
+A diagnostic sensor on the *Installation* device, **Clock offset of the installation**, gives the
+seconds the clock master is ahead of the clock of ebusd's host (negative: behind), from its last date
+and time broadcast, which ebusd keeps: no request to the bus, read every minute. It is unknown when
+the last broadcast came from ebusd itself, and when ebusd's host does not agree with Home Assistant
+on the time within two minutes (another time zone or clock): the figure would then mean nothing.
+
+With writes enabled, a button **Set the clock from Home Assistant** (same device). Regulation
+class: pressing it opens a confirmation in *Repairs* with the current offset. Confirmed, the
+integration keeps the bus quiet before second 00 of the next minute and broadcasts Home Assistant's
+time **at second 00 exactly**, from ebusd's own address; every controller takes it over, seconds
+included. If the connection to ebusd is not free within 2 s of second 00, **nothing is sent**: a
+time sent late would set the whole installation late. There is no action: no automation sets the
+clock.
 
 The source is the one the metadata gives each setting: the address the device takes the value from
 (`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
@@ -282,13 +317,15 @@ file to attach to a report about another boiler model or software version.
 0.1 read and wrote registers with raw telegrams from its own table. 0.2 and 0.3 are a different
 integration under the same name:
 
-- **Only the proven settings can be written**: with definitions 0.5.6, the 66 numeric settings of
+- **Only the proven settings can be written**: with definitions 0.5.7, the 66 numeric settings of
   0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too), and
   five of its choices (legionella day, circulation with legionella, holiday level of the three room
-  units). The other choices (boiler sequence, adaption, control variation, circuit type), the
-  holiday dates, the weekly programs and the clock are not offered: the `date` entities and the
-  actions `weishaupt.set_time_program` and `weishaupt.set_clock` are gone, and automations that
-  call them stop working. If you rely on
+  units). The weekly programs come back for room unit 1 (all five) and room unit 3 (heating
+  program 1), as text entities per day and the action `weishaupt.set_program`, and the clock as a
+  confirmed button. Not offered: the other choices (boiler sequence, adaption, control variation,
+  circuit type), the holiday dates, the programs of room unit 2; the `date` entities and the actions
+  `weishaupt.set_time_program` and `weishaupt.set_clock` are gone, and automations that call them
+  stop working. If you rely on
   them, stay on 0.1 until the definitions prove them.
 - Regulation settings need a confirmation in *Repairs* for every change: an automation that sets
   one of them in 0.1 cannot do so any more. The hourly write limit is an option again, 30 by default
@@ -374,6 +411,8 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0rc3: definitions 0.5.7; weekly programs of room units 1 and 3 (text per day, action
+  `set_program`); clock offset sensor and a set-clock button that sends at second 00 or not at all.
 - 0.3.0rc2: definitions 0.5.6, five choices as selects; numbers that 0.3.0b2 created disabled
   enabled once; a successful confirmation ends in a "Success" dialog with the whole frame; values
   kept across a reload of the entry.

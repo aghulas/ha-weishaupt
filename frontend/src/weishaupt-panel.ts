@@ -13,6 +13,7 @@ import {
   languageOf,
   addDragged,
   formatDay,
+  initialDraft,
   menuTree,
   missingReason,
   parseDay,
@@ -260,10 +261,25 @@ export class WeishauptPanel extends LitElement {
       }
       return answer;
     } catch (err) {
-      return { status: "refused", code: "error", message: (err as Error).message };
+      // the connection to Home Assistant dropped, or it answered with an error: say what is known
+      const error = err as { code?: string; message?: string };
+      const lost = !error?.code || error.code === "connection_lost" || /connection/i.test(error.message ?? "");
+      return {
+        status: "refused",
+        code: lost ? "interrupted" : error.code,
+        message: lost ? t(this._lang, "interrupted") : error.message || error.code,
+      };
     } finally {
       this._busy = false;
     }
+  }
+
+  /** The writes switch as Home Assistant shows it now (it follows a change made anywhere, without a reload). */
+  private _switchOn(): boolean {
+    const writes = this._tree?.writes;
+    if (!writes) return false;
+    const state = writes.switch_entity_id ? this.hass.states[writes.switch_entity_id] : undefined;
+    return state ? state.state === "on" : writes.switch;
   }
 
   private _resultText(answer: WriteAnswer): { text: string; error: boolean } {
@@ -290,9 +306,14 @@ export class WeishauptPanel extends LitElement {
     };
   }
 
+  private _writing(target: string): void {
+    this._rowResult = { ...this._rowResult, [target]: { text: t(this._lang, "writing"), error: false } };
+  }
+
   private async _writeRow(row: Row): Promise<void> {
     const writable = row.writable!;
     const value = Number(this._draft);
+    this._writing(row.key);
     const answer = await this._call({ type: "weishaupt/panel/write", key: writable.key, value });
     this._handle(answer, row.key);
     if (answer.status !== "refused") this._editing = undefined;
@@ -307,12 +328,14 @@ export class WeishauptPanel extends LitElement {
   }
 
   private async _setClock(): Promise<void> {
+    this._writing("__clock__");
     this._handle(await this._call({ type: "weishaupt/panel/clock" }), "__clock__");
   }
 
   private async _confirmed(): Promise<void> {
     const dialog = this._dialog!;
     this._dialog = undefined;
+    this._writing(dialog.target);
     const answer = await this._call({ type: "weishaupt/panel/confirm", pending_id: dialog.answer.pending_id });
     this._rowResult = { ...this._rowResult, [dialog.target]: this._resultText(answer) };
   }
@@ -320,6 +343,9 @@ export class WeishauptPanel extends LitElement {
   private async _withdrawn(): Promise<void> {
     const dialog = this._dialog!;
     this._dialog = undefined;
+    const rest = { ...this._rowResult };
+    delete rest[dialog.target]; // the "writing…" of the request: nothing was written
+    this._rowResult = rest;
     await this._call({ type: "weishaupt/panel/cancel", pending_id: dialog.answer.pending_id });
   }
 
@@ -393,6 +419,7 @@ export class WeishauptPanel extends LitElement {
         ${writable.options
           ? html`<select aria-label=${t(lang, "new_value")}
               @change=${(e: Event) => (this._draft = (e.target as HTMLSelectElement).value)}>
+              <option value="" ?selected=${this._draft === ""} disabled>…</option>
               ${writable.options.map(
                 (o) => html`<option value=${o.raw} ?selected=${String(o.raw) === this._draft}>${label(o.label, lang)}</option>`,
               )}
@@ -409,21 +436,14 @@ export class WeishauptPanel extends LitElement {
           ${t(lang, "path_short", { address: writable.address ?? "", register: writable.register ?? "", source: writable.source })}
         </div>
         <div class="secondary">${t(lang, writable.risk === "comfort" ? "comfort_note" : "regulation_note")}</div>
-        ${this._tree?.writes && !this._tree.writes.switch
+        ${this._tree?.writes && !this._switchOn()
           ? html`<div class="error">${t(lang, "switch_off_hint")}</div>`
           : nothing}
       </form>`
   }
 
   private _startEdit(row: Row): void {
-    const writable = row.writable!;
-    const raw = readingOf(row, this._readings)?.values[row.index];
-    if (writable.options) {
-      const found = writable.options.find((o) => o.name === raw);
-      this._draft = String(found?.raw ?? writable.options[0].raw);
-    } else {
-      this._draft = raw && raw !== "-" && !Number.isNaN(Number(raw)) ? raw : String(writable.minimum ?? "");
-    }
+    this._draft = initialDraft(row, readingOf(row, this._readings));
     this._editing = row.key;
   }
 
@@ -438,7 +458,8 @@ export class WeishauptPanel extends LitElement {
   private _startWeek(program: Program): void {
     const week = this._programs[program.key];
     const draft: Record<string, string> = {};
-    for (let day = 1; day <= 7; day++) draft[String(day)] = this._dayText(week, String(day)) ?? "-";
+    // a day not read yet starts empty and is written only if something is typed or drawn in it
+    for (let day = 1; day <= 7; day++) draft[String(day)] = this._dayText(week, String(day)) ?? "";
     this._weekDraft = { ...this._weekDraft, [program.key]: draft };
     this._weekResult = { ...this._weekResult, [program.key]: undefined as never };
   }
@@ -451,9 +472,11 @@ export class WeishauptPanel extends LitElement {
     const draft = this._weekDraft[program.key] ?? {};
     const week = this._programs[program.key];
     return Object.keys(draft).filter((day) => {
+      const current = this._dayText(week, day);
+      if (current === null && draft[day].trim() === "") return false;
       const parsed = parseDay(draft[day]);
       const text = "ranges" in parsed ? formatDay(parsed.ranges) : draft[day];
-      return text !== this._dayText(week, day);
+      return text !== current;
     });
   }
 
@@ -461,6 +484,7 @@ export class WeishauptPanel extends LitElement {
     const draft = this._weekDraft[program.key];
     const days: Record<string, string> = {};
     for (const day of this._changed(program)) days[day] = draft[day];
+    this._weekResult = { ...this._weekResult, [program.key]: { text: t(this._lang, "writing"), error: false } };
     const answer = await this._call({ type: "weishaupt/panel/write_days", program: program.key, days });
     const lang = this._lang;
     if (answer.status === "refused") {
@@ -685,7 +709,6 @@ export class WeishauptPanel extends LitElement {
           }))
         : {};
       const invalid = Object.values(errors).some(Boolean);
-      const complete = [1, 2, 3, 4, 5, 6, 7].every((d) => week?.[String(d)] != null);
       const note = !program.read
         ? t(lang, "not_read_program")
         : !program.listened
@@ -700,7 +723,7 @@ export class WeishauptPanel extends LitElement {
           ${program.entity_id
             ? html`<button class="link" @click=${() => this._open(program.entity_id!)}>${t(lang, "open")}</button>`
             : nothing}
-          ${program.writable && writes && !editing && complete
+          ${program.writable && writes && !editing
             ? html`<button class="link" @click=${() => this._startWeek(program)}>${t(lang, "edit_days")}</button>`
             : nothing}
         </h3>
@@ -755,6 +778,7 @@ export class WeishauptPanel extends LitElement {
                         type="text"
                         aria-label=${name}
                         aria-invalid=${error ? "true" : "false"}
+                        placeholder=${week?.[day] == null ? t(lang, "day_unread") : ""}
                         .value=${draft[day]}
                         @input=${(e: Event) => this._setDay(program.key, day, (e.target as HTMLInputElement).value)}
                       />
@@ -804,14 +828,14 @@ export class WeishauptPanel extends LitElement {
         </table>
         ${editing && writes
           ? html`<p class="secondary">
-                ${t(lang, "cost", {
+                ${t(lang, changed.length === 1 ? "cost_one" : "cost", {
                   days: changed.length,
                   writes: changed.length * 3,
                   used: writes.writes_last_hour,
                   max: writes.max_per_hour,
                 })}
               </p>
-              ${writes.switch ? nothing : html`<p class="error">${t(lang, "switch_off_hint")}</p>`}
+              ${this._switchOn() ? nothing : html`<p class="error">${t(lang, "switch_off_hint")}</p>`}
               <div class="actions">
                 <button class="link" @click=${() => {
                   const rest = { ...this._weekDraft };
@@ -866,7 +890,7 @@ export class WeishauptPanel extends LitElement {
         <dt>${t(lang, "writes")}</dt>
         <dd>
           ${writes
-            ? html`${t(lang, writes.switch ? "switch_on" : "switch_off")} ·
+            ? html`${t(lang, this._switchOn() ? "switch_on" : "switch_off")} ·
               ${t(lang, "capability", { value: writes.capability })} ·
               ${t(lang, "per_hour", { n: writes.writes_last_hour, max: writes.max_per_hour })}`
             : t(lang, "writes_off")}

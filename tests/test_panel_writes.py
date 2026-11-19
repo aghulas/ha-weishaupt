@@ -83,7 +83,8 @@ async def test_the_guard_refuses_from_the_panel_as_from_an_entity(hass, fake, lo
                            language=language))["result"]
 
     off = await write("em2/RoomNormalTemp", 22)
-    assert off["status"] == "refused" and off["code"] == "writes_disabled" and off["message"]
+    assert off["status"] == "refused" and off["code"] == "switch_off" and "switch" in off["message"]
+    assert "options" not in off["message"]
     writer.set_switch(True)
     assert (await write("em2/RoomNormalTemp", 99))["code"] == "out_of_bounds"
     assert (await write("em2/RoomNormalTemp", 21.3))["code"] == "off_step"

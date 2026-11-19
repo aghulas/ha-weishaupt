@@ -95,7 +95,7 @@ async def test_switch_off_refuses(hass, fake, log):
     with pytest.raises(ServiceValidationError) as err:
         await hass.services.async_call("number", "set_value", {
             "entity_id": number_id(hass, entry, "em2/RoomNormalTemp"), "value": 22}, blocking=True)
-    assert err.value.translation_key == "writes_disabled"
+    assert err.value.translation_key == "switch_off"
     assert sent(fake) == [] and fake.writes == []
 
 

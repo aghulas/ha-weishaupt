@@ -299,7 +299,7 @@ async def test_set_clock_needs_its_confirmation_and_the_switch(hass, fake, log):
     writer.set_switch(False)
     with pytest.raises(WriteRefused) as err:
         await writer.async_request_clock(None)
-    assert err.value.code == "writes_disabled" and fake.writes == []
+    assert err.value.code == "switch_off" and fake.writes == []
 
 
 async def test_the_hot_water_program_of_the_manager(hass, fake, log):

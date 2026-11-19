@@ -140,8 +140,11 @@
     "cannot_connect": {
       "message": "ebusd ne peut pas être interrogé : {error}"
     },
+    "switch_off": {
+      "message": "L'interrupteur d'écriture est éteint : allumez-le pour écrire (il est éteint après chaque redémarrage de Home Assistant ou rechargement de l'intégration)."
+    },
     "writes_disabled": {
-      "message": "Les écritures sont désactivées : activez-les dans les options de l'intégration et allumez l'interrupteur d'écriture."
+      "message": "L'écriture n'est pas activée dans les options de l'intégration : activez-la, puis allumez l'interrupteur d'écriture."
     },
     "not_writable": {
       "message": "{setting} n'est pas inscriptible : {reason}"

@@ -254,6 +254,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
+    from homeassistant.helpers.storage import Store
+    await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.writes").async_remove()
     for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities", "old_entities"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 

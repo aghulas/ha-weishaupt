@@ -236,7 +236,9 @@ adds:
   prove writable, with the range, step and unit of the definitions, enabled, named like the sensor
   of the same register with "(setting)" after it (*Normal room temperature (setting)*);
 - a **write switch** on the ebusd device, **off**. Writes are refused while it is off; turning it
-  off also withdraws every change waiting for a confirmation.
+  off also withdraws every change waiting for a confirmation. It is **off again after every
+  restart of Home Assistant and every reload of the integration**, whatever it was before: writing
+  is switched on for a session of changes, never left on by a restart.
 
 What is writable is decided by the definitions, not by the integration: a setting gets a number
 entity (a select for a choice) only when the metadata of the release gives it **write conditions** (a lot of the
@@ -368,7 +370,9 @@ programs).
 3. for a write from `ff`, the telegram log: no telegram from `ff` that is not ours in the last 10
    minutes, a telegram of any source in the last 2 minutes; then at most one write per register
    every 10 s and 30 writes an hour (option *Maximum writes per hour*, 1 to 200: keep 30 in
-   service, a higher value is for a supervised test campaign);
+   service, a higher value is for a supervised test campaign). These counters are kept on disk
+   (`.storage/weishaupt.<entry>.writes`), saved before each write is sent: a restart or a reload
+   does not reset them;
 4. the telegram is built by the integration and handed to ebusd with
    `write [-s ff] -c <circuit> -h <bytes>`: ebusd sends it only if it matches the write definition
    it loaded for that circuit, checksum included;
@@ -536,6 +540,10 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.6.0b2: the write switch is off after every restart or reload; the hourly and per-register
+  counters survive restarts; the panel never prefills a value it has not read, follows the switch
+  live, shows "writing…", says when a call was interrupted, names the switch when it is the cause,
+  and lets a proven program be edited before it is fully read.
 - 0.6.0b1: the panel writes: settings and choices (regulation confirmed in the panel), days of
   the proven programs (typed or dragged, copied), the clock; same writer and guard as the
   entities.

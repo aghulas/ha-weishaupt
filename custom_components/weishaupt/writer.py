@@ -39,6 +39,7 @@ from typing import Any
 from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -151,6 +152,8 @@ class Writer:
             _LOGGER.warning("option %s ignored (%s): %s writes per hour", CONF_MAX_WRITES_PER_HOUR, err, MAX_PER_HOUR)
             limit = MAX_PER_HOUR
         self.guard = WriteGuard(enabled=False, max_per_hour=limit)
+        # the guard's counters, kept across restarts and reloads: a restart must not reset the hourly limit
+        self._store: Store = Store(hass, 1, f"{DOMAIN}.{hub.entry.entry_id}.writes")
         self.specs: dict[str, WriteSpec] = {}
         self.not_writable: dict[str, str] = {}
         self.placeholders: dict[str, str] = {}
@@ -174,6 +177,7 @@ class Writer:
     async def async_setup(self) -> None:
         """Load the write definitions ebusd has, build the specs, probe the run-time checksum. Nothing is sent to
         the bus: `find` and two probes that ebusd refuses before sending."""
+        self.guard.restore(await self._store.async_load())
         circuits = sorted({m.circuit for m in self.hub.model.messages.values()
                            if m.writable and (m.key in self.hub.usable or not (m.read or m.passive))})
         loaded = {circuit: await self.hub.client.definitions(circuit, write=True) for circuit in circuits}
@@ -236,6 +240,10 @@ class Writer:
 
     # ---- state ----------------------------------------------------------------------------------------------
 
+    async def _save_guard(self) -> None:
+        """Saved before the write is sent, so that a restart right after it still counts it."""
+        await self._store.async_save(self.guard.export())
+
     def set_switch(self, on: bool) -> None:
         self.switch_on = on
         self.guard.enabled = on
@@ -243,7 +251,7 @@ class Writer:
     def _check_static(self, spec: WriteSpec | None, key: str, value: float) -> WriteSpec:
         """Gates that need no request to the bus."""
         if not self.switch_on:
-            raise WriteRefused("writes_disabled")
+            raise WriteRefused("switch_off")
         if spec is None:
             raise WriteRefused("not_writable", setting=key, reason=self.not_writable.get(key, "no write conditions"))
         if self.capability == "absent":
@@ -417,6 +425,7 @@ class Writer:
             self._trace(spec, entry)
             return entry
         self.guard.record(spec.register_id, source)
+        await self._save_guard()
         await self.hub.async_bus_slot()
         try:
             answer = await self.hub.client.write_register(spec.circuit, telegram, source)
@@ -551,7 +560,7 @@ class Writer:
 
     def _check_clock(self) -> None:
         if not self.switch_on:
-            raise WriteRefused("writes_disabled")
+            raise WriteRefused("switch_off")
         if not self.clock_writable:
             raise WriteRefused("not_writable", setting=CLOCK_KEY, reason="no write definition of the broadcast")
         if not self.hub.available:
@@ -617,6 +626,7 @@ class Writer:
             await self._sleep(wait)
         deadline = target.timestamp() + clock.LATE
         self.guard.record(CLOCK_REGISTER, None)
+        await self._save_guard()
         try:
             entry["answer"] = await self.hub.client.write_broadcast(
                 telegram, lambda: self._now().timestamp() <= deadline)

@@ -140,8 +140,11 @@
     "cannot_connect": {
       "message": "ebusd cannot be asked: {error}"
     },
+    "switch_off": {
+      "message": "The write switch is off: turn it on to write (it is off after every restart of Home Assistant or reload of the integration)."
+    },
     "writes_disabled": {
-      "message": "Writes are disabled: enable them in the options of the integration and turn the write switch on."
+      "message": "Writes are not enabled in the options of the integration: enable them there, then turn the write switch on."
     },
     "not_writable": {
       "message": "{setting} is not writable: {reason}"

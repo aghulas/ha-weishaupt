@@ -1,15 +1,15 @@
 """The write switch: writes are refused while it is off. Created only when writes are enabled in the options of
-the entry, off at first, then as it was left."""
+the entry. It is off after every start of Home Assistant and every reload of the integration, whatever it was
+before: writing is a decision taken each time, never one left on by a restart."""
 from __future__ import annotations
 
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import STATE_ON, EntityCategory
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .entity import hub_identifier
 from .hub import Hub, WeishauptConfigEntry
@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
         async_add_entities([WriteSwitch(hub)])
 
 
-class WriteSwitch(SwitchEntity, RestoreEntity):
+class WriteSwitch(SwitchEntity):
     _attr_has_entity_name = True
     _attr_should_poll = False
     _attr_translation_key = "writes"
@@ -36,8 +36,7 @@ class WriteSwitch(SwitchEntity, RestoreEntity):
         self._attr_device_info = DeviceInfo(identifiers={hub_identifier(hub)})
 
     async def async_added_to_hass(self) -> None:
-        last = await self.async_get_last_state()
-        self.hub.writer.set_switch(last is not None and last.state == STATE_ON)
+        self.hub.writer.set_switch(False)  # off after any restart or reload, never restored
 
     @property
     def is_on(self) -> bool:

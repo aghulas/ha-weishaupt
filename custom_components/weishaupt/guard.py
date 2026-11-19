@@ -25,6 +25,7 @@ import time
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 MIN_INTERVAL = 10.0
 MAX_PER_HOUR = 30
@@ -37,7 +38,8 @@ LOG_FRESH_MAX = 120.0
 # Reasons of a refusal. The key is also the translation key of the message shown in Home Assistant
 # (`exceptions` in the translations); the English text here is what the logs and the tests see.
 REASONS = {
-    "writes_disabled": "writes are disabled (integration options or write switch)",
+    "writes_disabled": "writes are not enabled in the options of the integration",
+    "switch_off": "the write switch is off",
     "not_writable": "{setting} is not writable: {reason}",
     "capability_absent": "ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused",
     "capability_unknown": "whether ebusd computes the run-time checksum is not known ({reason}): writes refused",
@@ -122,7 +124,7 @@ class WriteGuard:
     def check(self, register_id: str, value: float, minimum: float, maximum: float, source: str | None,
               service_tool: ServiceToolState | None = None) -> None:
         if not self.enabled:
-            raise WriteRefused("writes_disabled")
+            raise WriteRefused("switch_off")
         if math.isnan(value) or not minimum <= value <= maximum:
             raise WriteRefused("out_of_bounds", value=value, minimum=minimum, maximum=maximum)
         now = self._clock()
@@ -148,6 +150,28 @@ class WriteGuard:
         if any(abs(seen - own) <= OWN_WRITE_MARGIN for own in self._own_ff_writes):
             return
         raise WriteRefused("service_tool_active")
+
+    def export(self) -> dict[str, Any]:
+        """What must survive a restart or a reload: the writes of the last hour (the hourly limit), the last write
+        of each register (10 s), the writes from ff (the service-tool check). Times since the epoch."""
+        now = self._clock()
+        return {"writes": [t for t in self._writes if now - t <= 3600],
+                "last_by_register": {r: t for r, t in self._last_by_register.items() if now - t <= 3600},
+                "own_ff": [t for t in self._own_ff_writes if now - t <= 3600]}
+
+    def restore(self, data: dict[str, Any] | None) -> None:
+        """The counters saved before a restart or a reload; what is older than an hour, or in the future (a clock
+        set back), is dropped."""
+        if not data:
+            return
+        now = self._clock()
+
+        def recent(t: Any) -> bool:
+            return isinstance(t, (int, float)) and 0 <= now - t <= 3600
+
+        self._writes = deque(sorted(t for t in data.get("writes", []) if recent(t)))
+        self._last_by_register = {r: t for r, t in (data.get("last_by_register") or {}).items() if recent(t)}
+        self._own_ff_writes = deque(sorted(t for t in data.get("own_ff", []) if recent(t)), maxlen=200)
 
     def record(self, register_id: str, source: str | None) -> None:
         """To call right before sending a write the guard accepted."""

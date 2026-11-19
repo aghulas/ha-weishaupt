@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, initialDraft, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
 import type { Row } from "../src/types.ts";
@@ -97,4 +97,20 @@ test("a dragged range: quarters of an hour, merged with what it overlaps, three 
   assert.deepEqual(addDragged([[360, 720]], 0.45, 0.6), [[360, 870]]); // merged
   assert.deepEqual(addDragged([], 0.2501, 0.2501), [[360, 420]]); // a click: one hour
   assert.equal(addDragged([[0, 60], [120, 180], [240, 300]], 0.8, 0.9), null);
+});
+
+test("the edit field starts with the value read, never with the minimum", () => {
+  const writable = {
+    risk: "comfort", source: "ff", proof: "", through: null, key: "em2/RoomSetbackTemp", offered: true, why_not: null,
+    register: "05 65", address: "51", minimum: 10, maximum: 21.5, step: 0.5, options: null,
+  };
+  const setback = row({ writable });
+  assert.equal(initialDraft(setback, { values: ["16.5"], when: 0 }), "16.5");
+  assert.equal(initialDraft(setback, undefined), ""); // not read yet: empty, not "10"
+  assert.equal(initialDraft(setback, null), "");
+  assert.equal(initialDraft(setback, { values: ["-"], when: 0 }), "");
+  const choice = row({ writable: { ...writable, options: [{ raw: 0, name: "Off", label: { en: "Off" } },
+    { raw: 1, name: "Monday", label: { en: "Monday" } }] } });
+  assert.equal(initialDraft(choice, { values: ["Monday"], when: 0 }), "1");
+  assert.equal(initialDraft(choice, undefined), ""); // not the first entry of the list
 });

@@ -109,6 +109,8 @@ export const STRINGS: Record<string, Record<string, string>> = {
     copy_to: "Copy to",
     copy: "Copy",
     cost: "{days} days changed: up to {writes} writes (only changed slots are written); {used} of {max} this hour",
+    cost_one: "1 day changed: up to {writes} writes (only changed slots are written); {used} of {max} this hour",
+    interrupted: "no answer from Home Assistant (connection interrupted): the write may or may not have been sent; check the value read back",
     drag_hint: "Type the ranges, or drag on the bar to add one in quarters of an hour; a click on a range removes it.",
     day_format: "use HH:MM-HH:MM, up to three ranges, or -",
     day_quarter: "times must be quarters of an hour, from 00:00 to 24:00",
@@ -223,6 +225,8 @@ export const STRINGS: Record<string, Record<string, string>> = {
     copy_to: "Copier vers",
     copy: "Copier",
     cost: "{days} jours modifiés : jusqu'à {writes} écritures (seuls les créneaux changés sont écrits) ; {used} sur {max} cette heure",
+    cost_one: "1 jour modifié : jusqu'à {writes} écritures (seuls les créneaux changés sont écrits) ; {used} sur {max} cette heure",
+    interrupted: "pas de réponse de Home Assistant (connexion interrompue) : l'écriture a pu partir ou non ; vérifiez la valeur relue",
     drag_hint: "Saisissez les plages, ou glissez sur la barre pour en ajouter une au quart d'heure ; un clic sur une plage la retire.",
     day_format: "écrivez HH:MM-HH:MM, trois plages au plus, ou -",
     day_quarter: "les heures doivent être des quarts d'heure, de 00:00 à 24:00",
@@ -299,6 +303,19 @@ export function notUsable(items: { key: string; reason: string }[], language: st
   }
   for (const [circuit, n] of absent) lines.push(t(language, "absent_circuit", { circuit, n }));
   return lines;
+}
+
+/** What the edit field of a setting starts with: only ever the value read from the device (a choice: its raw
+ * value). Nothing read yet, or not available: an empty field, and Write stays disabled until a value is entered. */
+export function initialDraft(row: Row, reading: Reading | null | undefined): string {
+  const raw = reading?.values[row.index];
+  if (raw === undefined || raw === "" || raw === NOT_AVAILABLE) return "";
+  const options = row.writable?.options;
+  if (options) {
+    const found = options.find((o) => o.name === raw);
+    return found ? String(found.raw) : "";
+  }
+  return Number.isNaN(Number(raw)) ? "" : raw;
 }
 
 /** Why a row has no value, when it has none. */

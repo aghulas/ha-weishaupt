@@ -286,8 +286,10 @@ merged without giving up the confirmation.
 
 Coming from 0.3.0b2, which created the numbers of the regulation settings disabled: the first start
 of 0.3.0rc2 enables, once, the numbers the integration itself disabled (never one you disabled) and
-reads them first. A reload of the integration keeps the values already read, so entities do not
-show *unknown* until the next round of reads.
+reads them first. A reload of the integration keeps the values already read on screen, so entities
+do not show *unknown*, and reads every enabled entity again in the first pass, in the usual order:
+a value changed at the device itself does not wait for the end of its interval (a day for the
+programs).
 
 **Each write**, in this order, stops at the first refusal and tells you why:
 
@@ -427,7 +429,8 @@ the boilers are only sent then), and the values of an installation other than th
 ## History
 
 - 0.3.0rc5: a log line per program day written, a notification when a program write fails, clear
-  messages for a day that is not in the expected format.
+  messages for a day that is not in the expected format; after a reload, values kept on screen and
+  read again in the first pass.
 - 0.3.0rc4: after a start, the settings and the slots of enabled program days are read before the
   rest of the first pass.
 - 0.3.0rc3: definitions 0.5.8; 12 weekly programs of room units 1 and 3 and of the system manager (text per day, action

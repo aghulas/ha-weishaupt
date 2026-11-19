@@ -438,6 +438,11 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.3.0: the code of 0.3.0rc6, proven on a heating system: after a restart the settings were read
+  from the devices within 5 minutes and the enabled program days within 12; writes of numbers,
+  choices, program days and the clock, each read back. Known limits: the log lines are at info
+  level (see the `logger:` setting above); a malformed program day is refused by Home Assistant
+  with its raw pattern.
 - 0.3.0rc6: a first pass that asks every enabled message from the device and ends, settings and
   program days first; `last_write` attributes; the pattern of the program days back.
 - 0.3.0rc5: a log line per program day written, a notification when a program write fails, clear

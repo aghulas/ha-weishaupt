@@ -560,6 +560,10 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.7.0: the code of 0.7.0b2, checked on a heating system: fault tables in the panel (history
+  and counters, read on demand with an honest cost), a printable report and a CSV export of the
+  settings; after an ebusd restart the integration waits for the scan and never removes an
+  entity on a partial view.
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.

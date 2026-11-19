@@ -12,10 +12,21 @@ export interface Hass {
   language: string;
   states: Record<string, HassEntityState>;
   user?: { is_admin: boolean };
+  /** The entity registry as the frontend holds it (display entries). */
+  entities?: Record<string, RegistryEntry>;
   callWS<T>(message: Record<string, unknown>): Promise<T>;
+  callService?(domain: string, service: string, data?: Record<string, unknown>,
+    target?: Record<string, unknown>): Promise<unknown>;
   connection: {
     subscribeMessage<T>(callback: (event: T) => void, message: Record<string, unknown>): Promise<() => void>;
   };
+}
+
+export interface RegistryEntry {
+  entity_id: string;
+  device_id?: string;
+  platform?: string;
+  translation_key?: string;
 }
 
 export interface Installation {

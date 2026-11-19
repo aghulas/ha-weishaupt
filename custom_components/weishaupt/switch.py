@@ -49,7 +49,7 @@ class WriteSwitch(SwitchEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         writer = self.hub.writer
         return {"run_time_checksum": writer.capability, "writable_settings": len(writer.specs),
-                "writes_last_hour": writer.guard.writes_last_hour()}
+                "writes_last_hour": writer.guard.writes_last_hour(), "max_writes_per_hour": writer.guard.max_per_hour}
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         self.hub.writer.set_switch(True)

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, initialDraft, queuedText, isoWeekday, isProgramSensor, weekFromAttributes, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, initialDraft, queuedText, dayTextEntities, writeSwitch, isoWeekday, isProgramSensor, weekFromAttributes, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
 import type { Row, Tree } from "../src/types.ts";
@@ -184,4 +184,28 @@ test("the card: which states are program sensors, and today", () => {
   assert.ok(!isProgramSensor("sensor.boiler_1_x", { monday: "-", unit_of_measurement: "°C" }));
   assert.equal(isoWeekday(new Date(2026, 10, 16)), 1); // a Monday
   assert.equal(isoWeekday(new Date(2026, 10, 22)), 7); // a Sunday
+});
+
+test("the card: the day texts of a program, found by device and translation key", () => {
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const entities: Record<string, { entity_id: string; device_id?: string; platform?: string; translation_key?: string }> = {
+    "sensor.p": { entity_id: "sensor.p", device_id: "room1", platform: "weishaupt", translation_key: "program_heating1" },
+    "text.other_device": { entity_id: "text.other_device", device_id: "room3", platform: "weishaupt",
+      translation_key: "program_heating1_monday" },
+  };
+  days.forEach((d) => (entities[`text.${d}`] = { entity_id: `text.${d}`, device_id: "room1", platform: "weishaupt",
+    translation_key: `program_heating1_${d}` }));
+  const found = dayTextEntities(entities, "sensor.p");
+  assert.equal(found?.["1"], "text.monday");
+  assert.equal(found?.["7"], "text.sunday");
+  delete entities["text.sunday"]; // not proven writable: no texts, read only
+  assert.equal(dayTextEntities(entities, "sensor.p"), null);
+  assert.equal(dayTextEntities(undefined, "sensor.p"), null);
+});
+
+test("the card: the write switch and its counters", () => {
+  const entities = { "switch.w": { entity_id: "switch.w", platform: "weishaupt", translation_key: "writes" } };
+  const states = { "switch.w": { state: "on", attributes: { writes_last_hour: 2, max_writes_per_hour: 30 } } };
+  assert.deepEqual(writeSwitch(entities, states), { on: true, used: 2, max: 30 });
+  assert.equal(writeSwitch({}, states), null);
 });

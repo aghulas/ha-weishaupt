@@ -85,11 +85,15 @@ async def test_commands_are_for_administrators(hass, fake, tmp_path, hass_ws_cli
 async def test_panel_registered_for_administrators_when_the_frontend_runs(hass, tmp_path):
     built = tmp_path / "weishaupt-panel.js"
     built.write_text("")
+    (tmp_path / "weishaupt-card.js").write_text("")
     hass.config.components.add("frontend")
     hass.http = MagicMock(async_register_static_paths=AsyncMock())
     with patch("homeassistant.components.panel_custom.async_register_panel", AsyncMock()) as register, \
-            patch.object(panel, "PANEL_FILE", built):
+            patch.object(panel, "PANEL_FILE", built), \
+            patch("homeassistant.components.frontend.add_extra_js_url") as extra:
         await panel.async_setup_panel(hass, "0.5.0b1")
+    # the dashboard card is loaded by the frontend itself, its version in the URL
+    assert extra.call_args.args[1] == "/weishaupt_panel/weishaupt-card.js?v=0.5.0b1"
     kwargs = register.call_args.kwargs
     assert kwargs["require_admin"] is True and kwargs["frontend_url_path"] == "weishaupt"
     assert kwargs["webcomponent_name"] == "weishaupt-panel"
@@ -191,3 +195,18 @@ async def test_read_now_counts_what_it_requests_and_what_waits_ahead(hass, fake,
     assert _estimate(21, state) == {"queued": 21, "seconds": 42, "ahead": 95, "wait": 190, "first_pass": True}
     await settled(hass, entry)
     assert hub.queue_state()["first_pass"] is False and hub.queue_state()["ahead"] == 0
+
+
+async def test_the_card_finds_the_day_texts_of_a_program_sensor(hass, fake, tmp_path, entity_registry_enabled_by_default):
+    """The card maps a program sensor to its day texts by device and translation key (`<sensor's key>_<day>`):
+    the registry the frontend sees must hold exactly that."""
+    from homeassistant.helpers import entity_registry as er
+    from custom_components.weishaupt.const import DOMAIN
+    entry = await _loaded(hass, fake, tmp_path)
+    registry = er.async_get(hass)
+    sensor = registry.async_get(registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_fs1/group/heating1"))
+    texts = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+             if e.domain == "text" and e.device_id == sensor.device_id
+             and e.translation_key and e.translation_key.startswith(f"{sensor.translation_key}_")]
+    assert sorted(e.translation_key.rsplit("_", 1)[1] for e in texts) == sorted(
+        ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])

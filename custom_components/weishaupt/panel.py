@@ -23,6 +23,7 @@ from .model import Field, Message
 PANEL_URL = DOMAIN  # /weishaupt
 PANEL_ELEMENT = "weishaupt-panel"
 PANEL_FILE = Path(__file__).parent / "frontend" / "dist" / "weishaupt-panel.js"
+CARD_FILE = "weishaupt-card.js"  # the dashboard card, beside the panel
 STATIC_URL = f"/{DOMAIN}_panel"
 PANEL_ICON = "mdi:fire"
 PANEL_TITLE = "Weishaupt"
@@ -48,6 +49,11 @@ async def async_setup_panel(hass: HomeAssistant, version: str) -> None:
         hass, frontend_url_path=PANEL_URL, webcomponent_name=PANEL_ELEMENT, sidebar_title=PANEL_TITLE,
         sidebar_icon=PANEL_ICON, module_url=f"{STATIC_URL}/{PANEL_FILE.name}?v={version}", require_admin=True,
         config_panel_domain=DOMAIN)
+    card = PANEL_FILE.parent / CARD_FILE
+    if card.is_file():
+        # the dashboard card (owner's choice C1): loaded by the frontend on its own, no resource to add by hand
+        from homeassistant.components.frontend import add_extra_js_url
+        add_extra_js_url(hass, f"{STATIC_URL}/{CARD_FILE}?v={version}")
 
 
 def _hubs(hass: HomeAssistant) -> dict[str, Any]:

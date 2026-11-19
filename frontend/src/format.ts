@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Days, Estimate, Labels, Reading, Row, Tree } from "./types.ts";
+import type { Days, Estimate, Labels, Reading, RegistryEntry, Row, Tree } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -161,6 +161,14 @@ export const STRINGS: Record<string, Record<string, string>> = {
     card_editor_entity: "Program sensor",
     card_editor_title: "Title (optional)",
     card_editor_today: "Mark today",
+    card_edit: "Edit",
+    card_type_hint: "Type up to three ranges a day, HH:MM-HH:MM, or - for none; only changed days are written.",
+    card_edit_admin: "Days are changed by administrators, here or in the Weishaupt panel.",
+    card_not_writable: "This program is not proven writable on its device: read only.",
+    card_writing_day: "{day}: writing…",
+    card_written_day: "{day}: written and read back",
+    card_failed_day: "{day}: not written: {message}",
+    card_no_switch: "Writes are not enabled in the options of the integration.",
     read_queued_one: "1 request queued (about {s} s).",
     read_queued_n: "{n} requests queued (about {s} s).",
     read_after_first_pass: "They come after the first pass that follows a start: {n} reads still due, {wait}.",
@@ -323,6 +331,14 @@ export const STRINGS: Record<string, Record<string, string>> = {
     card_editor_entity: "Capteur de programme",
     card_editor_title: "Titre (facultatif)",
     card_editor_today: "Marquer aujourd'hui",
+    card_edit: "Modifier",
+    card_type_hint: "Saisissez jusqu'à trois plages par jour, HH:MM-HH:MM, ou - pour aucune ; seuls les jours modifiés sont écrits.",
+    card_edit_admin: "Les jours sont modifiés par les administrateurs, ici ou dans le panneau Weishaupt.",
+    card_not_writable: "Ce programme n'est pas prouvé inscriptible sur son appareil : lecture seule.",
+    card_writing_day: "{day} : écriture…",
+    card_written_day: "{day} : écrit et relu",
+    card_failed_day: "{day} : non écrit : {message}",
+    card_no_switch: "L'écriture n'est pas activée dans les options de l'intégration.",
     read_queued_one: "1 requête en file (environ {s} s).",
     read_queued_n: "{n} requêtes en file (environ {s} s).",
     read_after_first_pass: "Elles passent après la première lecture qui suit un démarrage : {n} lectures encore dues, {wait}.",
@@ -689,4 +705,33 @@ export function isProgramSensor(entityId: string, attributes: Record<string, unk
 /** Monday 1 … Sunday 7, for the today mark. */
 export function isoWeekday(date: Date): number {
   return ((date.getDay() + 6) % 7) + 1;
+}
+
+/** The program-day text entities of the program a sensor shows (same device, translation key `<sensor's>_<day>`):
+ * day "1" … "7" -> entity id, or null when the program is not writable on its device (no such entities). */
+export function dayTextEntities(entities: Record<string, RegistryEntry> | undefined, sensor: string):
+  Record<string, string> | null {
+  const own = entities?.[sensor];
+  if (!entities || !own?.device_id || !own.translation_key) return null;
+  const found: Record<string, string> = {};
+  for (const entry of Object.values(entities)) {
+    if (entry.platform !== "weishaupt" || entry.device_id !== own.device_id || !entry.entity_id.startsWith("text.")) {
+      continue;
+    }
+    const day = DAY_KEYS.findIndex((key) => entry.translation_key === `${own.translation_key}_${key}`);
+    if (day >= 0) found[String(day + 1)] = entry.entity_id;
+  }
+  return Object.keys(found).length === DAY_KEYS.length ? found : null;
+}
+
+/** The write switch of the integration and its counters, from its entity (translation key `writes`). */
+export function writeSwitch(entities: Record<string, RegistryEntry> | undefined,
+  states: Record<string, { state: string; attributes: Record<string, unknown> }>):
+  { on: boolean; used: number | null; max: number | null } | null {
+  const entry = Object.values(entities ?? {}).find((e) => e.platform === "weishaupt" && e.translation_key === "writes");
+  const state = entry ? states[entry.entity_id] : undefined;
+  if (!state) return null;
+  const n = (v: unknown): number | null => (typeof v === "number" ? v : null);
+  return { on: state.state === "on", used: n(state.attributes.writes_last_hour),
+    max: n(state.attributes.max_writes_per_hour) };
 }

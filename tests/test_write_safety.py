@@ -93,6 +93,7 @@ async def test_the_switch_shows_each_write_at_once(hass, fake, log):
     writer = entry.runtime_data.writer
     await hass.services.async_call("switch", "turn_on", {"entity_id": _switch(hass, entry)}, blocking=True)
     assert hass.states.get(_switch(hass, entry)).attributes["writes_last_hour"] == 0
+    assert hass.states.get(_switch(hass, entry)).attributes["max_writes_per_hour"] == 30
     await writer.async_write("em2/RoomNormalTemp", 22.0, None)
     await hass.async_block_till_done()
     assert hass.states.get(_switch(hass, entry)).attributes["writes_last_hour"] == 1

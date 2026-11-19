@@ -239,7 +239,23 @@ The panel follows the language (English, French) and the theme of Home Assistant
 choice list on a phone. Its file is served by the integration; nothing is added to the dashboards
 and nothing has to be installed apart from the integration.
 
-## Load on the bus
+## Dashboard card: one weekly program
+
+The integration adds a card to the dashboards (nothing to install): *Add card → Weishaupt weekly program*, or
+
+```yaml
+type: custom:weishaupt-program-card
+entity: sensor.room_unit_1_heating_program_1   # the program's sensor
+title: Heating, room unit 1                     # optional
+today: true                                     # mark today's row (default)
+```
+
+It shows the week grid of the program from its sensor, for every user who sees the dashboard. The program sensors
+are created disabled: enable the one you put on a dashboard (Settings → Entities). An **administrator** can also
+edit a program proven writable on its device: type a day, copy it to other days, see the writes it may cost and the
+writes left this hour, then write. The card writes through the program-day entities (`text.set_value`), so the
+write switch, the hourly limit and the read-back apply as everywhere else; a refusal shows the same message.
+
 
 **After a restart of ebusd, the integration waits for its scan.** ebusd answers before it has scanned the
 bus and loaded the definitions of every device. When a device seen before is not on the bus yet, or a device
@@ -539,10 +555,8 @@ integration under the same name:
   build` in that folder writes `custom_components/weishaupt/frontend/dist/weishaupt-panel.js`,
   the same bytes for the same sources and lock file. The built file is committed (HACS runs no
   build); the workflow *Frontend* rebuilds it and fails when it differs. It needs Node 24 or later.
-- `frontend/src/weishaupt-card.ts` is the dashboard card of one weekly program (0.9, in progress, read only): it
-  reads the program's sensor. Until the integration registers it, it can be tried by adding the resource
-  `/weishaupt_panel/weishaupt-card.js` (JavaScript module) under Settings → Dashboards → Resources, then a card
-  of type `custom:weishaupt-program-card`. The week grid is shared with the panel (`src/week-grid.ts`).
+- `frontend/src/weishaupt-card.ts` is the dashboard card of one weekly program; the week grid is shared with the
+  panel (`src/week-grid.ts`). Both bundles are built by `npm run build`.
 - `brand/` holds the images Home Assistant and HACS show; they are drawn by `scripts/make_brand.py`
   (an own mark, no vendor logo).
 
@@ -622,6 +636,8 @@ the boilers are only sent then), and the values of an installation other than th
 - 0.6.0: the code of 0.6.0b2, checked on a heating system: the panel writes settings, choices,
   program days and the clock through the guard of the entities; the writes switch is off after
   every restart or reload; the hourly counter survives restarts; no value is prefilled.
+- 0.9.0b1: a dashboard card for one weekly program: its week grid for every user, editing for administrators
+  through the program-day entities; registered by the integration.
 - 0.8.0b2: the diagnostics download redacts the config entry id too, wherever it appears.
 - 0.8.0b1: ready for a second installation: devices that appear later reload the entry, a device
   absent for 7 days gets a repair offering its removal (confirmed by the user); diagnostics

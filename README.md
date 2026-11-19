@@ -15,7 +15,7 @@ guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
 
-Version 0.8 is tested against a simulated ebusd in the test suite and on one heating system (see
+Version 0.9 is tested against a simulated ebusd in the test suite and on one heating system (see
 [Supported devices and limits](#supported-devices-and-limits)): reads, writes of settings, choices,
 program days and the clock, each read back, since 0.3.
 
@@ -44,7 +44,7 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.4 – 0.8 | 0.5.8 shipped; a newer 0.5.x metadata file can be placed beside the configuration | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
+| 0.4 – 0.9 | 0.5.8 shipped; a newer 0.5.x metadata file can be placed beside the configuration | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.3 | 0.5.8 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
@@ -627,6 +627,10 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.9.0: the code of 0.9.0b1, checked on a heating system with definitions 0.5.14: the card registered by the
+  integration, its grid equal to the entities and the panel, one program day written from it as administrator and
+  restored; sensors not fitted read unknown. The view of a user who is not an administrator was checked in a
+  simulated browser only.
 - 0.9.0b1: a dashboard card for one weekly program: its week grid for every user, editing for administrators
   through the program-day entities; registered by the integration; sensors not fitted read unknown when the definitions mark them.
 - 0.8.0: the code of 0.8.0b2, checked on a heating system: ready for a second installation

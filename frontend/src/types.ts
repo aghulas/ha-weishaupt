@@ -93,6 +93,7 @@ export interface Tree {
     writes_last_hour: number;
     max_per_hour: number;
     switch_entity_id: string | null;
+    read_only: { key: string; reason: string }[]; // settings with write conditions left read-only, and why
   } | null;
   clock: { entity_id: string | null; set_entity_id: string | null };
   unknown_addresses: string[];

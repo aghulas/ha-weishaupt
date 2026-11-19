@@ -309,7 +309,8 @@ Ranges and steps are those of the definitions. Twelve settings cannot carry one 
 (setback room temperature and heating curve of every heating circuit and room unit: fractional
 bounds); the metadata gives theirs in the write conditions, with its source (10.0–21.5 °C and
 2.5–40.0, step 0.5, from the room unit's manual): attributes `bounds_from: metadata` and
-`range_source`. A setting with no range anywhere is not writable. The linked bounds (setback at or
+`range_source`. A setting with no range anywhere is not writable: it is listed in the diagnostics and
+on the panel's definitions page, and logged at debug level only. The linked bounds (setback at or
 below normal, minimum at or below maximum flow) are not in the metadata yet: the integration holds
 them until the definitions carry them.
 
@@ -396,7 +397,10 @@ of the integration; a setting gets the suffix " (setting)" as the others. Unname
 definitions (`ukn…`, marked skip) have no entity, as with the shipped definitions. The states of a
 new value list are shown by their keys until a release of the integration translates them. The
 diagnostics list the entities named from the definitions. Changes to existing entities (writable or
-not, write conditions, ranges, classes) take effect at the reload.
+not, write conditions, ranges, classes) take effect at the reload. An entity the definitions in use
+no longer yield (a field now marked skip, a message dropped) is removed from the registry at the
+reload, as integrations do with stale entities; one you changed (name, icon, area, labels,
+aliases, hidden or disabled, display options) is kept, and a repair issue names it.
 
 ## Diagnostics
 
@@ -513,7 +517,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 - 0.5.0b2: the panel shows values kept across a reload and follows a reload of the entry, a
   register read by two messages once, absent sensors as such, programs read once on demand,
-  real entity ids and the messages not read.
+  real entity ids, the messages not read and the settings left read-only; entities the
+  definitions no longer yield are removed (customised ones kept, with a repair); a setting left
+  read-only for want of a range is logged at debug, not as a warning.
 - 0.5.0b1: the Weishaupt panel, read only: devices and menus, the table of each menu, weekly
   programs as a week grid, the definitions in use, the clock offset.
 - 0.4.0: the code of 0.4.0b2. On a heating system: definitions 0.5.9 beside the configuration

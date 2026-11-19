@@ -108,6 +108,10 @@
         }
       }
     },
+    "stale_entities": {
+      "title": "Entités qui ne sont plus dans les définitions",
+      "description": "Les définitions utilisées ({version}) n'ont plus ces entités : {entities}.\n\nElles ont été gardées parce que vous les avez modifiées (nom, icône, pièce, étiquettes, alias, masquées ou désactivées, options d'affichage). Elles n'auront plus de valeur. Supprimez-les dans Paramètres → Appareils et services → Entités quand vous n'en avez plus besoin ; cette réparation disparaît alors au rechargement suivant."
+    },
     "definitions_file": {
       "title": "Fichier de définitions à côté de la configuration : non utilisé",
       "description": "Définitions utilisées : {version} ({source}).\n\nFichiers du dossier `weishaupt` de la configuration non utilisés, et pourquoi : {refused}.\n\nUn fichier de définitions n'est utilisé que si son sha256 correspond au fichier `sha256sums` de la même version posé à côté, que son schéma est celui que lit cette version, et que sa version est plus récente que celle livrée et dans la plage acceptée. Corrigez ou retirez le fichier, puis rechargez l'intégration."

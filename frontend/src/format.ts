@@ -83,6 +83,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     reason_other: "not read",
     disabled: "disabled",
     reloading: "The integration was reloaded: loading again…",
+    read_only_settings: "Settings left read-only",
   },
   fr: {
     title: "Weishaupt",
@@ -161,6 +162,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     reason_other: "non lu",
     disabled: "désactivée",
     reloading: "L'intégration a été rechargée : nouveau chargement…",
+    read_only_settings: "Réglages laissés en lecture seule",
   },
 };
 

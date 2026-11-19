@@ -225,6 +225,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
         "writes": None if writer is None else {
             "switch": writer.switch_on, "capability": writer.capability,
             "writes_last_hour": writer.guard.writes_last_hour(), "max_per_hour": writer.guard.max_per_hour,
+            "read_only": [{"key": key, "reason": reason} for key, reason in sorted(writer.not_writable.items())],
             "switch_entity_id": links.get("writes", {}).get("switch")},
         "clock": {"entity_id": clock, "set_entity_id": links.get("broadcast/Datetime/set", {}).get("button")},
         "unknown_addresses": [a.address for a in hub.unknown_slaves],

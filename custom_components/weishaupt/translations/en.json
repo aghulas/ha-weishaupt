@@ -108,6 +108,10 @@
         }
       }
     },
+    "stale_entities": {
+      "title": "Entities no longer in the definitions",
+      "description": "The definitions in use ({version}) no longer have these entities: {entities}.\n\nThey were kept because you changed them (name, icon, area, labels, aliases, hidden or disabled, display options). They will not get values again. Remove them in Settings → Devices & services → Entities when you no longer need them; this repair then goes away at the next reload."
+    },
     "definitions_file": {
       "title": "Definitions file beside the configuration: not used",
       "description": "Definitions in use: {version} ({source}).\n\nFiles of the folder `weishaupt` of the configuration that were not used, and why: {refused}.\n\nA definitions file is used only when its sha256 matches the `sha256sums` file of the same release beside it, its schema is the one this version reads, and its version is newer than the bundled one and within the accepted range. Fix or remove the file, then reload the integration."

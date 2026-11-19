@@ -485,6 +485,10 @@ export class WeishauptPanel extends LitElement {
               ${t(lang, "per_hour", { n: writes.writes_last_hour, max: writes.max_per_hour })}`
             : t(lang, "writes_off")}
         </dd>
+        ${writes
+          ? html`<dt>${t(lang, "read_only_settings")}</dt>
+              <dd>${list(writes.read_only.map((r) => `${r.key}: ${r.reason}`))}</dd>`
+          : nothing}
       </dl>`;
   }
 

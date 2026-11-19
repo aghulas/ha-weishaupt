@@ -25,7 +25,7 @@ from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
 from .metadata_file import FOLDER as METADATA_FOLDER, choose
-from .model import ACCEPTED_DEFINITIONS
+from .model import ACCEPTED_DEFINITIONS, WEEKDAYS
 from .panel import async_setup_panel
 from .services import async_register_services
 from .writer import Writer
@@ -79,9 +79,62 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     _follow_renames(hass, entry, hub)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _update_file_issue(hass, entry, hub)
+    _remove_stale(hass, entry, hub)
     entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
+
+
+def yielded(hub: Hub) -> set[tuple[str, str]]:
+    """(platform, key) of every entity the metadata in use can yield, whatever the options and the devices on the
+    bus: what is not in it was created from an older metadata and is gone for good."""
+    model = hub.model
+    found = {(d.platform, d.key) for d in model.value_entities}
+    found |= {("sensor", d.key) for d in model.group_entities}
+    found |= {(d.platform, d.key) for d in model.setting_entities}
+    found |= {("text", f"{group.key}/{day}") for group in model.writable_programs for day in WEEKDAYS}
+    found |= {("sensor", "broadcast/Datetime/offset"), ("button", "broadcast/Datetime/set"), ("switch", "writes")}
+    return found
+
+
+def _customised(item: er.RegistryEntry) -> bool:
+    """Whether the user changed an entity: a name, an icon, an area, labels, aliases, a category, hidden or disabled
+    it, or set its display options. Such an entity is never removed."""
+    user_options = {domain: value for domain, value in item.options.items()
+                    if domain not in ("conversation", "cloud.alexa", "cloud.google_assistant")
+                    and not domain.endswith(".private")}
+    aliases = [alias for alias in item.aliases if isinstance(alias, str)]  # not the default "its own name"
+    return bool(item.name or item.icon or item.area_id or item.labels or aliases or item.categories
+                or item.hidden_by == er.RegistryEntryHider.USER or item.disabled_by == er.RegistryEntryDisabler.USER
+                or user_options)
+
+
+def _remove_stale(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
+    """Entities of this entry that the metadata in use no longer yields (a definitions release marked a field
+    skip, or dropped a message): removed from the registry, as integrations do with stale entities, unless the
+    user customised them; those stay, and one repair issue names them."""
+    registry = er.async_get(hass)
+    keep = yielded(hub)
+    prefix = f"{entry.entry_id}_"
+    kept = []
+    for item in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if item.platform != DOMAIN or not item.unique_id.startswith(prefix):
+            continue
+        if (item.domain, item.unique_id.removeprefix(prefix)) in keep:
+            continue
+        if _customised(item):
+            kept.append(item.entity_id)
+            continue
+        _LOGGER.info("%s removed: the definitions %s no longer have it", item.entity_id, hub.model.version)
+        registry.async_remove(item.entity_id)
+    issue = f"stale_entities_{entry.entry_id}"
+    if not kept:
+        ir.async_delete_issue(hass, DOMAIN, issue)
+        return
+    ir.async_create_issue(
+        hass, DOMAIN, issue, is_fixable=False, severity=ir.IssueSeverity.WARNING, translation_key="stale_entities",
+        learn_more_url=DOCUMENTATION_URL,
+        translation_placeholders={"version": hub.model.version, "entities": ", ".join(sorted(kept))})
 
 
 def _follow_renames(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
@@ -161,7 +214,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-    for issue in ("no_devices", "definitions_mismatch", "definitions_file"):
+    for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 
 

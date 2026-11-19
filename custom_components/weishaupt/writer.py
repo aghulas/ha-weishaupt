@@ -183,8 +183,12 @@ class Writer:
             self.not_writable[key] = "its read definition differs from the metadata"
         not_offered = {r.key for r in refused if not r.exposed}
         for key, reason in self.not_writable.items():
-            if key not in not_offered:
-                _LOGGER.warning("%s stays read-only: %s", key, reason)
+            if key in not_offered:
+                continue
+            # a setting the definitions give no range (its meaning is open): read-only as intended, not a problem;
+            # it is listed in the diagnostics and on the panel's definitions page
+            log = _LOGGER.debug if reason == "no range" else _LOGGER.warning
+            log("%s stays read-only: %s", key, reason)
         programs, slots, refused_programs = program_specs(self.hub.model, loaded)
         self.programs = {key: program for key, program in programs.items()
                          if all(k in self.hub.usable for day in program.slots.values() for k in day)}

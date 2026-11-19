@@ -25,17 +25,22 @@ QUARTERS_PER_DAY = 96
 _RANGE = re.compile(r"^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$")
 # what a text entity accepts, before the checks of `parse_day`
 PATTERN = r"^\s*(-|(\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2})(\s*,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}){0,2})?\s*$"
-MAX_LENGTH = 40
+MAX_LENGTH = 100  # room for a wrong entry, so that the integration explains it rather than a length error
 
 
 class DayError(ValueError):
-    """The text of a day is not up to three ranges in quarters of an hour."""
+    """The text of a day is not up to three ranges in quarters of an hour. `code` says why (the key of the message
+    shown to the user, `bad_day_<code>` in the translations), `part` the range at fault."""
+
+    def __init__(self, code: str, part: str = "") -> None:
+        self.code, self.part = code, part.strip()
+        super().__init__(f"{code}: {self.part}" if self.part else code)
 
 
 def _quarter(hours: str, minutes: str, text: str) -> int:
     h, m = int(hours), int(minutes)
     if m % 15 or m > 45 or h > 24 or (h == 24 and m):
-        raise DayError(f"{text}: times are quarters of an hour, 00:00 to 24:00")
+        raise DayError("quarter", text)
     return h * 4 + m // 15
 
 
@@ -48,18 +53,18 @@ def parse_day(text: str) -> list[tuple[int, int]]:
     for part in text.split(","):
         match = _RANGE.match(part.strip())
         if match is None:
-            raise DayError(f"{part.strip()!r} is not a range like 06:30-18:00")
+            raise DayError("format", part)
         start = _quarter(match[1], match[2], part)
         end = _quarter(match[3], match[4], part)
         if start >= end:
-            raise DayError(f"{part.strip()}: the start must be before the end")
+            raise DayError("order", part)
         ranges.append((start, end))
     if len(ranges) > SLOTS:
-        raise DayError(f"at most {SLOTS} ranges a day")
+        raise DayError("too_many")
     ranges.sort()
     for (_, end), (start, _) in zip(ranges, ranges[1:]):
         if start < end:
-            raise DayError("the ranges overlap")
+            raise DayError("overlap")
     return ranges
 
 

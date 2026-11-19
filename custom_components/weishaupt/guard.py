@@ -53,7 +53,11 @@ REASONS = {
                            "ff refused",
     "read_failed": "{setting} could not be read before the write ({reason}): write refused",
     "unavailable": "ebusd cannot be reached: write refused",
-    "bad_day": "day {day}: {reason}",
+    "bad_day_format": "{day}: {part!r} is not a range; expected up to 3 ranges like 06:30-18:00, 19:00-21:00, or -",
+    "bad_day_quarter": "{day}: {part}: times are quarters of an hour, 00:00 to 24:00",
+    "bad_day_order": "{day}: {part}: the start must be before the end",
+    "bad_day_too_many": "{day}: at most 3 ranges a day",
+    "bad_day_overlap": "{day}: the ranges overlap",
     "program_limit": "{needed} slots to write and {left} writes left within the hour (limit {limit}): nothing written",
 }
 

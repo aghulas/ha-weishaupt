@@ -52,7 +52,8 @@ async def test_program_entities(hass, fake, log):
     assert text_id(hass, entry, "em1/dhw", "monday") is not None
     await settled(hass, entry)
     monday = hass.states.get(text_id(hass, entry, "fs1/heating1", "monday"))
-    assert monday.state == "06:30-18:00" and monday.attributes["pattern"]
+    # no pattern: the integration checks the text itself and explains, rather than Home Assistant showing a regex
+    assert monday.state == "06:30-18:00" and monday.attributes.get("pattern") is None
     assert monday.attributes["friendly_name"].endswith("Heating program 1 – Monday (setting)")
     assert hass.states.get(text_id(hass, entry, "fs1/heating1", "sunday")).state == "-"
 
@@ -74,11 +75,59 @@ async def test_a_day_written_and_read_back(hass, fake, log):
     assert not [i for i in ir.async_get(hass).issues.values() if i.domain == DOMAIN]
 
 
-async def test_a_day_that_is_no_day_is_refused(hass, fake, log):
+@pytest.mark.parametrize("text,code,part", [
+    ("06:20-18:00", "bad_day_quarter", "06:20-18:00"),
+    ("6h30 to 18h", "bad_day_format", "6h30 to 18h"),
+    ("18:00-06:30", "bad_day_order", "18:00-06:30"),
+    ("06:30-12:00, 11:00-18:00", "bad_day_overlap", ""),
+    ("00:00-01:00, 02:00-03:00, 04:00-05:00, 06:00-07:00", "bad_day_too_many", ""),
+])
+async def test_a_day_that_is_no_day_is_refused(hass, fake, log, text, code, part):
+    """Refused before anything is read or written, with a translated message that names the day and the range at
+    fault and shows the expected format."""
     entry, writer = await writing(hass, fake, log)
     with pytest.raises(WriteRefused) as err:
-        await writer.async_write_day("fs1/heating1", 1, "06:20-18:00", None)
-    assert err.value.code == "bad_day" and fake.writes == []
+        await writer.async_write_day("fs1/heating1", 1, text, None)
+    assert err.value.code == code and err.value.placeholders["day"] == "Monday"
+    assert err.value.placeholders["part"] == part
+    assert fake.writes == [] and fake.reads_of() == []
+    entity_id = text_id(hass, entry, "fs1/heating1", "monday")
+    with pytest.raises(ServiceValidationError) as shown:
+        await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text}, blocking=True)
+    assert shown.value.translation_key == code
+    from custom_components.weishaupt import DOMAIN as _domain  # noqa: F401
+    import json
+    from pathlib import Path
+    messages = json.loads((Path(__file__).parent.parent / "custom_components" / "weishaupt" / "translations" /
+                           "en.json").read_text())["exceptions"]
+    if code == "bad_day_format":
+        assert "06:30-18:00, 19:00-21:00" in messages[code]["message"]
+
+
+async def test_a_program_write_is_logged_day_by_day(hass, fake, log, caplog):
+    """One info line per day: device, program, day, before -> after, the frames sent, the read-back."""
+    import logging
+    entry, writer = await writing(hass, fake, log)
+    caplog.set_level(logging.INFO, logger="custom_components.weishaupt")
+    await writer.async_write_day("fs1/heating1", 7, "02:00-02:15", None)
+    line = next(r.getMessage() for r in caplog.records if r.getMessage().startswith("PROGRAM"))
+    frame = "31" + writer.slot_specs["fs1/HCProgram1Sun1"].telegram(0x0809)
+    assert line == f"PROGRAM Room unit 1 Heating program 1 Sunday: - -> 02:00-02:15, frames {frame}: read back ok"
+
+
+async def test_a_failed_program_write_notifies(hass, fake, log, monkeypatch):
+    """A failure or a partial write: a short persistent notification (none on success)."""
+    from homeassistant.components.persistent_notification import _async_get_or_create_notifications
+    entry, writer = await writing(hass, fake, log)
+    await writer.async_write_day("fs1/heating1", 7, "02:00-02:15", None)
+    assert _async_get_or_create_notifications(hass) == {}
+    fake.not_taken.add("fs1/HCProgram1Mon2")
+    with pytest.raises(WriteFailed) as err:
+        await writer.async_write_day("fs1/heating1", 1, "06:30-18:00, 19:00-21:00", None)
+    assert err.value.code == "program_partial"
+    notes = list(_async_get_or_create_notifications(hass).values())
+    assert len(notes) == 1 and notes[0]["title"] == "Weekly program not written"
+    assert "0 of 1 slots written" in notes[0]["message"]
 
 
 async def test_room_unit_2_is_refused(hass, fake, log):

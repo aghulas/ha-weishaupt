@@ -170,9 +170,6 @@
     "expired": {
       "message": "The request expired after {minutes} minutes."
     },
-    "bad_day": {
-      "message": "Day {day}: {reason}"
-    },
     "program_limit": {
       "message": "{needed} slots would change and only {left} writes are left within the hour (limit {limit}): nothing was written. Try again later, or raise the limit for a supervised campaign."
     },
@@ -184,6 +181,21 @@
     },
     "unknown_device": {
       "message": "This device is not one of this integration's."
+    },
+    "bad_day_format": {
+      "message": "{day}: “{part}” is not a time range. Expected up to 3 ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00, or - for none."
+    },
+    "bad_day_quarter": {
+      "message": "{day}: “{part}”: times must be quarters of an hour (:00, :15, :30, :45), from 00:00 to 24:00."
+    },
+    "bad_day_order": {
+      "message": "{day}: “{part}”: the start must be before the end, like 06:30-18:00."
+    },
+    "bad_day_too_many": {
+      "message": "{day}: at most 3 ranges a day, like 06:00-08:00, 11:30-13:30, 17:00-22:00."
+    },
+    "bad_day_overlap": {
+      "message": "{day}: the ranges overlap. Expected ranges one after the other, like 06:30-12:00, 13:00-18:00."
     }
   },
   "weekdays": {

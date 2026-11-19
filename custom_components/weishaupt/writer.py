@@ -105,6 +105,16 @@ SOURCE_TEXT = {
     "en": {"ff": "address of the vendor service tool", "31": "ebusd's own address"},
     "fr": {"ff": "adresse de l'outil de service du fabricant", "31": "adresse propre d'ebusd"},
 }
+DAY_NAMES = {
+    "en": ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
+    "fr": ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"),
+}
+PROGRAM_FAILURE = {
+    "en": ("Weekly program not written", "{program} of {device}: {written} of {total} slots written, then the "
+           "write stopped: {reason}. Check the days of the program before trying again."),
+    "fr": ("Programme hebdomadaire non écrit", "{program} de {device} : {written} plages écrites sur {total}, puis "
+           "l'écriture s'est arrêtée : {reason}. Vérifiez les jours du programme avant de réessayer."),
+}
 NOTIFICATION = {
     "en": ("Confirmation needed", "{setting} of {device}: change from {current} to {requested} waits for your "
            "confirmation in [Settings → Repairs](/config/repairs). Nothing has been written. The request expires "
@@ -428,14 +438,16 @@ class Writer:
             raise WriteRefused("not_writable", setting=program_key,
                                reason="the definitions prove no write of this program on this device")
         wanted: dict[int, list[int]] = {}
+        language = self._language()
         for day, text in sorted(days.items()):
             try:
                 wanted[day] = raws_of_day(parse_day(text))
             except DayError as err:
-                raise WriteRefused("bad_day", day=day, reason=err) from err
+                raise WriteRefused(f"bad_day_{err.code}", day=DAY_NAMES[language][day - 1], part=err.part) from err
         first = self.slot_specs[program.day_keys(1)[0]]
         self._check_static(first, first.key, 0)
         changes: list[tuple[SlotSpec, int, int]] = []
+        before_days: dict[int, str] = {}
         for day, raws in wanted.items():
             for key, raw in zip(program.day_keys(day), raws):
                 spec = self.slot_specs[key]
@@ -446,6 +458,7 @@ class Writer:
                 self.hub.store(key, values)  # a fresh reading: the day shows it, written or not
                 if raw != before:
                     changes.append((spec, raw, before))
+            before_days[day] = self.program_day(program, day) or "?"
         left = self.guard.max_per_hour - self.guard.writes_last_hour()
         if len(changes) > left:
             raise WriteRefused("program_limit", needed=len(changes), left=left, limit=self.guard.max_per_hour)
@@ -458,9 +471,35 @@ class Writer:
                 self.guard.check(spec.register_id, raw, 0, 0xFFFF, spec.ebusd_source, service_tool)
                 done.append(await self._send(spec, raw, before, user_id, False))
             except (WriteRefused, WriteFailed) as err:
+                self._log_program(program, wanted, before_days, done, f"stopped: {err}")
+                self._notify_program_failure(program, len(done), len(changes), err)
                 raise WriteFailed("program_partial", written=len(done), total=len(changes), reason=err) from err
+        self._log_program(program, wanted, before_days, done, "read back ok" if done else "nothing to write")
         return {"program": program_key, "written": len(done), "unchanged": 3 * len(wanted) - len(changes),
                 "slots": [entry["key"] for entry in done]}
+
+    def _log_program(self, program: Program, wanted: dict[int, list[int]], before: dict[int, str],
+                     done: list[dict[str, Any]], result: str) -> None:
+        """One info line per day of a program write: device, program, day, before -> after, the frames sent."""
+        device = self.hub.model.devices[program.device].label["en"]
+        for day, raws in wanted.items():
+            keys = program.day_keys(day)
+            frames = [e["frame"] for e in done if e["key"] in keys]
+            after = format_day(sorted(r for r in map(range_of_raw, raws) if r is not None))
+            _LOGGER.info("PROGRAM %s %s %s: %s -> %s, frames %s: %s", device, program.label["en"],
+                         DAY_NAMES["en"][day - 1], before.get(day, "?"), after, ", ".join(frames) or "none", result)
+
+    def _notify_program_failure(self, program: Program, written: int, total: int, err: Exception) -> None:
+        """A short persistent notification when a program was not written, or only in part. None on success: the
+        new value of the day is the feedback, and the log has the details."""
+        language = self._language()
+        device = self.hub.model.devices[program.device]
+        title, text = PROGRAM_FAILURE[language]
+        persistent_notification.async_create(
+            self.hass, text.format(program=program.label.get(language, program.label["en"]),
+                                   device=device.label.get(language, device.label["en"]),
+                                   written=written, total=total, reason=err),
+            title, f"{DOMAIN}_program_{self.hub.entry.entry_id}_{program.key.replace('/', '_')}")
 
     # ---- the clock (regulation: confirmation) ---------------------------------------------------------------
 

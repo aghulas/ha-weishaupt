@@ -170,9 +170,6 @@
     "expired": {
       "message": "La demande a expiré après {minutes} minutes."
     },
-    "bad_day": {
-      "message": "Jour {day} : {reason}"
-    },
     "program_limit": {
       "message": "{needed} plages changeraient et il ne reste que {left} écritures dans l'heure (limite {limit}) : rien n'a été écrit. Réessayez plus tard, ou relevez la limite pour une campagne surveillée."
     },
@@ -184,6 +181,21 @@
     },
     "unknown_device": {
       "message": "Cet appareil n'appartient pas à cette intégration."
+    },
+    "bad_day_format": {
+      "message": "{day} : « {part} » n'est pas une plage horaire. Attendu : jusqu'à 3 plages au quart d'heure, comme 06:30-18:00, 19:00-21:00, ou - pour aucune."
+    },
+    "bad_day_quarter": {
+      "message": "{day} : « {part} » : les heures vont au quart d'heure (:00, :15, :30, :45), de 00:00 à 24:00."
+    },
+    "bad_day_order": {
+      "message": "{day} : « {part} » : le début doit précéder la fin, comme 06:30-18:00."
+    },
+    "bad_day_too_many": {
+      "message": "{day} : 3 plages au plus par jour, comme 06:00-08:00, 11:30-13:30, 17:00-22:00."
+    },
+    "bad_day_overlap": {
+      "message": "{day} : les plages se chevauchent. Attendu : des plages l'une après l'autre, comme 06:30-12:00, 13:00-18:00."
     }
   },
   "services": {

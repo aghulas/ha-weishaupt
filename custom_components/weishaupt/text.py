@@ -2,7 +2,10 @@
 `06:30-18:00, 19:00-21:00`, up to three ranges in quarters of an hour, `-` for none (`programs.py`). Created only
 when writes are enabled, and only for the programs whose slots have write conditions on that device (room unit 1,
 heating program 1 of room unit 3; never room unit 2). Heating program 1 is enabled when created, the others not.
-Comfort class: setting a day writes its three slots at once, through the guard, and reads them back."""
+Comfort class: setting a day writes its three slots at once, through the guard, and reads them back.
+
+No `pattern` is declared: Home Assistant would refuse a text that does not match with a message showing the regular
+expression; the integration checks the text itself and says, translated, what is wrong and what is expected."""
 from __future__ import annotations
 
 from typing import Any
@@ -18,7 +21,7 @@ from .entity import WeishauptEntity
 from .guard import WriteRefused
 from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import WEEKDAYS
-from .programs import MAX_LENGTH, PATTERN, Program
+from .programs import MAX_LENGTH, Program
 from .writer import WriteFailed
 
 PARALLEL_UPDATES = 1
@@ -36,7 +39,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
 
 class ProgramDayText(WeishauptEntity, TextEntity):
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_pattern = PATTERN
     _attr_native_max = MAX_LENGTH
     # its three slots are read right after the numbers and selects (within that class the 24-hour interval of the
     # programs comes after the 6 hours of the settings), not after the whole first pass

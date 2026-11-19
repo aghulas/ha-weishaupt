@@ -50,8 +50,10 @@ def test_brand_images():
 
 
 def test_only_the_write_platforms_of_the_proven_settings_are_shipped():
-    """Numbers and selects for the settings and the write switch; no action, no date, time or button."""
+    """Numbers and selects for the settings, texts for the program days, the set-clock button, the write switch
+    and the action set_program; no date, time, climate or water heater."""
     shipped = {p.name for p in PACKAGE.iterdir()}
-    assert {"number.py", "select.py", "switch.py", "repairs.py", "writer.py", "writes.py", "guard.py"} <= shipped
-    assert not shipped & {"services.yaml", "button.py", "date.py", "time.py", "text.py"}
+    assert {"number.py", "select.py", "switch.py", "text.py", "button.py", "services.yaml", "repairs.py", "writer.py",
+            "writes.py", "programs.py", "clock.py", "guard.py"} <= shipped
+    assert not shipped & {"date.py", "time.py", "climate.py", "water_heater.py"}
     assert {"manifest.json", "metadata.json", "translations", "brand", "quality_scale.yaml"} <= shipped

@@ -67,8 +67,10 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert all(e.entity_category == "config" for e in numbers)
     assert hass.states.get(switch_id(hass, entry)).state == "off"
     assert writer.capability == "present"
-    assert set(writer.not_writable) == {k for k, m in writer.hub.model.messages.items()
-                                        if m.writable and (m.family == "program" or m.key == "broadcast/Datetime")}
+    # the programs of room unit 1 and heating program 1 of room unit 3, and the clock, are offered too
+    assert writer.not_writable == {} and writer.clock_writable
+    assert sorted(writer.programs) == ["fs1/circulation_stored", "fs1/dhw_stored", "fs1/heating1", "fs1/heating2",
+                                       "fs1/heating3", "fs3/heating1"]
     selects = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "select"]
     assert len(selects) == 5 and not [e for e in selects if e.disabled_by]
     writes = [c for _, c in fake.commands if c.startswith("write")]
@@ -78,7 +80,7 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert fake.writes == []
     # the read side is the one of phase 1: the sensors of the settings stay as they were
     assert len([e for e in er.async_entries_for_config_entry(registry, entry.entry_id)
-                if e.domain in ("sensor", "binary_sensor")]) == 351
+                if e.domain in ("sensor", "binary_sensor")]) == 352
     await settled(hass, entry)
     number = hass.states.get(number_id(hass, entry, "em2/RoomNormalTemp"))
     assert number.state == "21.5" and number.attributes["min"] == 16 and number.attributes["max"] == 35

@@ -86,6 +86,27 @@
           "unchanged": "{setting} de {device} vaut déjà {requested} : rien n'a été écrit."
         }
       }
+    },
+    "confirm_clock": {
+      "title": "À confirmer : régler l'horloge de l'installation",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Régler l'horloge — {device}",
+            "description": "- Maître d'horloge actuellement : {current} par rapport à l'horloge de l'hôte d'ebusd\n- Enverra : **{requested}**, à la seconde 00 de la minute suivante exactement\n- Diffusé à l'adresse de bus `{address}`, commande `{register}`, depuis l'adresse source `{source}` ({source_text})\n\nTous les régulateurs reprennent l'heure, secondes comprises. Si le bus n'est pas libre dans les {late} s suivant la seconde 00, rien n'est envoyé.",
+            "submit": "Envoyer l'heure"
+          }
+        },
+        "abort": {
+          "expired": "Cette demande a expiré ou a été retirée : rien n'a été écrit. Modifiez de nouveau la valeur pour en créer une autre.",
+          "refused": "Rien n'a été écrit : {reason}",
+          "write_failed": "{setting} de {device} : l'écriture n'a pas été envoyée ({reason}).",
+          "clock_late": "La liaison avec ebusd n'était pas libre dans les {late} s suivant la seconde 00 : l'heure n'a pas été envoyée, plutôt que de l'envoyer en retard."
+        },
+        "create_entry": {
+          "sent": "C'est fait. L'heure {sent} a été diffusée à la seconde 00 ({late_ms} ms après). Télégramme `{telegram}`. Le capteur d'écart montre le résultat après la diffusion suivante du maître d'horloge."
+        }
+      }
     }
   },
   "exceptions": {
@@ -148,6 +169,21 @@
     },
     "expired": {
       "message": "La demande a expiré après {minutes} minutes."
+    },
+    "bad_day": {
+      "message": "Jour {day} : {reason}"
+    },
+    "program_limit": {
+      "message": "{needed} plages changeraient et il ne reste que {left} écritures dans l'heure (limite {limit}) : rien n'a été écrit. Réessayez plus tard, ou relevez la limite pour une campagne surveillée."
+    },
+    "program_partial": {
+      "message": "Le programme n'a été écrit qu'en partie : {written} plages sur {total}, puis : {reason}"
+    },
+    "clock_late": {
+      "message": "La liaison avec ebusd n'était pas libre dans les {late} s suivant la seconde 00 : l'heure n'a pas été envoyée, plutôt que de l'envoyer en retard."
+    },
+    "unknown_device": {
+      "message": "Cet appareil n'appartient pas à cette intégration."
     }
   },
   "weekdays": {
@@ -164,5 +200,60 @@
     "ordered": "Plus récente en premier"
   },
   "switch_name": "Écritures",
-  "number_suffix": " (réglage)"
+  "number_suffix": " (réglage)",
+  "services": {
+    "set_program": {
+      "name": "Régler un programme hebdomadaire",
+      "description": "Écrit d'un coup des jours d'un programme hebdomadaire d'une commande à distance : seulement les plages qui changent, trois au plus par jour (21 pour une semaine entière), dans la limite d'écritures par heure. Si plus de plages changeraient qu'il ne reste d'écritures dans l'heure, rien n'est écrit.",
+      "fields": {
+        "device_id": {
+          "name": "Appareil",
+          "description": "La commande à distance."
+        },
+        "program": {
+          "name": "Programme",
+          "description": "Quel programme de l'appareil."
+        },
+        "monday": {
+          "name": "Lundi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "tuesday": {
+          "name": "Mardi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "wednesday": {
+          "name": "Mercredi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "thursday": {
+          "name": "Jeudi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "friday": {
+          "name": "Vendredi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "saturday": {
+          "name": "Samedi",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        },
+        "sunday": {
+          "name": "Dimanche",
+          "description": "Jusqu'à trois plages au quart d'heure, comme 06:30-18:00, 19:00-21:00 ; - pour aucune. Laissé vide : inchangé."
+        }
+      }
+    }
+  },
+  "selector": {
+    "program": {
+      "options": {
+        "heating1": "Programme de chauffe 1",
+        "heating2": "Programme de chauffe 2",
+        "heating3": "Programme de chauffe 3",
+        "dhw_stored": "Programme d'eau chaude",
+        "circulation_stored": "Programme de circulation"
+      }
+    }
+  }
 }

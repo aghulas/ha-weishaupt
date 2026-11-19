@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
 from .guard import WriteRefused
-from .writer import WriteFailed, _text
+from .writer import CLOCK_KEY, WriteFailed, _text
 
 
 async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None) -> RepairsFlow:
@@ -50,9 +50,16 @@ class ConfirmWriteFlow(RepairsFlow):
         except WriteRefused as err:
             return self.async_abort(reason="refused", description_placeholders={"reason": str(err)})
         except WriteFailed as err:
-            reason = err.code if err.code in ("expired", "not_taken", "write_failed", "no_read_back") else "refused"
+            known = ("expired", "not_taken", "write_failed", "no_read_back", "clock_late")
+            reason = err.code if err.code in known else "refused"
             return self.async_abort(reason=reason, description_placeholders=placeholders | {
-                "reason": err.placeholders.get("reason", str(err)), "read_back": err.placeholders.get("read_back", "-")})
+                "reason": err.placeholders.get("reason", str(err)), "read_back": err.placeholders.get("read_back", "-"),
+                "late": err.placeholders.get("late", "-")})
+        if entry["key"] == CLOCK_KEY:
+            return self.async_create_entry(data={"result": entry["result"]}, description="sent",
+                                           description_placeholders=placeholders | {
+                                               "sent": entry["requested"], "telegram": entry["frame"],
+                                               "late_ms": str(round(entry.get("late", 0) * 1000))})
         spec = writer.specs[entry["key"]]
         read_back = entry.get("read_back")
         # A successful flow ends as an entry: Home Assistant titles its dialog "Success" and deletes the issue; an

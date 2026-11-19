@@ -1,15 +1,18 @@
 """Sensors built from the metadata: values, enumerations, weekly programs, fault history. Read-only."""
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.event import async_track_time_change
+from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
 from homeassistant.util import dt as dt_util
 
+from . import clock
+from .ebusd import EbusdError
 from .entity import NOT_AVAILABLE, TEXT_TYPES, WeishauptEntity, parse_number
 from .hub import Hub, WeishauptConfigEntry
 from .model import WEEKDAYS, GroupEntity, ValueEntity
@@ -43,6 +46,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
             entities.append(ProgramSensor(hub, description))
         elif description.group.family == "fault_history":
             entities.append(FaultHistorySensor(hub, description))
+    system = next((d for d in hub.devices.values() if d.type == "system"), None)
+    if system is not None and hub.usable:
+        entities.append(ClockOffsetSensor(hub, system))
     async_add_entities(entities)
 
 
@@ -186,3 +192,49 @@ class FaultHistorySensor(GroupSensor):
     def _ordered(self) -> bool:
         """True when the pointer was read, so that the first entry is the most recent one."""
         return bool(self._pointer and self.hub.reading(self._pointer) is not None)
+
+
+class ClockOffsetSensor(WeishauptEntity, SensorEntity):
+    """Seconds the clock master of the installation is ahead of the clock of ebusd's host (negative: behind), from
+    its last date and time broadcast, which ebusd keeps in its cache: no request to the bus. Read every minute.
+    Unknown when the last broadcast came from ebusd itself, or when ebusd's host does not agree with Home Assistant
+    on the time within two minutes (`clock.offset`)."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_suggested_display_precision = 0
+
+    def __init__(self, hub: Hub, device) -> None:
+        super().__init__(hub, device, "broadcast/Datetime/offset", "clock_offset", ())
+        self._value: float | None = None
+        self._broadcast: clock.Broadcast | None = None
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        self.async_on_remove(async_track_time_interval(self.hass, self._async_update, timedelta(seconds=60)))
+        await self._async_update()
+
+    async def _async_update(self, _now=None) -> None:
+        try:
+            broadcast = clock.parse_find(await self.hub.client.last_broadcast_of_clock())
+        except EbusdError:
+            broadcast = None
+        if broadcast is not None and broadcast.source == self.hub.own_address:
+            return  # ebusd's own broadcast carries what was sent: keep the master's last figure
+        self._broadcast = broadcast
+        self._value = None if broadcast is None else clock.offset(
+            broadcast, self.hub.own_address, dt_util.now().replace(tzinfo=None))
+        if self.hub.writer is not None and broadcast is not None:
+            self.hub.writer.last_clock = broadcast
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> float | None:
+        return self._value
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        b = self._broadcast
+        return {} if b is None else {"master": b.source, "carried": b.carried.isoformat(),
+                                     "received": b.received.isoformat()}

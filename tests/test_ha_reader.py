@@ -22,9 +22,11 @@ async def test_only_reading_commands_reach_ebusd(hass, fake):
     hub = entry.runtime_data
     verbs = {command.split()[0] for _, command in fake.commands}
     assert verbs == {"info", "find", "read"}
-    assert all(re.fullmatch(r"info|find -f -c \w+|read -m \d+ -c \w+ \w+", c) for _, c in fake.commands)
+    assert all(re.fullmatch(r"info|find -f -c \w+|read -m \d+ -c \w+ \w+|find -p -h -vvv -c broadcast Datetime", c)
+               for _, c in fake.commands)
     assert fake.max_active == 1  # one command at a time
-    assert len(fake.reads_of("info")) == 1 and len(fake.reads_of("find")) == 10
+    # ten circuits, and the last date and time broadcast for the clock offset (from ebusd's cache)
+    assert len(fake.reads_of("info")) == 1 and len(fake.reads_of("find")) == 11
     # each message that an enabled entity shows was asked once, no other
     asked = [_message(c) for _, c in fake.reads_of()]
     assert len(asked) == len(set(asked))
@@ -161,14 +163,14 @@ async def test_read_only_unless_writes_are_enabled(hass, fake):
     await setup(hass, entry)
     await settled(hass, entry)
     assert entry.runtime_data.writer is None
-    assert hass.services.async_services().get(DOMAIN) is None
+    # the one action exists, and writes nothing without the option
+    assert list(hass.services.async_services().get(DOMAIN)) == ["set_program"]
     assert hass.states.async_entity_ids("number") == [] and hass.states.async_entity_ids("switch") == []
     assert [c for _, c in fake.commands if c.split()[0] not in ("info", "find", "read") or "-w" in c] == []
     package = Path(weishaupt.__file__).parent
-    assert not (package / "services.yaml").exists()
     for path in package.glob("*.py"):
         tree = ast.parse(path.read_text())
         calls = {n.func.attr for n in ast.walk(tree) if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
         if path.name != "writer.py":  # the only module that sends a write
             assert not calls & {"write_register", "probe_write"}, path.name
-        assert path.stem not in ("button", "date", "time", "text", "climate", "water_heater"), path.name
+        assert path.stem not in ("date", "time", "climate", "water_heater"), path.name

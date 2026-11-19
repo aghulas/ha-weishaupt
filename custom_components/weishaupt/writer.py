@@ -26,8 +26,11 @@ finds no definition for the second; a stock ebusd does the reverse. Neither is s
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
+from collections.abc import Callable
+from datetime import datetime
 import uuid
 from collections import deque
 from dataclasses import asdict, dataclass, field
@@ -36,6 +39,7 @@ from typing import Any
 from homeassistant.components import persistent_notification
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_MAX_WRITES_PER_HOUR,
@@ -46,12 +50,16 @@ from .const import (
     JOURNAL_SIZE,
     PENDING_TTL,
 )
-from .ebusd import EbusdConnectionError, EbusdError
+from . import clock
+from .ebusd import EbusdConnectionError, EbusdError, EbusdLate
+from .programs import DayError, Program, SlotSpec, format_day, parse_day, program_specs, range_of_raw, raws_of_day
 from .guard import MAX_PER_HOUR, ServiceToolState, WriteGuard, WriteRefused, hourly_limit, read_service_tool_state
 from .writes import WriteSpec, capability, linked, write_specs
 
 _LOGGER = logging.getLogger(__name__)
 PROBE_SETTING = "ka/BlockingTime"
+CLOCK_KEY = "broadcast/Datetime"
+CLOCK_REGISTER = "fe:0700"  # key of the rate limit of the clock broadcast
 
 
 class ConfirmationPending(Exception):
@@ -125,6 +133,13 @@ class Writer:
         self.probe_answers: list[str] = []
         self.journal: deque[dict[str, Any]] = deque(maxlen=JOURNAL_SIZE)
         self.pending: dict[str, Pending] = {}
+        self.programs: dict[str, Program] = {}  # programs whose slots the definitions prove writable
+        self.slot_specs: dict[str, SlotSpec] = {}
+        self.clock_writable = False  # the date and time broadcast: write conditions and its write definition
+        self.last_clock: clock.Broadcast | None = None
+        # clock and sleep of the clock broadcast, replaced by the tests
+        self._now: Callable[[], datetime] = dt_util.now
+        self._sleep: Callable[[float], Any] = asyncio.sleep
 
     # ---- start-up -------------------------------------------------------------------------------------------
 
@@ -132,7 +147,7 @@ class Writer:
         """Load the write definitions ebusd has, build the specs, probe the run-time checksum. Nothing is sent to
         the bus: `find` and two probes that ebusd refuses before sending."""
         circuits = sorted({m.circuit for m in self.hub.model.messages.values()
-                           if m.writable and m.key in self.hub.usable})
+                           if m.writable and (m.key in self.hub.usable or not (m.read or m.passive))})
         loaded = {circuit: await self.hub.client.definitions(circuit, write=True) for circuit in circuits}
         specs, refused, self.placeholders = write_specs(self.hub.model, loaded)
         self.specs = {key: spec for key, spec in specs.items() if key in self.hub.usable}
@@ -143,6 +158,22 @@ class Writer:
         for key, reason in self.not_writable.items():
             if key not in not_offered:
                 _LOGGER.warning("%s stays read-only: %s", key, reason)
+        programs, slots, refused_programs = program_specs(self.hub.model, loaded)
+        self.programs = {key: program for key, program in programs.items()
+                         if all(k in self.hub.usable for day in program.slots.values() for k in day)}
+        self.slot_specs = {key: spec for key, spec in slots.items()
+                           if any(key in day for p in self.programs.values() for day in p.slots.values())}
+        for reason in refused_programs:
+            _LOGGER.warning("program stays read-only: %s", reason)
+        message = self.hub.model.messages.get(CLOCK_KEY)
+        self.clock_writable = bool(
+            message is not None and message.write is not None and message.write.source == "31"
+            and any(d.name == "Datetime" and d.direction == "w" and d.zz.lower() == "fe" and d.pbsb == "0700"
+                    for d in loaded.get("broadcast", [])))
+        not_offered -= {key for p in self.programs.values() for day in p.slots.values() for key in day}
+        not_offered.discard(CLOCK_KEY if self.clock_writable else "")
+        for key in set(self.slot_specs) | ({CLOCK_KEY} if self.clock_writable else set()):
+            self.not_writable.pop(key, None)
         if not_offered:
             _LOGGER.debug("writes not offered by this version: %s", ", ".join(sorted(not_offered)))
         await self.async_probe()
@@ -285,6 +316,8 @@ class Writer:
             persistent_notification.async_dismiss(self.hass, self._notification_id(pending.key))
         if pending is None or time.time() - pending.created > PENDING_TTL:
             raise WriteFailed("expired", minutes=PENDING_TTL // 60)
+        if pending.key == CLOCK_KEY:
+            return await self.async_set_clock(user_id or pending.user_id)
         return await self.async_write(pending.key, pending.value, user_id or pending.user_id, confirmed=True)
 
     # ---- the write ------------------------------------------------------------------------------------------
@@ -292,7 +325,7 @@ class Writer:
     async def _read(self, spec: WriteSpec) -> tuple[tuple[str, ...], int]:
         await self.hub.async_bus_slot()
         values = await self.hub.client.read_from_bus(spec.circuit, spec.name)
-        raw = spec.raw_of_text(values[0]) if values else None
+        raw = spec.raw_of_values(values)
         if raw is None:
             raise EbusdError(f"answer {';'.join(values)!r}")
         return values, raw
@@ -323,6 +356,12 @@ class Writer:
             service_tool = await self.hass.async_add_executor_job(read_service_tool_state, self.telegram_db)
         self.guard.check(spec.register_id, value, low, high, source, service_tool)
 
+        return await self._send(spec, value, before, user_id, confirmed)
+
+    async def _send(self, spec: WriteSpec, value: float, before: int, user_id: str | None,
+                    confirmed: bool) -> dict[str, Any]:
+        """Send a write the guard accepted (the caller ran `guard.check`), read it back, trace it."""
+        key, source = spec.key, spec.ebusd_source
         raw = spec.raw(value)
         telegram = spec.telegram(value)
         entry: dict[str, Any] = {
@@ -360,6 +399,167 @@ class Writer:
             raise WriteFailed("not_taken", setting=key, requested=_text(spec, value, self._language()),
                              read_back=_text(spec, spec.value_of(back), self._language()))
         return entry
+
+    # ---- weekly programs (comfort: no confirmation) ---------------------------------------------------------
+
+    def program_day(self, program: Program, day: int) -> str | None:
+        """The text of a day from the last readings of its three slots, None while one is unknown."""
+        ranges = []
+        for key in program.day_keys(day):
+            values = self.hub.reading(key)
+            raw = self.slot_specs[key].raw_of_values(values) if values else None
+            if raw is None:
+                return None
+            if (found := range_of_raw(raw)) is not None:
+                ranges.append(found)
+        return format_day(sorted(ranges))
+
+    async def async_write_day(self, program_key: str, day: int, text: str, user_id: str | None) -> dict[str, Any]:
+        """Write one day of a program: its three slots, read back."""
+        return await self.async_set_program(program_key, {day: text}, user_id)
+
+    async def async_set_program(self, program_key: str, days: dict[int, str],
+                                user_id: str | None) -> dict[str, Any]:
+        """Write days of a program (day 1 = Monday -> text). Every text is checked first, then the slots are read
+        from the device; only the slots that change are written, three at most a day, 21 for a whole week. When
+        they are more than the writes left within the hour, nothing is written. A failure stops the rest."""
+        program = self.programs.get(program_key)
+        if program is None:
+            raise WriteRefused("not_writable", setting=program_key,
+                               reason="the definitions prove no write of this program on this device")
+        wanted: dict[int, list[int]] = {}
+        for day, text in sorted(days.items()):
+            try:
+                wanted[day] = raws_of_day(parse_day(text))
+            except DayError as err:
+                raise WriteRefused("bad_day", day=day, reason=err) from err
+        first = self.slot_specs[program.day_keys(1)[0]]
+        self._check_static(first, first.key, 0)
+        changes: list[tuple[SlotSpec, int, int]] = []
+        for day, raws in wanted.items():
+            for key, raw in zip(program.day_keys(day), raws):
+                spec = self.slot_specs[key]
+                try:
+                    values, before = await self._read(spec)
+                except EbusdError as err:
+                    raise WriteRefused("read_failed", setting=key, reason=err) from err
+                self.hub.store(key, values)  # a fresh reading: the day shows it, written or not
+                if raw != before:
+                    changes.append((spec, raw, before))
+        left = self.guard.max_per_hour - self.guard.writes_last_hour()
+        if len(changes) > left:
+            raise WriteRefused("program_limit", needed=len(changes), left=left, limit=self.guard.max_per_hour)
+        done: list[dict[str, Any]] = []
+        for spec, raw, before in changes:
+            service_tool = None
+            if spec.ebusd_source == "ff":
+                service_tool = await self.hass.async_add_executor_job(read_service_tool_state, self.telegram_db)
+            try:
+                self.guard.check(spec.register_id, raw, 0, 0xFFFF, spec.ebusd_source, service_tool)
+                done.append(await self._send(spec, raw, before, user_id, False))
+            except (WriteRefused, WriteFailed) as err:
+                raise WriteFailed("program_partial", written=len(done), total=len(changes), reason=err) from err
+        return {"program": program_key, "written": len(done), "unchanged": 3 * len(wanted) - len(changes),
+                "slots": [entry["key"] for entry in done]}
+
+    # ---- the clock (regulation: confirmation) ---------------------------------------------------------------
+
+    async def async_clock_offset(self) -> float | None:
+        """Seconds the clock master is ahead of ebusd's host clock, from its last broadcast in ebusd's cache."""
+        broadcast = clock.parse_find(await self.hub.client.last_broadcast_of_clock())
+        if broadcast is not None and broadcast.source != self.hub.own_address:
+            self.last_clock = broadcast
+        if broadcast is None:
+            return None
+        return clock.offset(broadcast, self.hub.own_address, self._now().replace(tzinfo=None))
+
+    def _check_clock(self) -> None:
+        if not self.switch_on:
+            raise WriteRefused("writes_disabled")
+        if not self.clock_writable:
+            raise WriteRefused("not_writable", setting=CLOCK_KEY, reason="no write definition of the broadcast")
+        if not self.hub.available:
+            raise WriteRefused("unavailable")
+        if self.hub.own_address != "31":
+            raise WriteRefused("source_not_own", setting=CLOCK_KEY, own=self.hub.own_address or "-")
+
+    async def async_request_clock(self, user_id: str | None) -> None:
+        """The set-clock button: a regulation write, so a confirmation first. Raises ConfirmationPending."""
+        self._check_clock()
+        try:
+            offset = await self.async_clock_offset()
+        except EbusdError:
+            offset = None
+        for old in [p for p in self.pending.values() if p.key == CLOCK_KEY]:
+            self._drop_pending(old.id)
+        language = self._language()
+        message = self.hub.model.messages[CLOCK_KEY]
+        device = self.hub.model.devices[message.device]
+        pending = Pending(uuid.uuid4().hex[:12], CLOCK_KEY, 0, user_id, time.time())
+        pending.placeholders = {
+            "setting": message.label.get(language, message.label["en"]),
+            "device": device.label.get(language, device.label["en"]),
+            "current": "-" if offset is None else f"{offset:+.0f} s",
+            "requested": {"en": "Home Assistant's time", "fr": "l'heure de Home Assistant"}[language],
+            "address": "fe", "register": "07 00", "source": "31",
+            "source_text": SOURCE_TEXT[language]["31"], "late": f"{clock.LATE:g}",
+            "minutes": str(PENDING_TTL // 60)}
+        self.pending[pending.id] = pending
+        issue_id = self.issue_id(pending.id)
+        ir.async_create_issue(
+            self.hass, DOMAIN, issue_id, is_fixable=True, is_persistent=False, severity=ir.IssueSeverity.WARNING,
+            translation_key="confirm_clock", translation_placeholders=pending.placeholders,
+            data={"entry_id": self.hub.entry.entry_id, "pending": pending.id})
+        title, text = NOTIFICATION[language]
+        persistent_notification.async_create(self.hass, text.format(**pending.placeholders), title,
+                                             self._notification_id(CLOCK_KEY))
+        raise ConfirmationPending(issue_id, pending.placeholders)
+
+    async def async_set_clock(self, user_id: str | None) -> dict[str, Any]:
+        """Send Home Assistant's time at second 00 of the next minute, or nothing: if the connection to ebusd is
+        not free within `clock.LATE` seconds of second 00, the broadcast is given up rather than sent late."""
+        self._check_clock()
+        self.guard.check(CLOCK_REGISTER, 0, 0, 0, None)
+        target = clock.next_minute(self._now())
+        outside = self.last_clock.outside if self.last_clock else 0.0
+        telegram = clock.telegram(target, outside)
+        entry: dict[str, Any] = {
+            "time": time.time(), "key": CLOCK_KEY, "register": CLOCK_REGISTER, "source": "31", "risk": "regulation",
+            "confirmed": True, "user_id": user_id, "before": None, "requested": target.strftime("%H:%M:%S"),
+            "telegram": telegram, "read_back": None, "result": None, "frame": f"31{telegram}"}
+        # keep the bus quiet for the gap before second 00, so that the broadcast's turn is free when it comes
+        lead = (target - self._now()).total_seconds() - self.hub.request_gap - 0.1
+        if lead > 0:
+            await self._sleep(lead)
+        await self.hub.async_bus_slot()
+        wait = (target - self._now()).total_seconds()
+        if wait > 0:
+            await self._sleep(wait)
+        deadline = target.timestamp() + clock.LATE
+        self.guard.record(CLOCK_REGISTER, None)
+        try:
+            entry["answer"] = await self.hub.client.write_broadcast(
+                telegram, lambda: self._now().timestamp() <= deadline)
+        except EbusdLate as err:
+            entry["result"] = "given up"
+            self._trace_clock(entry)
+            raise WriteFailed("clock_late", late=f"{clock.LATE:g}") from err
+        except EbusdError as err:
+            entry["result"] = "not sent"
+            entry["error"] = str(err)
+            self._trace_clock(entry)
+            raise WriteFailed("write_failed", setting=CLOCK_KEY, reason=err) from err
+        entry["result"] = "sent"
+        entry["late"] = round(self._now().timestamp() - target.timestamp(), 3)
+        self._trace_clock(entry)
+        return entry
+
+    def _trace_clock(self, entry: dict[str, Any]) -> None:
+        self.journal.append(entry)
+        level = logging.INFO if entry["result"] == "sent" else logging.WARNING
+        _LOGGER.log(level, "CLOCK %s (telegram %s from 31): %s", entry["requested"], entry["telegram"],
+                    entry["result"])
+        self.hass.bus.async_fire(EVENT_WRITE, {"entry_id": self.hub.entry.entry_id} | entry)
 
     def _trace(self, spec: WriteSpec, entry: dict[str, Any]) -> None:
         """A log line, an event and a line of the journal for each write attempted past the guard."""

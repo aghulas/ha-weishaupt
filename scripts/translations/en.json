@@ -86,6 +86,27 @@
           "unchanged": "{setting} of {device} already holds {requested}: nothing was written."
         }
       }
+    },
+    "confirm_clock": {
+      "title": "Confirm: set the clock of the installation",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Set the clock — {device}",
+            "description": "- Clock master now: {current} against the clock of ebusd's host\n- Will send: **{requested}**, at second 00 of the next minute exactly\n- Broadcast to bus address `{address}`, command `{register}`, from source address `{source}` ({source_text})\n\nEvery controller takes the time over, seconds included. If the bus is not free within {late} s of second 00, nothing is sent.",
+            "submit": "Send the time"
+          }
+        },
+        "abort": {
+          "expired": "This request has expired or was withdrawn: nothing was written. Set the value again to create a new one.",
+          "refused": "Nothing was written: {reason}",
+          "write_failed": "{setting} of {device}: the write was not sent ({reason}).",
+          "clock_late": "The connection to ebusd was not free within {late} s of second 00: the time was not sent, rather than sent late."
+        },
+        "create_entry": {
+          "sent": "Done. The time {sent} was broadcast at second 00 ({late_ms} ms after it). Telegram `{telegram}`. The offset sensor shows the result after the next broadcast of the clock master."
+        }
+      }
     }
   },
   "exceptions": {
@@ -148,6 +169,21 @@
     },
     "expired": {
       "message": "The request expired after {minutes} minutes."
+    },
+    "bad_day": {
+      "message": "Day {day}: {reason}"
+    },
+    "program_limit": {
+      "message": "{needed} slots would change and only {left} writes are left within the hour (limit {limit}): nothing was written. Try again later, or raise the limit for a supervised campaign."
+    },
+    "program_partial": {
+      "message": "The program was written in part: {written} of {total} slots, then: {reason}"
+    },
+    "clock_late": {
+      "message": "The connection to ebusd was not free within {late} s of second 00: the time was not sent, rather than sent late."
+    },
+    "unknown_device": {
+      "message": "This device is not one of this integration's."
     }
   },
   "weekdays": {
@@ -164,5 +200,60 @@
     "ordered": "Most recent first"
   },
   "switch_name": "Writes",
-  "number_suffix": " (setting)"
+  "number_suffix": " (setting)",
+  "services": {
+    "set_program": {
+      "name": "Set a weekly program",
+      "description": "Writes days of a weekly program of a room unit at once: only the slots that change, three at most a day (21 for a whole week), within the hourly write limit. When more slots would change than writes are left within the hour, nothing is written.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The room unit."
+        },
+        "program": {
+          "name": "Program",
+          "description": "Which program of the device."
+        },
+        "monday": {
+          "name": "Monday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "tuesday": {
+          "name": "Tuesday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "wednesday": {
+          "name": "Wednesday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "thursday": {
+          "name": "Thursday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "friday": {
+          "name": "Friday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "saturday": {
+          "name": "Saturday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "sunday": {
+          "name": "Sunday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        }
+      }
+    }
+  },
+  "selector": {
+    "program": {
+      "options": {
+        "heating1": "Heating program 1",
+        "heating2": "Heating program 2",
+        "heating3": "Heating program 3",
+        "dhw_stored": "Hot water program",
+        "circulation_stored": "Circulation program"
+      }
+    }
+  }
 }

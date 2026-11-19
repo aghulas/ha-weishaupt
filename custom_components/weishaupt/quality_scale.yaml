@@ -3,8 +3,8 @@
 rules:
   # Bronze
   action-setup:
-    status: exempt
-    comment: The integration registers no action.
+    status: done
+    comment: The action set_program is registered in async_setup, whatever the entries.
   appropriate-polling:
     status: done
     comment: >-
@@ -22,8 +22,8 @@ rules:
     status: done
     comment: No requirement; the ebusd client is part of the integration.
   docs-actions:
-    status: exempt
-    comment: No action.
+    status: done
+    comment: README, section Weekly programs; services.yaml with translations.
   docs-conditions:
     status: exempt
     comment: No condition.
@@ -50,7 +50,7 @@ rules:
   action-exceptions:
     status: done
     comment: >-
-      No own action; setting a number raises ServiceValidationError (refused by the guard, confirmation
+      set_program raises ServiceValidationError or HomeAssistantError with translated messages; setting a number raises ServiceValidationError (refused by the guard, confirmation
       pending) or HomeAssistantError (write failed, not taken over), with translated messages.
   config-entry-unloading: done
   docs-configuration-parameters: done

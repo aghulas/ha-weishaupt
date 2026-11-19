@@ -11,17 +11,28 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr, entity_registry as er, issue_registry as ir
+from homeassistant.helpers import config_validation as cv, device_registry as dr, entity_registry as er
+from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.typing import ConfigType
 
 from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
 from .model import ACCEPTED_DEFINITIONS, Model
+from .services import async_register_services
 from .writer import Writer
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR,
+             Platform.SWITCH, Platform.TEXT]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 EXAMPLES = 8  # messages named in the repair issue
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """The action of the integration (`services.py`), registered once whatever the entries."""
+    async_register_services(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:

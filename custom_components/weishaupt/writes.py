@@ -110,6 +110,10 @@ class WriteSpec:
         except ValueError:
             return None
 
+    def raw_of_values(self, values: tuple[str, ...]) -> int | None:
+        """Register value from all the fields ebusd answers (one, for a setting)."""
+        return self.raw_of_text(values[0]) if values else None
+
     def on_step(self, value: float) -> bool:
         if self.values is not None:
             return value == int(value) and int(value) in self.values

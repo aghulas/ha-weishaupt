@@ -53,6 +53,8 @@ REASONS = {
                            "ff refused",
     "read_failed": "{setting} could not be read before the write ({reason}): write refused",
     "unavailable": "ebusd cannot be reached: write refused",
+    "bad_day": "day {day}: {reason}",
+    "program_limit": "{needed} slots to write and {left} writes left within the hour (limit {limit}): nothing written",
 }
 
 

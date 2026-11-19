@@ -249,6 +249,7 @@ class Hub:
         try:
             values = await self.client.read(message.circuit, message.name, max_age)
         except EbusdNoData:
+            self._done(message)
             self._due[key] = now + interval  # passive message not seen yet: nothing wrong
             return 0.0
         except EbusdConnectionError as err:
@@ -268,6 +269,7 @@ class Hub:
             self._failed(message, str(err))
             return 0.0
         self._set_available(True)
+        self._done(message)
         guard = message.guard
         if len(values) != len(message.fields):
             self._failed(message, f"{len(values)} values for {len(message.fields)} fields")
@@ -284,6 +286,12 @@ class Hub:
         self._due[key] = now + interval
         self._notify(key)
         return 0.0
+
+    def _done(self, message: Message) -> None:
+        """The gap counts from the end of a bus request: a request that waited for the connection (another command
+        of the integration on it) does not shorten the next gap."""
+        if not message.passive:
+            self._last_request = time.monotonic()
 
     def _failed(self, message: Message, reason: str) -> None:
         key = message.key

@@ -86,6 +86,27 @@
           "unchanged": "{setting} of {device} already holds {requested}: nothing was written."
         }
       }
+    },
+    "confirm_clock": {
+      "title": "Confirm: set the clock of the installation",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Set the clock — {device}",
+            "description": "- Clock master now: {current} against the clock of ebusd's host\n- Will send: **{requested}**, at second 00 of the next minute exactly\n- Broadcast to bus address `{address}`, command `{register}`, from source address `{source}` ({source_text})\n\nEvery controller takes the time over, seconds included. If the bus is not free within {late} s of second 00, nothing is sent.",
+            "submit": "Send the time"
+          }
+        },
+        "abort": {
+          "expired": "This request has expired or was withdrawn: nothing was written. Set the value again to create a new one.",
+          "refused": "Nothing was written: {reason}",
+          "write_failed": "{setting} of {device}: the write was not sent ({reason}).",
+          "clock_late": "The connection to ebusd was not free within {late} s of second 00: the time was not sent, rather than sent late."
+        },
+        "create_entry": {
+          "sent": "Done. The time {sent} was broadcast at second 00 ({late_ms} ms after it). Telegram `{telegram}`. The offset sensor shows the result after the next broadcast of the clock master."
+        }
+      }
     }
   },
   "exceptions": {
@@ -148,6 +169,76 @@
     },
     "expired": {
       "message": "The request expired after {minutes} minutes."
+    },
+    "bad_day": {
+      "message": "Day {day}: {reason}"
+    },
+    "program_limit": {
+      "message": "{needed} slots would change and only {left} writes are left within the hour (limit {limit}): nothing was written. Try again later, or raise the limit for a supervised campaign."
+    },
+    "program_partial": {
+      "message": "The program was written in part: {written} of {total} slots, then: {reason}"
+    },
+    "clock_late": {
+      "message": "The connection to ebusd was not free within {late} s of second 00: the time was not sent, rather than sent late."
+    },
+    "unknown_device": {
+      "message": "This device is not one of this integration's."
+    }
+  },
+  "services": {
+    "set_program": {
+      "name": "Set a weekly program",
+      "description": "Writes days of a weekly program of a room unit at once: only the slots that change, three at most a day (21 for a whole week), within the hourly write limit. When more slots would change than writes are left within the hour, nothing is written.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The room unit."
+        },
+        "program": {
+          "name": "Program",
+          "description": "Which program of the device."
+        },
+        "monday": {
+          "name": "Monday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "tuesday": {
+          "name": "Tuesday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "wednesday": {
+          "name": "Wednesday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "thursday": {
+          "name": "Thursday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "friday": {
+          "name": "Friday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "saturday": {
+          "name": "Saturday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        },
+        "sunday": {
+          "name": "Sunday",
+          "description": "Up to three ranges in quarters of an hour, like 06:30-18:00, 19:00-21:00; - for none. Left empty: unchanged."
+        }
+      }
+    }
+  },
+  "selector": {
+    "program": {
+      "options": {
+        "heating1": "Heating program 1",
+        "heating2": "Heating program 2",
+        "heating3": "Heating program 3",
+        "dhw_stored": "Hot water program",
+        "circulation_stored": "Circulation program"
+      }
     }
   },
   "device": {
@@ -623,6 +714,9 @@
       },
       "boiler_temperatures_supplytemp": {
         "name": "Flow temperature"
+      },
+      "clock_offset": {
+        "name": "Clock offset of the installation"
       },
       "manager_blockingtime": {
         "name": "Blocking time"
@@ -1277,6 +1371,118 @@
     "switch": {
       "writes": {
         "name": "Writes"
+      }
+    },
+    "text": {
+      "program_circulation_stored_friday": {
+        "name": "Circulation program stored in the room unit – Friday (setting)"
+      },
+      "program_circulation_stored_monday": {
+        "name": "Circulation program stored in the room unit – Monday (setting)"
+      },
+      "program_circulation_stored_saturday": {
+        "name": "Circulation program stored in the room unit – Saturday (setting)"
+      },
+      "program_circulation_stored_sunday": {
+        "name": "Circulation program stored in the room unit – Sunday (setting)"
+      },
+      "program_circulation_stored_thursday": {
+        "name": "Circulation program stored in the room unit – Thursday (setting)"
+      },
+      "program_circulation_stored_tuesday": {
+        "name": "Circulation program stored in the room unit – Tuesday (setting)"
+      },
+      "program_circulation_stored_wednesday": {
+        "name": "Circulation program stored in the room unit – Wednesday (setting)"
+      },
+      "program_dhw_stored_friday": {
+        "name": "Hot water program stored in the room unit – Friday (setting)"
+      },
+      "program_dhw_stored_monday": {
+        "name": "Hot water program stored in the room unit – Monday (setting)"
+      },
+      "program_dhw_stored_saturday": {
+        "name": "Hot water program stored in the room unit – Saturday (setting)"
+      },
+      "program_dhw_stored_sunday": {
+        "name": "Hot water program stored in the room unit – Sunday (setting)"
+      },
+      "program_dhw_stored_thursday": {
+        "name": "Hot water program stored in the room unit – Thursday (setting)"
+      },
+      "program_dhw_stored_tuesday": {
+        "name": "Hot water program stored in the room unit – Tuesday (setting)"
+      },
+      "program_dhw_stored_wednesday": {
+        "name": "Hot water program stored in the room unit – Wednesday (setting)"
+      },
+      "program_heating1_friday": {
+        "name": "Heating program 1 – Friday (setting)"
+      },
+      "program_heating1_monday": {
+        "name": "Heating program 1 – Monday (setting)"
+      },
+      "program_heating1_saturday": {
+        "name": "Heating program 1 – Saturday (setting)"
+      },
+      "program_heating1_sunday": {
+        "name": "Heating program 1 – Sunday (setting)"
+      },
+      "program_heating1_thursday": {
+        "name": "Heating program 1 – Thursday (setting)"
+      },
+      "program_heating1_tuesday": {
+        "name": "Heating program 1 – Tuesday (setting)"
+      },
+      "program_heating1_wednesday": {
+        "name": "Heating program 1 – Wednesday (setting)"
+      },
+      "program_heating2_friday": {
+        "name": "Heating program 2 – Friday (setting)"
+      },
+      "program_heating2_monday": {
+        "name": "Heating program 2 – Monday (setting)"
+      },
+      "program_heating2_saturday": {
+        "name": "Heating program 2 – Saturday (setting)"
+      },
+      "program_heating2_sunday": {
+        "name": "Heating program 2 – Sunday (setting)"
+      },
+      "program_heating2_thursday": {
+        "name": "Heating program 2 – Thursday (setting)"
+      },
+      "program_heating2_tuesday": {
+        "name": "Heating program 2 – Tuesday (setting)"
+      },
+      "program_heating2_wednesday": {
+        "name": "Heating program 2 – Wednesday (setting)"
+      },
+      "program_heating3_friday": {
+        "name": "Heating program 3 – Friday (setting)"
+      },
+      "program_heating3_monday": {
+        "name": "Heating program 3 – Monday (setting)"
+      },
+      "program_heating3_saturday": {
+        "name": "Heating program 3 – Saturday (setting)"
+      },
+      "program_heating3_sunday": {
+        "name": "Heating program 3 – Sunday (setting)"
+      },
+      "program_heating3_thursday": {
+        "name": "Heating program 3 – Thursday (setting)"
+      },
+      "program_heating3_tuesday": {
+        "name": "Heating program 3 – Tuesday (setting)"
+      },
+      "program_heating3_wednesday": {
+        "name": "Heating program 3 – Wednesday (setting)"
+      }
+    },
+    "button": {
+      "set_clock": {
+        "name": "Set the clock from Home Assistant"
       }
     }
   }

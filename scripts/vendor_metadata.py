@@ -64,6 +64,8 @@ def translations(model_module, language: str) -> dict:
     weekdays, attributes = source.pop("weekdays"), source.pop("attributes")
     switch_name = source.pop("switch_name")
     number_suffix = source.pop("number_suffix")
+    clock_names = {"en": "Clock offset of the installation", "fr": "Écart de l'horloge de l'installation"}
+    button_names = {"en": "Set the clock from Home Assistant", "fr": "Régler l'horloge sur Home Assistant"}
     result = dict(source)
     result["device"] = {key: {"name": device.label[language]} for key, device in sorted(model.devices.items())}
     entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "select": {}, "sensor": {},
@@ -73,6 +75,13 @@ def translations(model_module, language: str) -> dict:
         if description.options:
             item["state"] = description.option_labels(language)
         entity[description.platform][description.translation_key] = item
+    entity["text"] = {}
+    for group in model.writable_programs:  # one text entity per program and day
+        for number, day in enumerate(model_module.WEEKDAYS, 1):
+            entity["text"][f"program_{group.id}_{day}"] = {
+                "name": f"{group.label[language]} – {weekdays[day]}{number_suffix}"}
+    entity["sensor"]["clock_offset"] = {"name": clock_names[language]}
+    entity["button"] = {"set_clock": {"name": button_names[language]}}
     for description in model.setting_entities:  # the name of the sensor of its register, marked as the setting
         item = {"name": description.name[language] + number_suffix}
         if description.platform == "select":

@@ -24,7 +24,7 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.6"
+    assert model.version == "0.5.7"
     assert len(model.messages) == 542
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
@@ -170,7 +170,7 @@ def test_fixtures_of_the_release(model, golden):
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
-    assert len(readings) == 787 and {f"{r['circuit']}/{r['message']}" for r in readings} == {
+    assert len(readings) == 789 and {f"{r['circuit']}/{r['message']}" for r in readings} == {
         k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
     texts: dict[str, set[str]] = {}
     for reading in readings:

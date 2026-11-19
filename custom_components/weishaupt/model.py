@@ -269,6 +269,12 @@ class Model:
     @property
     def select_entities(self) -> tuple[NumberDescription, ...]:
         return tuple(d for d in self.setting_entities if d.platform == "select")
+
+    @property
+    def writable_programs(self) -> tuple[Group, ...]:
+        """Programs whose 21 slots all have write conditions (proven on that device)."""
+        return tuple(g for g in self.groups.values() if g.family == "program"
+                     and all(self.messages[k].write is not None for k in g.members))
     _by_circuit: dict[str, Device] = field(default_factory=dict)
 
     @classmethod

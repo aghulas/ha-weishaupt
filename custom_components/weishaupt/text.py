@@ -1,0 +1,70 @@
+"""Weekly programs that the definitions prove writable, as one text entity per program and day:
+`06:30-18:00, 19:00-21:00`, up to three ranges in quarters of an hour, `-` for none (`programs.py`). Created only
+when writes are enabled, and only for the programs whose slots have write conditions on that device (room unit 1,
+heating program 1 of room unit 3; never room unit 2). Heating program 1 is enabled when created, the others not.
+Comfort class: setting a day writes its three slots at once, through the guard, and reads them back."""
+from __future__ import annotations
+
+from typing import Any
+
+from homeassistant.components.text import TextEntity
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+
+from .const import DOMAIN
+from .entity import WeishauptEntity
+from .guard import WriteRefused
+from .hub import Hub, WeishauptConfigEntry
+from .model import WEEKDAYS
+from .programs import MAX_LENGTH, PATTERN, Program
+from .writer import WriteFailed
+
+PARALLEL_UPDATES = 1
+ENABLED_PROGRAM = "heating1"
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
+                            async_add_entities: AddConfigEntryEntitiesCallback) -> None:
+    hub = entry.runtime_data
+    if hub.writer is None:
+        return
+    async_add_entities(ProgramDayText(hub, program, day)
+                       for program in hub.writer.programs.values() for day in range(1, 8))
+
+
+class ProgramDayText(WeishauptEntity, TextEntity):
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_pattern = PATTERN
+    _attr_native_max = MAX_LENGTH
+
+    def __init__(self, hub: Hub, program: Program, day: int) -> None:
+        name = WEEKDAYS[day - 1]
+        super().__init__(hub, hub.model.devices[program.device], f"{program.key}/{name}",
+                         f"program_{program.group}_{name}", program.day_keys(day))
+        self._program, self._day = program, day
+        self._attr_entity_registry_enabled_default = program.group == ENABLED_PROGRAM
+
+    @property
+    def native_value(self) -> str | None:
+        return self.hub.writer.program_day(self._program, self._day)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        spec = self.hub.writer.slot_specs[self._program.day_keys(self._day)[0]]
+        return {"risk": spec.risk, "proof": spec.proof, "source": spec.source,
+                "registers": [self.hub.writer.slot_specs[k].register for k in self._program.day_keys(self._day)]}
+
+    async def async_set_value(self, value: str) -> None:
+        user_id = self._context.user_id if self._context else None
+        try:
+            await self.hub.writer.async_write_day(self._program.key, self._day, value, user_id)
+        except WriteRefused as err:
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key=err.code,
+                                         translation_placeholders=err.placeholders) from err
+        except WriteFailed as err:
+            raise HomeAssistantError(translation_domain=DOMAIN, translation_key=err.code,
+                                     translation_placeholders=err.placeholders) from err
+        finally:
+            self.async_write_ha_state()

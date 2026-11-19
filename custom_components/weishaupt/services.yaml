@@ -1,0 +1,41 @@
+set_program:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: weishaupt
+    program:
+      required: true
+      example: heating1
+      selector:
+        select:
+          options:
+            - heating1
+            - heating2
+            - heating3
+            - dhw_stored
+            - circulation_stored
+          translation_key: program
+    monday:
+      example: "06:30-18:00, 19:00-21:00"
+      selector:
+        text:
+    tuesday:
+      selector:
+        text:
+    wednesday:
+      selector:
+        text:
+    thursday:
+      selector:
+        text:
+    friday:
+      selector:
+        text:
+    saturday:
+      selector:
+        text:
+    sunday:
+      selector:
+        text:

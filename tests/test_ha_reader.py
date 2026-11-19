@@ -57,17 +57,30 @@ async def test_order_and_max_age(hass, fake, entity_registry_enabled_by_default)
     # passive messages first, then live values, then counters, settings and at last the weekly programs
     assert order == sorted(order)
     assert sorted(set(order)) == [30, 300, 3600, 6 * 3600, 24 * 3600]
-    # the age ebusd may answer from its cache: the interval of the class; passive messages are never requested
-    assert ages["ka/Boiler1Status"] == 900 and ages["bc1/Temperatures"] == 300
-    assert ages["bc1/Counters"] == 3600 and ages["bc1/BurnerServiceHours"] == 3600
-    assert ages["ka/BlockingTime"] == 6 * 3600 and ages["fs1/HCProgram1Mon1"] == 24 * 3600
+    # the first pass asks the device (age 0: never ebusd's cache, which may hold a value from before the set-up);
+    # passive messages come from ebusd's cache, as always
+    assert ages["ka/Boiler1Status"] == 900 and ages["bc1/Temperatures"] == 0
+    assert ages["bc1/Counters"] == 0 and ages["ka/BlockingTime"] == 0 and ages["fs1/HCProgram1Mon1"] == 0
+    assert hub.first_pass_done is not None
+    # after it, the age ebusd may answer from its cache is the interval of the class
+    for key in ("bc1/Temperatures", "ka/BlockingTime", "fs1/HCProgram1Mon1"):
+        hub._due[key] = 0.0
+    hub._wake.set()
+    from ha_common import wait_until
+    await wait_until(lambda: len(fake.reads_of()) >= len(commands) + 3)
+    again = {_message(c): int(c.split()[2]) for c in [c for _, c in fake.reads_of()][len(commands):]}
+    assert again == {"bc1/Temperatures": 300, "ka/BlockingTime": 6 * 3600, "fs1/HCProgram1Mon1": 24 * 3600}
 
 
 async def test_cyclic_interval_option(hass, fake):
     entry = make_entry(hass, fake, cyclic_interval=120)
     await setup(hass, entry)
     await settled(hass, entry)
-    assert "read -m 120 -c bc1 Temperatures" in [c for _, c in fake.reads_of()]
+    hub = entry.runtime_data
+    hub._due["bc1/Temperatures"] = 0.0
+    hub._wake.set()
+    from ha_common import wait_until
+    await wait_until(lambda: "read -m 120 -c bc1 Temperatures" in [c for _, c in fake.reads_of()])
 
 
 async def test_requests_are_spaced(hass, fake):

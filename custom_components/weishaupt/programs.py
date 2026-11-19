@@ -23,9 +23,13 @@ SLOTS = 3
 UNUSED = 0x8080
 QUARTERS_PER_DAY = 96
 _RANGE = re.compile(r"^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$")
-# what a text entity accepts, before the checks of `parse_day`
+# What a text entity accepts: the shape of a day (up to three ranges HH:MM-HH:MM, or -). Home Assistant checks it,
+# in its form and in the action, and refuses with its own message; what the shape lets through but is wrong
+# (not a quarter of an hour, start after end, overlap) is refused by `parse_day` with a translated message.
 PATTERN = r"^\s*(-|(\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2})(\s*,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}){0,2})?\s*$"
-MAX_LENGTH = 100  # room for a wrong entry, so that the integration explains it rather than a length error
+# Up to three ranges of 11 characters and their separators, with room for spaces around them; a longer text cannot
+# be a valid day (the pattern refuses it anyway).
+MAX_LENGTH = 50
 
 
 class DayError(ValueError):

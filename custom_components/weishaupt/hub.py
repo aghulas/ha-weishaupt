@@ -54,6 +54,12 @@ type WeishauptConfigEntry = ConfigEntry[Hub]
 _PRIORITY = {"passive": 0, "cyclic": 1}
 SETTING_PRIORITY = 2
 OTHER_PRIORITY = 3
+# The first pass after a set-up: every message an enabled entity listens to is read once from the device (`read
+# -m 0`: ebusd, which may have stayed up, would otherwise answer from its own cache, with a value up to a day old for
+# the programs). Until every one of them has been asked once, a message already read is asked again only when its
+# last reading is older than this, so that live values are not left for the whole pass and do not hold it up.
+REPEAT_DURING_FIRST_PASS = 900
+FIRST_READ_FROM_DEVICE = True  # False: the behaviour of 0.3.0rc5 (first pass answered from ebusd's cache), for the bench
 
 
 @dataclass
@@ -99,6 +105,8 @@ class Hub:
         self._urgent: set[str] = set()  # messages of an entity just enabled: read first
         self._priority: dict[str, int] = {}  # class asked for by a listener
         self.restored: set[str] = set()  # messages shown from before a reload, until read again
+        self._asked: set[str] = set()  # messages asked once since the set-up (the first pass)
+        self.first_pass_done: float | None = None  # time.time() when the first pass ended
         # messages listened to when the entry was last unloaded (None at the first set-up since Home Assistant
         # started): kept by __init__.py across a reload
         self.previously_listened: set[str] | None = None
@@ -216,6 +224,8 @@ class Hub:
     def _next(self, now: float) -> tuple[str | None, float]:
         """Key of the message to read now, or None and the delay until the next one is due."""
         due, soonest = [], None
+        in_first_pass = self.first_pass_done is None and REPEAT_DURING_FIRST_PASS > 0
+        wall = time.time()
         for key in self._listeners:
             when = self._due.get(key, 0.0)
             if when <= now:
@@ -223,11 +233,14 @@ class Hub:
                 poll = "passive" if message.passive else message.poll
                 priority = -1 if key in self._urgent else min(
                     _PRIORITY.get(poll, OTHER_PRIORITY), self._priority.get(key, OTHER_PRIORITY))
-                due.append((priority, self.interval(message), when, key))
+                # during the first pass, what was not asked yet goes before a repeat that is not overdue
+                repeat = in_first_pass and key in self._asked and not message.passive and (
+                    (reading := self.readings.get(key)) is None or wall - reading.when < REPEAT_DURING_FIRST_PASS)
+                due.append((repeat, priority, self.interval(message), when, key))
             elif soonest is None or when < soonest:
                 soonest = when
         if due:
-            return min(due)[3], 0.0
+            return min(due)[4], 0.0
         return None, (soonest - now if soonest is not None else 3600.0)
 
     async def async_run(self) -> None:
@@ -254,7 +267,13 @@ class Hub:
         """Read one message and tell its listeners. Returns the seconds to stay quiet afterwards."""
         key, interval, now = message.key, self.interval(message), time.monotonic()
         self._urgent.discard(key)
-        max_age = PASSIVE_MAX_AGE if message.passive else interval
+        first = key not in self._asked
+        self._asked.add(key)
+        if self.first_pass_done is None and self._asked >= set(self._listeners):
+            self.first_pass_done = time.time()
+            _LOGGER.info("first pass done: %d messages asked once from the device", len(self._asked))
+        # the first reading after a set-up comes from the device, not from ebusd's cache
+        max_age = PASSIVE_MAX_AGE if message.passive else (0 if first and FIRST_READ_FROM_DEVICE else interval)
         if message.passive:
             self.statistics.cache_reads += 1
         else:
@@ -364,6 +383,8 @@ class Hub:
             "messages_listened": len(self._listeners),
             "messages_read": len(self.readings),
             "restored_not_read_again": len(self.restored),
+            "first_pass": {"asked": len(self._asked & set(self._listeners)), "listened": len(self._listeners),
+                           "done": self.first_pass_done},
             "due_now": sum(1 for key in self._listeners if self._due.get(key, 0.0) <= now),
             "time": dt_util.utcnow().isoformat(),
         }

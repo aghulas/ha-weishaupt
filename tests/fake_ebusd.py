@@ -26,6 +26,7 @@ import re
 import time
 from datetime import datetime
 
+_READ_AGE = re.compile(r"^read -m (\d+) -c (\S+) (\S+)$")
 _READ = re.compile(r"^read (?:-m \d+|-f) -c (\S+) (\S+)$")
 _FIND = re.compile(r"^find -f (-w )?-c (\S+)$")
 _WRITE = re.compile(r"^write (?:-s ([0-9a-f]{2}) )?-c (\S+) -h ([0-9a-f]+)$")
@@ -52,6 +53,14 @@ class FakeEbusd:
         self.not_taken: set[str] = set()  # settings whose device acknowledges a write and keeps its value
         self.writes: list[tuple[str | None, str, str]] = []  # (source, circuit, bytes) of every write "sent"
         self.signal = True
+        # Optional timing, for the bench of the first pass: ebusd's cache (a value it read less than `-m` seconds
+        # ago is answered at once, without a telegram) and the time of an answer from the cache and from the bus.
+        # Off by default: the other tests answer at once and do not model the cache.
+        self.model_cache = False
+        self.cache: dict[str, float] = {}  # key -> time ebusd last read it from the bus
+        self.latency_cache = 0.0
+        self.latency_bus = 0.0
+        self.bus: list[tuple[float, str]] = []  # telegrams a read put on the bus (with model_cache)
         # the last date and time broadcast ebusd holds (passive Datetime of the general broadcast file): the bytes
         # recorded from a real ebusd, received now unless a test says otherwise
         self.clock_raw: str | None = golden["clock"]["telegram"].rstrip("/")
@@ -99,11 +108,29 @@ class FakeEbusd:
             line = (await reader.readline()).decode().strip()
             if line:
                 self.commands.append((time.monotonic(), line))
+                delay = self._delay(line)
+                if delay:
+                    await asyncio.sleep(delay)
                 writer.write(self.answer(line).encode() + b"\n\n")
                 await writer.drain()
         finally:
             self.active -= 1
             writer.close()
+
+    def _delay(self, command: str) -> float:
+        """With `model_cache`: a read answered from ebusd's cache, or one that goes to the bus (kept in `bus`)."""
+        if not self.model_cache or not (match := _READ_AGE.match(command)):
+            return 0.0
+        age, key = int(match.group(1)), f"{match.group(2).lower()}/{match.group(3)}"
+        row = self._definition(match.group(2).lower(), match.group(3))
+        if row is None or row[0].startswith("u"):
+            return self.latency_cache
+        now = time.monotonic()
+        if age and now - self.cache.get(key, -1e9) < age:
+            return self.latency_cache
+        self.cache[key] = now
+        self.bus.append((now, key))
+        return self.latency_bus
 
     def answer(self, command: str) -> str:
         if command == "info":

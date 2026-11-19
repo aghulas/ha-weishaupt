@@ -4,8 +4,9 @@ when writes are enabled, and only for the programs whose slots have write condit
 heating program 1 of room unit 3; never room unit 2). Heating program 1 is enabled when created, the others not.
 Comfort class: setting a day writes its three slots at once, through the guard, and reads them back.
 
-No `pattern` is declared: Home Assistant would refuse a text that does not match with a message showing the regular
-expression; the integration checks the text itself and says, translated, what is wrong and what is expected."""
+The pattern gives the shape (Home Assistant marks a text of another shape and refuses it with its own message);
+the integration checks the rest — quarters of an hour, order, overlap — with translated messages. The last write
+of the day is in the attribute `last_write`: time, before -> after, the frames, the result of the read-back."""
 from __future__ import annotations
 
 from typing import Any
@@ -21,7 +22,7 @@ from .entity import WeishauptEntity
 from .guard import WriteRefused
 from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import WEEKDAYS
-from .programs import MAX_LENGTH, Program
+from .programs import MAX_LENGTH, PATTERN, Program
 from .writer import WriteFailed
 
 PARALLEL_UPDATES = 1
@@ -40,6 +41,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry,
 class ProgramDayText(WeishauptEntity, TextEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_max = MAX_LENGTH
+    _attr_pattern = PATTERN
     # its three slots are read right after the numbers and selects (within that class the 24-hour interval of the
     # programs comes after the 6 hours of the settings), not after the whole first pass
     _read_priority = SETTING_PRIORITY
@@ -60,7 +62,8 @@ class ProgramDayText(WeishauptEntity, TextEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         spec = self.hub.writer.slot_specs[self._program.day_keys(self._day)[0]]
         return {"risk": spec.risk, "proof": spec.proof, "source": spec.source,
-                "registers": [self.hub.writer.slot_specs[k].register for k in self._program.day_keys(self._day)]}
+                "registers": [self.hub.writer.slot_specs[k].register for k in self._program.day_keys(self._day)],
+                "last_write": self.hub.writer.last_day_writes.get((self._program.key, self._day))}
 
     async def async_set_value(self, value: str) -> None:
         user_id = self._context.user_id if self._context else None

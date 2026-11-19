@@ -144,6 +144,7 @@ class Writer:
         self.journal: deque[dict[str, Any]] = deque(maxlen=JOURNAL_SIZE)
         self.pending: dict[str, Pending] = {}
         self.programs: dict[str, Program] = {}  # programs whose slots the definitions prove writable
+        self.last_day_writes: dict[tuple[str, int], dict[str, Any]] = {}  # (program, day) -> last write
         self.slot_specs: dict[str, SlotSpec] = {}
         self.clock_writable = False  # the date and time broadcast: write conditions and its write definition
         self.last_clock: clock.Broadcast | None = None
@@ -488,6 +489,10 @@ class Writer:
             after = format_day(sorted(r for r in map(range_of_raw, raws) if r is not None))
             _LOGGER.info("PROGRAM %s %s %s: %s -> %s, frames %s: %s", device, program.label["en"],
                          DAY_NAMES["en"][day - 1], before.get(day, "?"), after, ", ".join(frames) or "none", result)
+            self.last_day_writes[(program.key, day)] = {
+                "time": dt_util.now().isoformat(timespec="seconds"), "before": before.get(day, "?"), "after": after,
+                "frames": frames, "result": result}
+            self.hub.notify(keys[0])  # the text shows its new attribute
 
     def _notify_program_failure(self, program: Program, written: int, total: int, err: Exception) -> None:
         """A short persistent notification when a program was not written, or only in part. None on success: the

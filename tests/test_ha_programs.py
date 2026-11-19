@@ -52,8 +52,9 @@ async def test_program_entities(hass, fake, log):
     assert text_id(hass, entry, "em1/dhw", "monday") is not None
     await settled(hass, entry)
     monday = hass.states.get(text_id(hass, entry, "fs1/heating1", "monday"))
-    # no pattern: the integration checks the text itself and explains, rather than Home Assistant showing a regex
-    assert monday.state == "06:30-18:00" and monday.attributes.get("pattern") is None
+    # the pattern gives the shape of a day; the integration checks the rest
+    assert monday.state == "06:30-18:00" and monday.attributes["pattern"] and monday.attributes["max"] == 50
+    assert monday.attributes["last_write"] is None
     assert monday.attributes["friendly_name"].endswith("Heating program 1 – Monday (setting)")
     assert hass.states.get(text_id(hass, entry, "fs1/heating1", "sunday")).state == "-"
 
@@ -92,9 +93,17 @@ async def test_a_day_that_is_no_day_is_refused(hass, fake, log, text, code, part
     assert err.value.placeholders["part"] == part
     assert fake.writes == [] and fake.reads_of() == []
     entity_id = text_id(hass, entry, "fs1/heating1", "monday")
-    with pytest.raises(ServiceValidationError) as shown:
-        await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text}, blocking=True)
-    assert shown.value.translation_key == code
+    if code in ("bad_day_format", "bad_day_too_many"):
+        # not the shape of a day: Home Assistant refuses it through the pattern of the text entity, before the
+        # integration; the action set_program, which has no pattern, gets the translated message
+        with pytest.raises(ValueError):
+            await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text},
+                                           blocking=True)
+    else:
+        with pytest.raises(ServiceValidationError) as shown:
+            await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": text},
+                                           blocking=True)
+        assert shown.value.translation_key == code
     from custom_components.weishaupt import DOMAIN as _domain  # noqa: F401
     import json
     from pathlib import Path
@@ -113,6 +122,11 @@ async def test_a_program_write_is_logged_day_by_day(hass, fake, log, caplog):
     line = next(r.getMessage() for r in caplog.records if r.getMessage().startswith("PROGRAM"))
     frame = "31" + writer.slot_specs["fs1/HCProgram1Sun1"].telegram(0x0809)
     assert line == f"PROGRAM Room unit 1 Heating program 1 Sunday: - -> 02:00-02:15, frames {frame}: read back ok"
+    # the same facts on the entity, visible without logs
+    await hass.async_block_till_done()
+    last = hass.states.get(text_id(hass, entry, "fs1/heating1", "sunday")).attributes["last_write"]
+    assert (last["before"], last["after"], last["frames"], last["result"]) == ("-", "02:00-02:15", [frame],
+                                                                               "read back ok")
 
 
 async def test_a_failed_program_write_notifies(hass, fake, log, monkeypatch):

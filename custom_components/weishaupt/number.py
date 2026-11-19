@@ -17,6 +17,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .entity import WeishauptEntity, parse_number
@@ -57,10 +58,16 @@ class SettingEntity(WeishauptEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         spec = self._spec
         pending = self.hub.writer.pending_for(spec.key) if self.hub.writer else None
+        last = next((e for e in reversed(self.hub.writer.journal) if e.get("key") == spec.key), None) \
+            if self.hub.writer else None
         return {"risk": spec.risk, "proof": spec.proof, "open_questions": list(spec.open),
                 "source": spec.source, "bounds_from": spec.bounds_from,
                 "range_source": spec.range_source,
-                "pending": None if pending is None else pending.placeholders["requested"]}
+                "pending": None if pending is None else pending.placeholders["requested"],
+                "last_write": None if last is None else {
+                    "time": dt_util.as_local(dt_util.utc_from_timestamp(last["time"])).isoformat(timespec="seconds"),
+                    "before": last["before"], "requested": last["requested"], "read_back": last["read_back"],
+                    "frame": last["frame"], "result": last["result"]}}
 
     async def _async_write(self, value: float) -> None:
         writer = self.hub.writer

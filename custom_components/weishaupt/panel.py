@@ -35,7 +35,8 @@ async def async_setup_panel(hass: HomeAssistant, version: str) -> None:
     """Register the WebSocket commands, and the panel when Home Assistant's frontend runs (not in the tests of
     the entities, nor on an installation without it). The URL of the file carries the version, so that an update
     is not hidden by the browser's cache."""
-    for command in (ws_installations, ws_tree, ws_subscribe, ws_read_program):
+    for command in (ws_installations, ws_tree, ws_subscribe, ws_read_program, ws_write, ws_write_days, ws_clock,
+                    ws_confirm, ws_cancel):
         websocket_api.async_register_command(hass, command)
     if "frontend" not in hass.config.components or hass.http is None or not PANEL_FILE.is_file():
         return
@@ -145,6 +146,185 @@ def ws_read_program(hass: HomeAssistant, connection, msg: dict[str, Any]) -> Non
     connection.send_result(msg["id"], {"queued": queued, "seconds": round(queued * max(hub.request_gap, 1.0))})
 
 
+# ---- writes: the writer of the entities, its guard and its confirmation, nothing else -----------------------------
+#
+# Every command below calls the same Writer methods as the entities (writer.py): the writes switch, the hourly limit,
+# the 10 s per register, the ranges and linked bounds, the source address of the metadata, the service-tool check and
+# the read-back apply unchanged. A regulation change waits for a confirmation in the panel's own dialog (`inline`)
+# instead of a repair; the confirmation goes through `async_confirm`, as the repair flow does.
+
+
+async def _messages(hass: HomeAssistant, language: str) -> dict[str, str]:
+    from homeassistant.helpers.translation import async_get_translations
+    return await async_get_translations(hass, language, "exceptions", {DOMAIN})
+
+
+async def _refusal(hass: HomeAssistant, err: Exception, language: str) -> dict[str, Any]:
+    """A refusal or a failure of the writer, as the entity would show it: its code and its translated message."""
+    code = getattr(err, "code", "write_failed")
+    placeholders = {k: str(v) for k, v in getattr(err, "placeholders", {}).items()}
+    template = (await _messages(hass, language)).get(f"component.{DOMAIN}.exceptions.{code}.message", str(err))
+    try:
+        message = template.format(**placeholders)
+    except (KeyError, IndexError, ValueError):
+        message = template
+    return {"status": "refused", "code": code, "message": message}
+
+
+def _guard_state(hub: Hub) -> dict[str, Any]:
+    writer = hub.writer
+    return {"switch": writer.switch_on, "writes_last_hour": writer.guard.writes_last_hour(),
+            "max_per_hour": writer.guard.max_per_hour}
+
+
+def _written(hub: Hub, entry: dict[str, Any] | None, language: str) -> dict[str, Any]:
+    """The result of a setting written, in the words of its logbook entry: before -> after, frame, read-back."""
+    from .writer import RESULT_TEXT, _text
+    if entry is None:
+        return {"status": "written", "guard": _guard_state(hub)}
+    spec = hub.writer.specs.get(entry["key"])
+    words = RESULT_TEXT.get(language, RESULT_TEXT["en"])
+    before = _text(spec, entry["before"], language) if spec and entry.get("before") is not None else None
+    after = _text(spec, entry["requested"], language) if spec else str(entry["requested"])
+    back = _text(spec, entry["read_back"], language) if spec and entry.get("read_back") is not None else None
+    return {"status": "written", "result": entry["result"], "result_text": words.get(entry["result"], entry["result"]),
+            "before": before, "after": after, "read_back": back, "frame": entry.get("frame"),
+            "guard": _guard_state(hub)}
+
+
+def _writer_or_error(hass: HomeAssistant, connection, msg: dict[str, Any]):
+    hub = _hub(hass, connection, msg)
+    if hub is None:
+        return None
+    if hub.writer is None:
+        connection.send_error(msg["id"], "writes_disabled", "writes are not enabled in the options of the entry")
+        return None
+    return hub
+
+
+def _language(hass: HomeAssistant, msg: dict[str, Any]) -> str:
+    language = (msg.get("language") or hass.config.language or "en").split("-")[0]
+    return language if language in ("en", "fr") else "en"
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/write", vol.Required("entry_id"): str,
+                                  vol.Required("key"): str, vol.Required("value"): vol.Coerce(float),
+                                  vol.Optional("language"): str})
+@websocket_api.async_response
+async def ws_write(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Set a setting (a number or a choice, by its raw value). Comfort: written and read back now. Regulation: the
+    answer is `confirm` with the same facts as the repair, and nothing is written until `weishaupt/panel/confirm`."""
+    from .guard import WriteRefused
+    from .writer import ConfirmationPending, WriteFailed
+    hub = _writer_or_error(hass, connection, msg)
+    if hub is None:
+        return
+    language = _language(hass, msg)
+    value = msg["value"]
+    spec = hub.writer.specs.get(msg["key"])
+    if spec is not None and spec.values is not None:
+        value = int(value)
+    try:
+        entry = await hub.writer.async_request(msg["key"], value, connection.user.id, inline=True)
+    except ConfirmationPending as pending:
+        connection.send_result(msg["id"], {"status": "confirm", "pending_id": pending.pending_id,
+                                           "placeholders": pending.placeholders, "kind": "setting"})
+        return
+    except (WriteRefused, WriteFailed) as err:
+        connection.send_result(msg["id"], await _refusal(hass, err, language))
+        return
+    connection.send_result(msg["id"], _written(hub, entry, language))
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/write_days", vol.Required("entry_id"): str,
+                                  vol.Required("program"): str,
+                                  vol.Required("days"): {vol.Coerce(int): str}, vol.Optional("language"): str})
+@websocket_api.async_response
+async def ws_write_days(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Write days of a program proven writable, as the program-day entities and `weishaupt.set_program` do: every
+    day checked first, the slots read, only the changed slots written and read back (comfort, no confirmation)."""
+    from .guard import WriteRefused
+    from .writer import WriteFailed
+    hub = _writer_or_error(hass, connection, msg)
+    if hub is None:
+        return
+    language = _language(hass, msg)
+    days = {day: text for day, text in msg["days"].items() if 1 <= day <= 7}
+    try:
+        done = await hub.writer.async_set_program(msg["program"], days, connection.user.id)
+    except (WriteRefused, WriteFailed) as err:
+        connection.send_result(msg["id"], await _refusal(hass, err, language))
+        return
+    from .writer import RESULT_TEXT
+    words = RESULT_TEXT.get(language, RESULT_TEXT["en"])
+    written = {str(day): dict(hub.writer.last_day_writes.get((msg["program"], day)) or {}) for day in days}
+    for item in written.values():
+        if "result" in item:
+            item["result_text"] = words.get(item["result"], item["result"])
+    connection.send_result(msg["id"], {"status": "written", "written": done["written"],
+                                       "unchanged": done["unchanged"], "days": written, "guard": _guard_state(hub)})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/clock", vol.Required("entry_id"): str,
+                                  vol.Optional("language"): str})
+@websocket_api.async_response
+async def ws_clock(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """The set-clock button of the panel: always a confirmation first, as the button entity."""
+    from .guard import WriteRefused
+    from .writer import ConfirmationPending, WriteFailed
+    hub = _writer_or_error(hass, connection, msg)
+    if hub is None:
+        return
+    try:
+        await hub.writer.async_request_clock(connection.user.id, inline=True)
+    except ConfirmationPending as pending:
+        connection.send_result(msg["id"], {"status": "confirm", "pending_id": pending.pending_id,
+                                           "placeholders": pending.placeholders, "kind": "clock"})
+        return
+    except (WriteRefused, WriteFailed) as err:
+        connection.send_result(msg["id"], await _refusal(hass, err, _language(hass, msg)))
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/confirm", vol.Required("entry_id"): str,
+                                  vol.Required("pending_id"): str, vol.Optional("language"): str})
+@websocket_api.async_response
+async def ws_confirm(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """The user confirmed a regulation change (or the clock) in the panel's dialog: written as from the repair."""
+    from .guard import WriteRefused
+    from .writer import CLOCK_KEY, WriteFailed
+    hub = _writer_or_error(hass, connection, msg)
+    if hub is None:
+        return
+    language = _language(hass, msg)
+    pending = hub.writer.pending.get(msg["pending_id"])
+    try:
+        entry = await hub.writer.async_confirm(msg["pending_id"], connection.user.id)
+    except (WriteRefused, WriteFailed) as err:
+        connection.send_result(msg["id"], await _refusal(hass, err, language))
+        return
+    if pending is not None and pending.key == CLOCK_KEY:
+        connection.send_result(msg["id"], {
+            "status": "written", "result": entry["result"], "requested": entry["requested"],
+            "frame": entry.get("frame"), "late": entry.get("late"), "guard": _guard_state(hub)})
+        return
+    connection.send_result(msg["id"], _written(hub, entry, language))
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/cancel", vol.Required("entry_id"): str,
+                                  vol.Required("pending_id"): str})
+@callback
+def ws_cancel(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """The user closed the panel's confirmation without confirming: the change is withdrawn, nothing is written."""
+    hub = _writer_or_error(hass, connection, msg)
+    if hub is not None:
+        connection.send_result(msg["id"], {"withdrawn": hub.writer.drop_pending(msg["pending_id"])})
+
+
 def _reading(hub: Hub, key: str) -> dict[str, Any] | None:
     """The last reading; `kept` while it is the one kept across a reload of the entry, not yet read again."""
     found = hub.readings.get(key)
@@ -226,7 +406,8 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "switch": writer.switch_on, "capability": writer.capability,
             "writes_last_hour": writer.guard.writes_last_hour(), "max_per_hour": writer.guard.max_per_hour,
             "read_only": [{"key": key, "reason": reason} for key, reason in sorted(writer.not_writable.items())],
-            "switch_entity_id": links.get("writes", {}).get("switch")},
+            "switch_entity_id": links.get("writes", {}).get("switch"),
+            "clock_writable": writer.clock_writable},
         "clock": {"entity_id": clock, "set_entity_id": links.get("broadcast/Datetime/set", {}).get("button")},
         "unknown_addresses": [a.address for a in hub.unknown_slaves],
         "devices": devices,
@@ -277,6 +458,27 @@ def _links(hass: HomeAssistant, entry_id: str) -> dict[str, dict[str, str]]:
     return found
 
 
+def _writable(hub: Hub, message: Message, write, through: Message | None, fld: Field) -> dict[str, Any]:
+    """How a setting is written: the message the writer knows it by, whether this installation offers the write
+    (writes enabled, the write definition loaded, a range), why not, the raw values of a choice."""
+    writer = hub.writer
+    spec = writer.specs.get(message.key) if writer is not None else None
+    return {
+        "risk": write.risk, "source": write.source, "proof": write.proof,
+        "through": through.circuit if through else None, "key": message.key,
+        "offered": spec is not None,
+        "why_not": None if spec is not None else (
+            "writes_disabled" if writer is None else writer.not_writable.get(message.key, "not_offered")),
+        "register": f"{spec.register[:2]} {spec.register[2:]}" if spec else None,
+        "address": spec.zz if spec else None,
+        "minimum": spec.minimum if spec else None, "maximum": spec.maximum if spec else None,
+        "step": spec.step if spec else None,
+        "options": None if spec is None or spec.values is None else [
+            {"raw": raw, "name": name, "label": (spec.value_labels or {}).get(raw, {"en": name})}
+            for raw, name in sorted(spec.values.items())],
+    }
+
+
 # Values a boiler sends for a temperature sensor that is not fitted, and those of the system manager and the
 # heating modules (release notice of the definitions, known limits). Until the metadata marks them (`absent` on a
 # field), the panel shows exactly these values of a °C field on these kinds of device as "no sensor".
@@ -310,8 +512,7 @@ def _row(hub: Hub, message: Message, fld: Field, links: dict[str, dict[str, str]
         "values": None if fld.values is None else {
             name: (fld.value_labels or {}).get(raw, {"en": name}) for raw, name in fld.values.items()},
         "range": None if minimum is None and maximum is None else {"min": minimum, "max": maximum, "step": step},
-        "writable": None if write is None else {"risk": write.risk, "source": write.source, "proof": write.proof,
-                                                "through": through.circuit if through else None},
+        "writable": None if write is None else _writable(hub, writable, write, through, fld),
         "messages": [message.key, *(m.key for m in twins)],  # read by any: the first with a reading is shown
         "read": any(m in hub.usable for m in [message.key, *(t.key for t in twins)]), "passive": message.passive,
         "absent": fld.absent if fld.absent is not None else (ABSENT.get(device_type) if fld.unit == "°C" else None),

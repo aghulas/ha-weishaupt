@@ -66,10 +66,11 @@ CLOCK_REGISTER = "fe:0700"  # key of the rate limit of the clock broadcast
 class ConfirmationPending(Exception):
     """A regulation setting waits for its confirmation in a repair flow."""
 
-    def __init__(self, issue_id: str, placeholders: dict[str, str]) -> None:
+    def __init__(self, issue_id: str, placeholders: dict[str, str], pending_id: str = "") -> None:
         self.issue_id = issue_id
         self.placeholders = placeholders
-        super().__init__(f"confirmation pending: {issue_id}")
+        self.pending_id = pending_id
+        super().__init__(f"confirmation pending: {issue_id or pending_id}")
 
 
 class WriteFailed(Exception):
@@ -262,15 +263,16 @@ class Writer:
 
     # ---- requests from the entities -------------------------------------------------------------------------
 
-    async def async_request(self, key: str, value: float, user_id: str | None) -> dict[str, Any] | None:
+    async def async_request(self, key: str, value: float, user_id: str | None,
+                            inline: bool = False) -> dict[str, Any] | None:
         """A user set a setting. Comfort: written now. Regulation: a confirmation is created and
-        ConfirmationPending raised."""
+        ConfirmationPending raised: a repair (an entity), or `inline`, for the panel's own dialog."""
         spec = self._check_static(self.specs.get(key), key, value)
         if spec.risk == "comfort":
             return await self.async_write(key, value, user_id)
-        return self._create_pending(spec, value, user_id)
+        return self._create_pending(spec, value, user_id, inline)
 
-    def _create_pending(self, spec: WriteSpec, value: float, user_id: str | None) -> None:
+    def _create_pending(self, spec: WriteSpec, value: float, user_id: str | None, inline: bool = False) -> None:
         for old in [p for p in self.pending.values() if p.key == spec.key]:
             self._drop_pending(old.id)
         pending = Pending(uuid.uuid4().hex[:12], spec.key, value, user_id, time.time())
@@ -291,6 +293,9 @@ class Writer:
             "minutes": str(PENDING_TTL // 60),
         }
         self.pending[pending.id] = pending
+        if inline:  # the panel asks in its own dialog, then calls async_confirm: no repair, no notification
+            _LOGGER.info("change of %s to %s waits for its confirmation in the panel", spec.key, value)
+            raise ConfirmationPending("", pending.placeholders, pending.id)
         issue_id = self.issue_id(pending.id)
         ir.async_create_issue(
             self.hass, DOMAIN, issue_id, is_fixable=True, is_persistent=False, severity=ir.IssueSeverity.WARNING,
@@ -300,7 +305,7 @@ class Writer:
         persistent_notification.async_create(self.hass, text.format(**pending.placeholders), title,
                                              self._notification_id(spec.key))
         _LOGGER.info("change of %s to %s waits for its confirmation (repair %s)", spec.key, value, issue_id)
-        raise ConfirmationPending(issue_id, pending.placeholders)
+        raise ConfirmationPending(issue_id, pending.placeholders, pending.id)
 
     @staticmethod
     def _current(spec: WriteSpec, reading: tuple[str, ...] | None, language: str) -> str:
@@ -334,6 +339,12 @@ class Writer:
             ir.async_delete_issue(self.hass, DOMAIN, self.issue_id(pending_id))
             persistent_notification.async_dismiss(self.hass, self._notification_id(pending.key))
             self.hub.notify(pending.key)
+
+    def drop_pending(self, pending_id: str) -> bool:
+        """A change the user withdrew (the panel's dialog cancelled): nothing is written."""
+        found = pending_id in self.pending
+        self._drop_pending(pending_id)
+        return found
 
     def drop_all_pending(self) -> None:
         for pending_id in list(self.pending):
@@ -548,8 +559,9 @@ class Writer:
         if self.hub.own_address != "31":
             raise WriteRefused("source_not_own", setting=CLOCK_KEY, own=self.hub.own_address or "-")
 
-    async def async_request_clock(self, user_id: str | None) -> None:
-        """The set-clock button: a regulation write, so a confirmation first. Raises ConfirmationPending."""
+    async def async_request_clock(self, user_id: str | None, inline: bool = False) -> None:
+        """The set-clock button: a regulation write, so a confirmation first. Raises ConfirmationPending: a repair,
+        or `inline` for the panel's own dialog."""
         self._check_clock()
         try:
             offset = await self.async_clock_offset()
@@ -570,6 +582,9 @@ class Writer:
             "source_text": SOURCE_TEXT[language]["31"], "late": f"{clock.LATE:g}",
             "minutes": str(PENDING_TTL // 60)}
         self.pending[pending.id] = pending
+        if inline:
+            pending.placeholders["send_at"] = clock.next_minute(self._now()).strftime("%H:%M:%S")
+            raise ConfirmationPending("", pending.placeholders, pending.id)
         issue_id = self.issue_id(pending.id)
         ir.async_create_issue(
             self.hass, DOMAIN, issue_id, is_fixable=True, is_persistent=False, severity=ir.IssueSeverity.WARNING,
@@ -578,7 +593,7 @@ class Writer:
         title, text = NOTIFICATION[language]
         persistent_notification.async_create(self.hass, text.format(**pending.placeholders), title,
                                              self._notification_id(CLOCK_KEY))
-        raise ConfirmationPending(issue_id, pending.placeholders)
+        raise ConfirmationPending(issue_id, pending.placeholders, pending.id)
 
     async def async_set_clock(self, user_id: str | None) -> dict[str, Any]:
         """Send Home Assistant's time at second 00 of the next minute, or nothing: if the connection to ebusd is

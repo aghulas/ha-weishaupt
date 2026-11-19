@@ -154,6 +154,7 @@ class Writer:
         self.guard = WriteGuard(enabled=False, max_per_hour=limit)
         # the guard's counters, kept across restarts and reloads: a restart must not reset the hourly limit
         self._store: Store = Store(hass, 1, f"{DOMAIN}.{hub.entry.entry_id}.writes")
+        self.guard_listeners: list[Callable[[], None]] = []  # told after each write counted
         self.specs: dict[str, WriteSpec] = {}
         self.not_writable: dict[str, str] = {}
         self.placeholders: dict[str, str] = {}
@@ -241,8 +242,11 @@ class Writer:
     # ---- state ----------------------------------------------------------------------------------------------
 
     async def _save_guard(self) -> None:
-        """Saved before the write is sent, so that a restart right after it still counts it."""
+        """Saved before the write is sent, so that a restart right after it still counts it. The entities that
+        show the counters (the write switch's `writes_last_hour`) are told."""
         await self._store.async_save(self.guard.export())
+        for update in list(self.guard_listeners):
+            update()
 
     def set_switch(self, on: bool) -> None:
         self.switch_on = on

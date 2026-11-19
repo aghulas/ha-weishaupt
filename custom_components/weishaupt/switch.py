@@ -37,6 +37,9 @@ class WriteSwitch(SwitchEntity):
 
     async def async_added_to_hass(self) -> None:
         self.hub.writer.set_switch(False)  # off after any restart or reload, never restored
+        listeners = self.hub.writer.guard_listeners
+        listeners.append(self.async_write_ha_state)  # writes_last_hour follows each write
+        self.async_on_remove(lambda: listeners.remove(self.async_write_ha_state))
 
     @property
     def is_on(self) -> bool:

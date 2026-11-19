@@ -85,3 +85,14 @@ async def test_the_store_is_saved_before_the_write_is_sent(hass, fake, log, hass
     await hass.async_block_till_done()
     saved = hass_storage[f"{DOMAIN}.{entry.entry_id}.writes"]["data"]
     assert len(saved["writes"]) == 1 and len(saved["last_by_register"]) == 1
+
+
+async def test_the_switch_shows_each_write_at_once(hass, fake, log):
+    entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
+    await setup(hass, entry)
+    writer = entry.runtime_data.writer
+    await hass.services.async_call("switch", "turn_on", {"entity_id": _switch(hass, entry)}, blocking=True)
+    assert hass.states.get(_switch(hass, entry)).attributes["writes_last_hour"] == 0
+    await writer.async_write("em2/RoomNormalTemp", 22.0, None)
+    await hass.async_block_till_done()
+    assert hass.states.get(_switch(hass, entry)).attributes["writes_last_hour"] == 1

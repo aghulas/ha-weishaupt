@@ -38,16 +38,18 @@ def device_id(hass, entry, device: str) -> str:
 
 
 async def test_program_entities(hass, fake, log):
-    """One text per program and day where the definitions prove the slots: 5 programs of room unit 1, heating
-    program 1 of room unit 3, nothing on room unit 2. Heating program 1 enabled when created, the others not."""
+    """One text per program and day where the definitions prove the slots: the 5 programs of room units 1 and 3,
+    the hot-water and circulation programs of the system manager's own circuit (84 texts); nothing on room unit 2.
+    Heating program 1 enabled when created (room units 1 and 3: 14), the others not."""
     entry, writer = await writing(hass, fake, log)
     registry = er.async_get(hass)
     texts = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "text"]
-    assert len(texts) == 6 * 7
+    assert len(texts) == 12 * 7 == 84
     enabled = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in texts if not e.disabled_by}
     assert enabled == {f"{c}/heating1/{d}" for c in ("fs1", "fs3") for d in
                        ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")}
-    assert text_id(hass, entry, "fs2/heating1", "monday") is None
+    assert not [e for e in texts if e.unique_id.removeprefix(f"{entry.entry_id}_").startswith("fs2/")]
+    assert text_id(hass, entry, "em1/dhw", "monday") is not None
     await settled(hass, entry)
     monday = hass.states.get(text_id(hass, entry, "fs1/heating1", "monday"))
     assert monday.state == "06:30-18:00" and monday.attributes["pattern"]
@@ -221,3 +223,16 @@ async def test_set_clock_needs_its_confirmation_and_the_switch(hass, fake, log):
     with pytest.raises(WriteRefused) as err:
         await writer.async_request_clock(None)
     assert err.value.code == "writes_disabled" and fake.writes == []
+
+
+async def test_the_hot_water_program_of_the_manager(hass, fake, log):
+    """The hot-water program the installation applies (em1, address 50): comfort in the metadata, so written
+    without a confirmation, from ebusd's own address, read back; no looser than that class."""
+    entry, writer = await writing(hass, fake, log)
+    spec = writer.slot_specs["em1/DHWProgramMon1"]
+    assert (spec.risk, spec.source, spec.zz) == ("comfort", "31", "50")
+    fake.reads["em1/DHWProgramMon1"] = "00:00;Disabled;00:00;Disabled"
+    result = await writer.async_write_day("em1/dhw", 1, "06:00-07:00", None)
+    assert result["written"] == 1 and fake.writes == [(None, "em1", spec.telegram(0x181C))]
+    assert writer.program_day(writer.programs["em1/dhw"], 1) == "06:00-07:00"
+    assert not [i for i in ir.async_get(hass).issues.values() if i.domain == DOMAIN]

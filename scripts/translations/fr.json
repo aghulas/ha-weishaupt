@@ -252,7 +252,9 @@
         "heating2": "Programme de chauffe 2",
         "heating3": "Programme de chauffe 3",
         "dhw_stored": "Programme d'eau chaude",
-        "circulation_stored": "Programme de circulation"
+        "circulation_stored": "Programme de circulation",
+        "dhw": "Programme d'eau chaude (gestionnaire de système)",
+        "circulation": "Programme de circulation (gestionnaire de système)"
       }
     }
   }

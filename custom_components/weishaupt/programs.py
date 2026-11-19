@@ -155,7 +155,11 @@ def program_specs(model: Model, loaded: dict[str, list[Definition]]) -> tuple[di
             continue
         members = [model.messages[key] for key in group.members]
         if not all(m.write is not None for m in members):
-            continue  # not proven on this device (room unit 2, the programs of em1): never offered
+            continue  # not proven on this device (room unit 2): never offered
+        if any(m.write.risk != "comfort" for m in members):
+            # a day is written at once, without a confirmation: a program of another class is not offered
+            refused.append(f"{group.key}: risk class {sorted({m.write.risk for m in members})}, needs a confirmation")
+            continue
         slots: dict[int, list[str]] = {}
         group_specs, reason = {}, ""
         for message in members:

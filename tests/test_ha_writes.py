@@ -69,8 +69,7 @@ async def test_entities_when_writes_are_enabled(hass, fake, log):
     assert writer.capability == "present"
     # the programs of room unit 1 and heating program 1 of room unit 3, and the clock, are offered too
     assert writer.not_writable == {} and writer.clock_writable
-    assert sorted(writer.programs) == ["fs1/circulation_stored", "fs1/dhw_stored", "fs1/heating1", "fs1/heating2",
-                                       "fs1/heating3", "fs3/heating1"]
+    assert len(writer.programs) == 12 and not [k for k in writer.programs if k.startswith("fs2/")]
     selects = [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if e.domain == "select"]
     assert len(selects) == 5 and not [e for e in selects if e.disabled_by]
     writes = [c for _, c in fake.commands if c.startswith("write")]

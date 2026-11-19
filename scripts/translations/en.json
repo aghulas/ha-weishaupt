@@ -252,7 +252,9 @@
         "heating2": "Heating program 2",
         "heating3": "Heating program 3",
         "dhw_stored": "Hot water program",
-        "circulation_stored": "Circulation program"
+        "circulation_stored": "Circulation program",
+        "dhw": "Hot water program (system manager)",
+        "circulation": "Circulation program (system manager)"
       }
     }
   }

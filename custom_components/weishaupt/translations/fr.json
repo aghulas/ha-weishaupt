@@ -237,7 +237,9 @@
         "heating2": "Programme de chauffe 2",
         "heating3": "Programme de chauffe 3",
         "dhw_stored": "Programme d'eau chaude",
-        "circulation_stored": "Programme de circulation"
+        "circulation_stored": "Programme de circulation",
+        "dhw": "Programme d'eau chaude (gestionnaire de système)",
+        "circulation": "Programme de circulation (gestionnaire de système)"
       }
     }
   },
@@ -1374,6 +1376,15 @@
       }
     },
     "text": {
+      "program_circulation_friday": {
+        "name": "Programme de circulation ECS – Vendredi (réglage)"
+      },
+      "program_circulation_monday": {
+        "name": "Programme de circulation ECS – Lundi (réglage)"
+      },
+      "program_circulation_saturday": {
+        "name": "Programme de circulation ECS – Samedi (réglage)"
+      },
       "program_circulation_stored_friday": {
         "name": "Programme de circulation ECS enregistré dans la commande à distance – Vendredi (réglage)"
       },
@@ -1395,6 +1406,27 @@
       "program_circulation_stored_wednesday": {
         "name": "Programme de circulation ECS enregistré dans la commande à distance – Mercredi (réglage)"
       },
+      "program_circulation_sunday": {
+        "name": "Programme de circulation ECS – Dimanche (réglage)"
+      },
+      "program_circulation_thursday": {
+        "name": "Programme de circulation ECS – Jeudi (réglage)"
+      },
+      "program_circulation_tuesday": {
+        "name": "Programme de circulation ECS – Mardi (réglage)"
+      },
+      "program_circulation_wednesday": {
+        "name": "Programme de circulation ECS – Mercredi (réglage)"
+      },
+      "program_dhw_friday": {
+        "name": "Programme ECS – Vendredi (réglage)"
+      },
+      "program_dhw_monday": {
+        "name": "Programme ECS – Lundi (réglage)"
+      },
+      "program_dhw_saturday": {
+        "name": "Programme ECS – Samedi (réglage)"
+      },
       "program_dhw_stored_friday": {
         "name": "Programme ECS enregistré dans la commande à distance – Vendredi (réglage)"
       },
@@ -1415,6 +1447,18 @@
       },
       "program_dhw_stored_wednesday": {
         "name": "Programme ECS enregistré dans la commande à distance – Mercredi (réglage)"
+      },
+      "program_dhw_sunday": {
+        "name": "Programme ECS – Dimanche (réglage)"
+      },
+      "program_dhw_thursday": {
+        "name": "Programme ECS – Jeudi (réglage)"
+      },
+      "program_dhw_tuesday": {
+        "name": "Programme ECS – Mardi (réglage)"
+      },
+      "program_dhw_wednesday": {
+        "name": "Programme ECS – Mercredi (réglage)"
       },
       "program_heating1_friday": {
         "name": "Programme de chauffe 1 – Vendredi (réglage)"

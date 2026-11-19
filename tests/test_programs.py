@@ -64,15 +64,31 @@ def test_slots_of_a_day():
 
 
 def test_the_programs_the_definitions_prove(programs):
-    """The five programs of room unit 1 and heating program 1 of room unit 3; nothing of room unit 2."""
+    """The five programs of room units 1 and 3, the hot-water and circulation programs of the system manager's own
+    circuit (em1, the hot-water program the installation applies); nothing of room unit 2. 252 slots."""
     found, specs, refused = programs
-    assert sorted(found) == ["fs1/circulation_stored", "fs1/dhw_stored", "fs1/heating1", "fs1/heating2",
-                             "fs1/heating3", "fs3/heating1"]
-    assert refused == [] and len(specs) == 6 * 21
+    assert sorted(found) == [f"{c}/{p}" for c in ("em1",) for p in ("circulation", "dhw")] + [
+        f"{c}/{p}" for c in ("fs1", "fs3") for p in ("circulation_stored", "dhw_stored", "heating1", "heating2",
+                                                     "heating3")]
+    assert refused == [] and len(specs) == 12 * 21 == 252
     assert not [key for key in specs if key.startswith("fs2/")]
     assert found["fs1/heating1"].day_keys(7) == ("fs1/HCProgram1Sun1", "fs1/HCProgram1Sun2", "fs1/HCProgram1Sun3")
     sun3 = specs["fs1/HCProgram1Sun3"]
     assert (sun3.register, sun3.source, sun3.risk, sun3.zz) == ("7214", "31", "comfort", "35")
+    dhw = specs["em1/DHWProgramMon1"] if "em1/DHWProgramMon1" in specs else None
+    assert dhw is not None and (dhw.risk, dhw.source, dhw.zz) == ("comfort", "31", "50")
+
+
+def test_a_program_of_another_class_is_not_offered(model, golden):
+    """Every day is written without a confirmation: a program whose slots the metadata classes otherwise is left
+    read-only, rather than written more loosely than its class."""
+    import dataclasses
+    loaded = {circuit: parse_definitions(text) for circuit, text in golden["write_definitions"].items()}
+    key = "em1/DHWProgramMon1"
+    message = model.messages[key]
+    changed = dataclasses.replace(message, write=dataclasses.replace(message.write, risk="regulation"))
+    found, _, refused = program_specs(dataclasses.replace(model, messages=model.messages | {key: changed}), loaded)
+    assert "em1/dhw" not in found and refused and refused[0].startswith("em1/dhw")
 
 
 def test_every_captured_slot_write_is_built_byte_for_byte(programs):

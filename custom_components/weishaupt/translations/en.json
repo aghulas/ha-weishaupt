@@ -237,7 +237,9 @@
         "heating2": "Heating program 2",
         "heating3": "Heating program 3",
         "dhw_stored": "Hot water program",
-        "circulation_stored": "Circulation program"
+        "circulation_stored": "Circulation program",
+        "dhw": "Hot water program (system manager)",
+        "circulation": "Circulation program (system manager)"
       }
     }
   },
@@ -1374,6 +1376,15 @@
       }
     },
     "text": {
+      "program_circulation_friday": {
+        "name": "Circulation program – Friday (setting)"
+      },
+      "program_circulation_monday": {
+        "name": "Circulation program – Monday (setting)"
+      },
+      "program_circulation_saturday": {
+        "name": "Circulation program – Saturday (setting)"
+      },
       "program_circulation_stored_friday": {
         "name": "Circulation program stored in the room unit – Friday (setting)"
       },
@@ -1395,6 +1406,27 @@
       "program_circulation_stored_wednesday": {
         "name": "Circulation program stored in the room unit – Wednesday (setting)"
       },
+      "program_circulation_sunday": {
+        "name": "Circulation program – Sunday (setting)"
+      },
+      "program_circulation_thursday": {
+        "name": "Circulation program – Thursday (setting)"
+      },
+      "program_circulation_tuesday": {
+        "name": "Circulation program – Tuesday (setting)"
+      },
+      "program_circulation_wednesday": {
+        "name": "Circulation program – Wednesday (setting)"
+      },
+      "program_dhw_friday": {
+        "name": "Hot water program – Friday (setting)"
+      },
+      "program_dhw_monday": {
+        "name": "Hot water program – Monday (setting)"
+      },
+      "program_dhw_saturday": {
+        "name": "Hot water program – Saturday (setting)"
+      },
       "program_dhw_stored_friday": {
         "name": "Hot water program stored in the room unit – Friday (setting)"
       },
@@ -1415,6 +1447,18 @@
       },
       "program_dhw_stored_wednesday": {
         "name": "Hot water program stored in the room unit – Wednesday (setting)"
+      },
+      "program_dhw_sunday": {
+        "name": "Hot water program – Sunday (setting)"
+      },
+      "program_dhw_thursday": {
+        "name": "Hot water program – Thursday (setting)"
+      },
+      "program_dhw_tuesday": {
+        "name": "Hot water program – Tuesday (setting)"
+      },
+      "program_dhw_wednesday": {
+        "name": "Hot water program – Wednesday (setting)"
       },
       "program_heating1_friday": {
         "name": "Heating program 1 – Friday (setting)"

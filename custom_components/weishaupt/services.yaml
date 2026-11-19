@@ -16,6 +16,8 @@ set_program:
             - heating3
             - dhw_stored
             - circulation_stored
+            - dhw
+            - circulation
           translation_key: program
     monday:
       example: "06:30-18:00, 19:00-21:00"

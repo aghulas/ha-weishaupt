@@ -28,7 +28,7 @@ def specs(model, loaded):
     specs, refused, placeholders = write_specs(model, loaded)
     assert [r for r in refused if r.exposed] == []
     # program slots (105) and the date and time broadcast: writable in the definitions, not offered here
-    assert len(refused) == 127
+    assert len(refused) == 253
     return specs
 
 
@@ -183,14 +183,14 @@ def test_structural_settings_are_never_writable(model):
 
 @pytest.mark.parametrize("build", ["fork", "stock"])
 def test_the_simulation_answers_writes_as_the_real_ebusd(golden, build):
-    """546 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
+    """594 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
     gives the same answer to each, for the fork's build and for a stock one. Without a bus a matched telegram ends
     in `no signal`: it would have been sent."""
     fake = FakeEbusd(golden)
     fake.runtime_checksum = build == "fork"
     fake.signal = False
     recorded = golden["writes"][build]
-    assert len(recorded) == 546
+    assert len(recorded) == 594
     for command, answer in recorded.items():
         assert fake.answer(command) == answer, command
     assert fake.writes == []

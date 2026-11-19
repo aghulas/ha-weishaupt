@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Estimate, Labels, Reading, Row, Tree } from "./types.ts";
+import type { Days, Estimate, Labels, Reading, Row, Tree } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -152,6 +152,15 @@ export const STRINGS: Record<string, Record<string, string>> = {
     faults_unread: "{n} of these messages are read by no enabled entity.",
     faults_read_once: "Read once on demand: not kept up to date unless their entities are enabled.",
     read_nothing: "Nothing to request: these messages are already read by enabled entities or waiting.",
+    card_name: "Weishaupt weekly program",
+    card_description: "The week grid of one weekly program of a Weishaupt controller.",
+    card_no_entity: "Choose a program sensor of the Weishaupt integration in the card's settings.",
+    card_missing: "{entity} does not exist, or is disabled: enable it in Settings → Entities (program sensors are created disabled).",
+    card_unavailable: "{entity} is unavailable: ebusd or the controller does not answer.",
+    card_unread: "not read yet",
+    card_editor_entity: "Program sensor",
+    card_editor_title: "Title (optional)",
+    card_editor_today: "Mark today",
     read_queued_one: "1 request queued (about {s} s).",
     read_queued_n: "{n} requests queued (about {s} s).",
     read_after_first_pass: "They come after the first pass that follows a start: {n} reads still due, {wait}.",
@@ -305,6 +314,15 @@ export const STRINGS: Record<string, Record<string, string>> = {
     faults_unread: "{n} de ces messages ne sont lus par aucune entité activée.",
     faults_read_once: "Lus une fois à la demande : pas tenus à jour tant que leurs entités ne sont pas activées.",
     read_nothing: "Rien à demander : ces messages sont déjà lus par des entités activées ou en attente.",
+    card_name: "Programme hebdomadaire Weishaupt",
+    card_description: "La grille de la semaine d'un programme hebdomadaire d'un régulateur Weishaupt.",
+    card_no_entity: "Choisissez un capteur de programme de l'intégration Weishaupt dans les réglages de la carte.",
+    card_missing: "{entity} n'existe pas ou est désactivé : activez-le dans Paramètres → Entités (les capteurs de programme sont créés désactivés).",
+    card_unavailable: "{entity} est indisponible : ebusd ou le régulateur ne répond pas.",
+    card_unread: "pas encore lu",
+    card_editor_entity: "Capteur de programme",
+    card_editor_title: "Titre (facultatif)",
+    card_editor_today: "Marquer aujourd'hui",
     read_queued_one: "1 requête en file (environ {s} s).",
     read_queued_n: "{n} requêtes en file (environ {s} s).",
     read_after_first_pass: "Elles passent après la première lecture qui suit un démarrage : {n} lectures encore dues, {wait}.",
@@ -638,4 +656,37 @@ export function queuedText(estimate: Estimate, language: string): string {
   return `${own} ${t(language, estimate.first_pass ? "read_after_first_pass" : "read_after_queue", {
     n: estimate.ahead, wait,
   })}`;
+}
+
+// ---- the dashboard card -------------------------------------------------------------------------------------------
+
+/** The attribute keys of a program sensor: one per day, Monday first. */
+export const DAY_KEYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+/** A program sensor's attributes (`06:30-18:00, 19:00-21:00` or `-` per day) as the days of the week grid; a day not
+ * read yet (no attribute) or not readable is null. */
+export function weekFromAttributes(attributes: Record<string, unknown>): Days {
+  const days: Days = {};
+  DAY_KEYS.forEach((key, i) => {
+    const text = attributes[key];
+    const parsed = typeof text === "string" ? parseDay(text) : null;
+    days[String(i + 1)] = parsed && "ranges" in parsed
+      ? parsed.ranges.map(([a, b]) => [clockText(a), clockText(b)])
+      : null;
+  });
+  return days;
+}
+
+/** Whether a state is a program sensor of this integration: a sensor whose attributes are days, or (not read yet)
+ * whose entity id names a program. */
+export function isProgramSensor(entityId: string, attributes: Record<string, unknown>): boolean {
+  if (!entityId.startsWith("sensor.")) return false;
+  const days = DAY_KEYS.filter((k) => typeof attributes[k] === "string").length;
+  const others = Object.keys(attributes).filter((k) => !DAY_KEYS.includes(k) && !["friendly_name", "icon"].includes(k));
+  return (days > 0 && others.length === 0) || (days === 0 && /program/.test(entityId));
+}
+
+/** Monday 1 … Sunday 7, for the today mark. */
+export function isoWeekday(date: Date): number {
+  return ((date.getDay() + 6) % 7) + 1;
 }

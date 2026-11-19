@@ -4,6 +4,7 @@
 // Uses only the custom-panel contract (hass, narrow) and Home Assistant's theme variables, no internal element.
 
 import { LitElement, css, html, nothing, type PropertyValues, type TemplateResult } from "lit";
+import "./week-grid.ts";
 import {
   bars,
   formatAge,
@@ -926,7 +927,14 @@ export class WeishauptPanel extends LitElement {
               </p>`
           : nothing}
         ${editing ? html`<p class="secondary">${t(lang, "drag_hint")}</p>` : nothing}
-        <table class="week">
+        ${!editing
+          ? html`<weishaupt-week-grid
+              .days=${week}
+              language=${lang}
+              unread=${t(lang, program.listened ? "day_unread" : "not_listened")}
+              caption=${label(program.label, lang)}
+            ></weishaupt-week-grid>`
+          : html`<table class="week">
           <caption class="visually-hidden">${label(program.label, lang)}</caption>
           <thead>
             <tr>
@@ -990,29 +998,10 @@ export class WeishauptPanel extends LitElement {
                   </td>
                 </tr>`;
               }
-              const ranges = week?.[day];
-              const text =
-                ranges === undefined || ranges === null
-                  ? t(lang, program.listened ? "day_unread" : "not_listened")
-                  : ranges.length
-                    ? ranges.map(([from, to]) => `${from}-${to}`).join(", ")
-                    : t(lang, "day_none");
-              return html`<tr>
-                <th scope="row">${name}</th>
-                <td>
-                  <div class="day" aria-hidden="true">
-                    ${(ranges ?? []).length
-                      ? bars(ranges!).map(
-                          (bar) => html`<span class="bar" style="left:${bar.left}%;width:${bar.width}%"></span>`,
-                        )
-                      : nothing}
-                  </div>
-                  <div class="day-text">${text}</div>
-                </td>
-              </tr>`;
+              return nothing; // the read-only grid is <weishaupt-week-grid>
             })}
           </tbody>
-        </table>
+        </table>`}
         ${editing && writes
           ? html`<p class="secondary">
                 ${t(lang, changed.length === 1 ? "cost_one" : "cost", {

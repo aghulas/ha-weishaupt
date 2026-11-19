@@ -539,6 +539,10 @@ integration under the same name:
   build` in that folder writes `custom_components/weishaupt/frontend/dist/weishaupt-panel.js`,
   the same bytes for the same sources and lock file. The built file is committed (HACS runs no
   build); the workflow *Frontend* rebuilds it and fails when it differs. It needs Node 24 or later.
+- `frontend/src/weishaupt-card.ts` is the dashboard card of one weekly program (0.9, in progress, read only): it
+  reads the program's sensor. Until the integration registers it, it can be tried by adding the resource
+  `/weishaupt_panel/weishaupt-card.js` (JavaScript module) under Settings → Dashboards → Resources, then a card
+  of type `custom:weishaupt-program-card`. The week grid is shared with the panel (`src/week-grid.ts`).
 - `brand/` holds the images Home Assistant and HACS show; they are drawn by `scripts/make_brand.py`
   (an own mark, no vendor logo).
 

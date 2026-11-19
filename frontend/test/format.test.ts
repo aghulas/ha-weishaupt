@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, initialDraft, queuedText, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, initialDraft, queuedText, isoWeekday, isProgramSensor, weekFromAttributes, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
 import type { Row, Tree } from "../src/types.ts";
@@ -163,4 +163,25 @@ test("the estimate of a Read now: only what is requested, and what it waits behi
   assert.equal(queuedText({ queued: 1, seconds: 2, ahead: 4, wait: 8, first_pass: false }, "en"),
     "1 request queued (about 2 s). They come after 4 reads already due, about 8 s.");
   assert.ok(queuedText({ queued: 0, seconds: 0, ahead: 0, wait: 0, first_pass: false }, "en").startsWith("Nothing"));
+});
+
+test("the card: a program sensor's attributes as the week grid", () => {
+  const week = weekFromAttributes({ monday: "06:30-18:00, 19:00-21:00", tuesday: "-", friendly_name: "x" });
+  assert.deepEqual(week["1"], [["06:30", "18:00"], ["19:00", "21:00"]]);
+  assert.deepEqual(week["2"], []); // no range
+  assert.equal(week["3"], null); // not read yet
+  assert.equal(weekFromAttributes({ monday: "garbage" })["1"], null);
+});
+
+test("the card: which states are program sensors, and today", () => {
+  const all = Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    .map((d) => [d, "-"]));
+  assert.ok(isProgramSensor("sensor.room_unit_1_heating_program_1", all));
+  assert.ok(isProgramSensor("sensor.room_unit_1_heating_program_1", {})); // not read yet
+  assert.ok(!isProgramSensor("sensor.boiler_1_flow_temperature", {}));
+  assert.ok(!isProgramSensor("text.room_unit_1_heating_program_1_monday_setting", all));
+  assert.ok(isProgramSensor("sensor.room_unit_1_heating_program_1", { monday: "-", friendly_name: "x" })); // partly read
+  assert.ok(!isProgramSensor("sensor.boiler_1_x", { monday: "-", unit_of_measurement: "°C" }));
+  assert.equal(isoWeekday(new Date(2026, 10, 16)), 1); // a Monday
+  assert.equal(isoWeekday(new Date(2026, 10, 22)), 7); // a Sunday
 });

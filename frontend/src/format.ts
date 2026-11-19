@@ -23,7 +23,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     entity: "Entity",
     open: "Open",
     comfort: "comfort",
-    regulation: "regulation, with confirmation",
+    regulation: "regulation",
     read_only: "read only",
     not_loaded: "not loaded by ebusd",
     not_listened: "not read: no enabled entity",
@@ -65,7 +65,8 @@ export const STRINGS: Record<string, Record<string, string>> = {
     editable: "editable through its program-day entities",
     not_editable: "read only: not proven writable on this device",
     not_read_program: "not loaded by ebusd",
-    write_hint: "Changes are made in the entity (button Open); the panel only shows.",
+    program_not_listened: "not read: enable the program sensor or its day entities",
+    write_hint: "Changes are made in the entity (button Open); the panel only shows. Comfort: written at once; regulation: after a confirmation in Repairs.",
     description: "Description",
   },
   fr: {
@@ -85,7 +86,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     entity: "Entité",
     open: "Ouvrir",
     comfort: "confort",
-    regulation: "régulation, avec confirmation",
+    regulation: "régulation",
     read_only: "lecture seule",
     not_loaded: "non chargé par ebusd",
     not_listened: "non lu : aucune entité activée",
@@ -127,7 +128,8 @@ export const STRINGS: Record<string, Record<string, string>> = {
     editable: "modifiable par ses entités de jour de programme",
     not_editable: "lecture seule : écriture non prouvée sur cet appareil",
     not_read_program: "non chargé par ebusd",
-    write_hint: "Les modifications se font dans l'entité (bouton Ouvrir) ; le panneau ne fait qu'afficher.",
+    program_not_listened: "non lu : activez le capteur du programme ou ses entités de jour",
+    write_hint: "Les modifications se font dans l'entité (bouton Ouvrir) ; le panneau ne fait qu'afficher. Confort : écrit aussitôt ; régulation : après une confirmation dans Réparations.",
     description: "Description",
   },
 };
@@ -164,6 +166,13 @@ export function formatValue(row: Row, reading: Reading | null | undefined, langu
     return entry ? label(entry, language) : raw;
   }
   return row.unit ? `${raw} ${row.unit}` : raw;
+}
+
+/** A description that only repeats the name ("température de départ (valeur d'information i35)" under
+ * "Température de départ (i35)") is not shown. */
+export function redundant(description: string, name: string): boolean {
+  const stem = (text: string): string => text.split(" (")[0].trim().toLowerCase();
+  return !description || stem(description) === stem(name);
 }
 
 /** Why a row has no value, when it has none. */

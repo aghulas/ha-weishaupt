@@ -13,12 +13,23 @@ import {
   languageOf,
   menuTree,
   missingReason,
+  redundant,
   t,
   WEEKDAYS,
 } from "./format.ts";
 import type { Days, Device, Hass, Installation, LiveEvent, Reading, Row, Tree } from "./types.ts";
 
 const DEFINITIONS = "__definitions__";
+
+/** Whether `menu` is under `ancestor` in the menus of a device. */
+function descends(menus: { id: string; parent: string }[], menu: string, ancestor: string): boolean {
+  let parent = menus.find((m) => m.id === menu)?.parent ?? "";
+  while (parent) {
+    if (parent === ancestor) return true;
+    parent = menus.find((m) => m.id === parent)?.parent ?? "";
+  }
+  return false;
+}
 const PROGRAMS = "programs";
 
 export class WeishauptPanel extends LitElement {
@@ -185,6 +196,34 @@ export class WeishauptPanel extends LitElement {
 
   private _nav(tree: Tree): TemplateResult {
     const lang = this._lang;
+    if (this.narrow) {
+      // a phone: one list to choose from, so that the table is not pushed below the whole tree
+      const current = `${this._device ?? ""}|${this._menu ?? ""}`;
+      return html`<label class="choose"
+        >${t(lang, "devices")}
+        <select
+          @change=${(e: Event) => {
+            const [device, menu] = (e.target as HTMLSelectElement).value.split("|");
+            this._device = device;
+            this._menu = menu;
+          }}
+        >
+          ${tree.devices.map(
+            (device) => html`<optgroup label=${label(device.label, lang)}>
+              ${menuTree(device.menus).map(
+                ([menu, depth]) =>
+                  html`<option value=${`${device.id}|${menu.id}`} ?selected=${current === `${device.id}|${menu.id}`}>
+                    ${"\u00a0\u00a0".repeat(depth)}${label(menu.label, lang)}
+                  </option>`,
+              )}
+            </optgroup>`,
+          )}
+          <option value=${`${this._device ?? ""}|${DEFINITIONS}`} ?selected=${this._menu === DEFINITIONS}>
+            ${t(lang, "definitions")}
+          </option>
+        </select></label
+      >`;
+    }
     const item = (device: string, menu: string, text: string, depth: number): TemplateResult => {
       const current = this._device === device && this._menu === menu;
       return html`<li>
@@ -221,18 +260,24 @@ export class WeishauptPanel extends LitElement {
       device.software ? `${t(lang, "software")} ${device.software}` : "",
       device.hardware ? `${t(lang, "hardware")} ${device.hardware}` : "",
     ].filter(Boolean);
-    const rows = device.rows.filter((row) => row.menu === this._menu);
+    // a menu shows its own rows, then those of its sub-menus under their names
+    const sections = menuTree(device.menus)
+      .filter(([m]) => m.id === this._menu || descends(device.menus, m.id, this._menu ?? ""))
+      .map(([m]) => [m, device.rows.filter((row) => row.menu === m.id)] as const)
+      .filter(([, rows]) => rows.length);
     return html`<h2>${label(device.label, lang)}${menu ? html` — ${label(menu.label, lang)}` : nothing}</h2>
       ${info.length ? html`<p class="secondary">${info.join(" · ")}</p>` : nothing}
       ${this._menu === PROGRAMS ? this._programs_view(device) : nothing}
-      ${rows.length ? this._table(rows) : nothing}`;
+      ${sections.length ? html`<p class="secondary">${t(lang, "write_hint")}</p>` : nothing}
+      ${sections.map(
+        ([m, rows]) => html`${m.id !== this._menu ? html`<h3>${label(m.label, lang)}</h3>` : nothing}${this._table(rows)}`,
+      )}`;
   }
 
   private _table(rows: Row[]): TemplateResult {
     const lang = this._lang;
     void this._tick;
-    return html`<p class="secondary">${t(lang, "write_hint")}</p>
-      <div class="scroll">
+    return html`<div class="scroll">
         <table>
           <thead>
             <tr>
@@ -248,17 +293,19 @@ export class WeishauptPanel extends LitElement {
             ${rows.map((row) => {
               const reading = this._readings[row.message];
               const value = formatValue(row, reading, lang);
-              const description = label(row.description, lang);
+              const description = redundant(label(row.description, lang), label(row.label, lang))
+                ? ""
+                : label(row.description, lang);
               return html`<tr>
                 <th scope="row">
                   ${label(row.label, lang)}
                   ${description ? html`<div class="description">${description}</div>` : nothing}
                 </th>
-                <td>${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
-                <td class="secondary">
+                <td class="nowrap">${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
+                <td class="secondary nowrap">
                   ${reading ? this._age(reading) : ""}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
                 </td>
-                <td>${formatRange(row)}</td>
+                <td class="nowrap">${formatRange(row)}</td>
                 <td>
                   ${row.writable
                     ? html`<span class="badge ${row.writable.risk}">${t(lang, row.writable.risk)}</span>`
@@ -283,7 +330,9 @@ export class WeishauptPanel extends LitElement {
       const week = this._programs[program.key];
       const note = !program.read
         ? t(lang, "not_read_program")
-        : program.writable
+        : !program.listened
+          ? t(lang, "program_not_listened")
+          : program.writable
           ? t(lang, "editable")
           : t(lang, "not_editable");
       return html`<section class="program">
@@ -309,7 +358,7 @@ export class WeishauptPanel extends LitElement {
               const ranges = week?.[String(i + 1)];
               const text =
                 ranges === undefined || ranges === null
-                  ? t(lang, "day_unread")
+                  ? t(lang, program.listened ? "day_unread" : "not_listened")
                   : ranges.length
                     ? ranges.map(([from, to]) => `${from}-${to}`).join(", ")
                     : t(lang, "day_none");
@@ -426,6 +475,20 @@ export class WeishauptPanel extends LitElement {
       margin: 0;
       padding: 0;
     }
+    label.choose {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--secondary-text-color);
+    }
+    select {
+      font: inherit;
+      padding: 6px;
+      color: var(--primary-text-color);
+      background: var(--card-background-color);
+      border: 1px solid var(--divider-color);
+      border-radius: 6px;
+    }
     .device {
       display: block;
       font-weight: 500;
@@ -468,6 +531,9 @@ export class WeishauptPanel extends LitElement {
       cursor: pointer;
       color: var(--primary-color);
     }
+    .nowrap {
+      white-space: nowrap;
+    }
     .scroll {
       overflow-x: auto;
     }
@@ -488,6 +554,7 @@ export class WeishauptPanel extends LitElement {
     }
     tbody th {
       font-weight: 400;
+      min-width: 12em;
     }
     .description,
     .secondary {

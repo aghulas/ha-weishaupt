@@ -43,6 +43,7 @@ async def test_tree_shows_devices_menus_rows_and_programs(hass, fake, tmp_path, 
     assert not [r for r in room["rows"] if "Program" in r["message"] and r["kind"] == "program_slot"]
     programs = {p["key"]: p for p in room["programs"]}
     assert programs["fs1/heating1"]["writable"] and "programs" in [m["id"] for m in room["menus"]]
+    assert programs["fs1/heating1"]["listened"] and not programs["fs1/heating2"]["listened"]
     assert any(not p["writable"] for d in tree["devices"] for p in d["programs"])  # shown all the same
 
 

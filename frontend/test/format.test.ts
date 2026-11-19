@@ -1,7 +1,9 @@
 // The pure functions of the panel, run by `node --test` on the TypeScript sources (type stripping).
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { bars, formatAge, formatRange, formatValue, languageOf, menuTree, missingReason, STRINGS, t } from "../src/format.ts";
+import {
+  bars, formatAge, formatRange, formatValue, languageOf, menuTree, missingReason, redundant, STRINGS, t,
+} from "../src/format.ts";
 import type { Row } from "../src/types.ts";
 
 const row = (extra: Partial<Row> = {}): Row => ({
@@ -28,6 +30,12 @@ test("values: unit, value-list label, not available, unread", () => {
   assert.equal(formatValue(list, { values: ["Monday"], when: 0 }, "fr"), "Lundi");
   assert.equal(formatValue(row(), { values: ["-"], when: 0 }, "fr"), "non disponible");
   assert.equal(formatValue(row(), undefined, "en"), null);
+});
+
+test("a description that repeats the name is not shown", () => {
+  assert.ok(redundant("température de départ (valeur d'information i35)", "Température de départ (i35)"));
+  assert.ok(!redundant("consigne de température ambiante normale", "Température ambiante normale"));
+  assert.ok(redundant("", "x"));
 });
 
 test("why a row has no value", () => {

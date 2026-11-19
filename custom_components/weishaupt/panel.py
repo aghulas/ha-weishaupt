@@ -145,6 +145,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
     model, entry = hub.model, hub.entry
     links = _links(hass, entry.entry_id)
     writer = hub.writer
+    listened = hub.listened()
     devices = []
     for device in hub.devices.values():
         scan = hub.address_of(device)
@@ -156,6 +157,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "key": group.key, "label": group.label,
             "writable": writer is not None and group.key in writer.programs,
             "read": all(key in hub.usable for key in group.members),
+            "listened": any(key in listened for key in group.members),
             "entity_id": links.get(f"{group.circuit}/group/{group.id}", {}).get("sensor"),
         } for group in model.groups.values() if group.family == "program" and group.device == device.id]
         used = {row["menu"] for row in rows} | ({"programs"} if programs else set())

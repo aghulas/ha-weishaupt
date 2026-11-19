@@ -52,6 +52,7 @@ export interface Program {
   label: Labels;
   writable: boolean;
   read: boolean;
+  listened: boolean; // an enabled entity reads its slots
   entity_id: string | null;
 }
 

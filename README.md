@@ -141,9 +141,26 @@ language later loses nothing — but do not copy entity ids from someone else's 
 ## The Weishaupt panel
 
 An entry **Weishaupt** in the sidebar, for administrators only, shows the installation the way the
-vendor's controllers and service tool organise it. It is read only: a change is made in the entity,
-which each row opens (Home Assistant's own dialog, with the guard and confirmations described
-above).
+vendor's controllers and service tool organise it, and changes what the definitions prove
+writable, through the same write path and guard as the entities (writes switch, hourly limit,
+ranges and steps, source addresses of the metadata, read-back). *Open* still shows the entity.
+
+- **Changing a setting**: *Change* on a writable row shows the value as a number (range and step) or
+  as a choice (its labels), with the write path in words (bus address, register, source address)
+  and its class. A comfort setting is written at once and read back. A regulation setting opens a
+  confirmation in the panel with the facts of the repair (current and new value, allowed values,
+  address, register, source): nothing is written until it is confirmed, and cancelling withdraws
+  it. The result shows before → after, the frame sent and the read-back, as the logbook entry. A
+  change made from an entity or an automation is still confirmed in *Repairs*.
+- **Editing a program**: the programs proven writable on their device have *Edit* on their week
+  grid. A day is changed by typing `06:30-18:00, 19:00-21:00` (or `-`), or by dragging on its bar
+  to add a range in quarters of an hour; a click on a range removes it; a day can be copied to
+  every day, Monday to Friday, the weekend or one day. Before writing, the panel shows the days
+  changed, the writes they may cost (at most three a day: only changed slots are written) and the
+  writes left this hour. Each day is written as by its program-day entity: three slots, read back.
+  Programs not proven writable are read only.
+- **Setting the clock**: the header's *Set the clock* asks for the same confirmation as the
+  button entity and sends at second 00.
 
 - **Devices and menus**: one node per device on the bus, with its bus address and software and
   hardware versions, and the menus of the definitions under it (*Info → Sensors*, *Process
@@ -159,8 +176,8 @@ above).
   the metadata replaces this rule when the definitions carry it. A value that is not read says
   why: not loaded by ebusd, or no enabled entity reads it.
 - **Weekly programs**: every program the definitions know, as a week grid (bars over 24 h and
-  the ranges in text), read only; the programs proven writable are changed through their
-  program-day entities. A program no enabled entity reads has a button *Read now*: its 21 slots
+  the ranges in text); the programs proven writable are edited in the grid (above) or through
+  their program-day entities, the others are read only. A program no enabled entity reads has a button *Read now*: its 21 slots
   are read once, at the pace of the bus and after what the entities wait for (about 45 s); it is
   not kept up to date unless its sensor is enabled. Opening the panel reads nothing.
 - **Definitions**: the definitions in use (shipped or a file beside the configuration), how many
@@ -454,7 +471,8 @@ integration under the same name:
 - `ebusd.py` (client), `model.py` (metadata), `writes.py` (what is writable, the bytes of a write)
   and `guard.py` (the write guard of 0.1, proven in service) have no Home Assistant dependency;
   `writer.py` runs a write, `number.py`, `switch.py` and `repairs.py` are its interface.
-- `panel.py` registers the panel and its WebSocket commands (read only, administrators only).
+- `panel.py` registers the panel and its WebSocket commands (administrators only): reads, and
+  writes that call the Writer of `writer.py` exactly as the entities do; it builds no telegram.
   The panel's sources are in `frontend/` (TypeScript and Lit); `npm ci && npm test && npm run
   build` in that folder writes `custom_components/weishaupt/frontend/dist/weishaupt-panel.js`,
   the same bytes for the same sources and lock file. The built file is committed (HACS runs no
@@ -518,6 +536,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.6.0b1: the panel writes: settings and choices (regulation confirmed in the panel), days of
+  the proven programs (typed or dragged, copied), the clock; same writer and guard as the
+  entities.
 - 0.5.0: the code of 0.5.0b3, checked on a heating system: the Weishaupt panel (read only) with the
   devices, their menus, tables, week grids, the definitions in use and the clock; absent sensors
   shown as such; stale entities of the current scheme removed, others only from a confirmed repair.

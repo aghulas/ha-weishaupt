@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import DOMAIN
 from .entity import WeishauptEntity
 from .guard import WriteRefused
-from .hub import Hub, WeishauptConfigEntry
+from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import WEEKDAYS
 from .programs import MAX_LENGTH, PATTERN, Program
 from .writer import WriteFailed
@@ -38,6 +38,9 @@ class ProgramDayText(WeishauptEntity, TextEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_pattern = PATTERN
     _attr_native_max = MAX_LENGTH
+    # its three slots are read right after the numbers and selects (within that class the 24-hour interval of the
+    # programs comes after the 6 hours of the settings), not after the whole first pass
+    _read_priority = SETTING_PRIORITY
 
     def __init__(self, hub: Hub, program: Program, day: int) -> None:
         name = WEEKDAYS[day - 1]
@@ -48,6 +51,7 @@ class ProgramDayText(WeishauptEntity, TextEntity):
 
     @property
     def native_value(self) -> str | None:
+        """The day once its three slots are read; unknown until then (a day of one or two slots could be wrong)."""
         return self.hub.writer.program_day(self._program, self._day)
 
     @property

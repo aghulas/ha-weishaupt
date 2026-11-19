@@ -236,3 +236,42 @@ async def test_the_hot_water_program_of_the_manager(hass, fake, log):
     assert result["written"] == 1 and fake.writes == [(None, "em1", spec.telegram(0x181C))]
     assert writer.program_day(writer.programs["em1/dhw"], 1) == "06:00-07:00"
     assert not [i for i in ir.async_get(hass).issues.values() if i.domain == DOMAIN]
+
+
+async def test_enabled_program_days_are_read_right_after_the_settings(hass, fake, log):
+    """Every entity enabled, as on an installation where diagnostics and programs are shown, but the program texts
+    as created (heating program 1 only): after a start, the 42 slots of the 14 enabled texts are read right after
+    the live values and the numbers and selects, not after the whole first pass. A text stays unknown until its
+    three slots are read. Measured as a count of bus requests; at the installation's pace (about 0.4 requests a
+    second) it gives the time to values."""
+    from unittest.mock import patch
+    from homeassistant.helpers.entity import Entity
+    from custom_components.weishaupt.text import ProgramDayText
+
+    def enabled_default(self):  # everything enabled, except the program texts that are not enabled by default
+        return self._attr_entity_registry_enabled_default if isinstance(self, ProgramDayText) else True
+
+    with patch.object(Entity, "entity_registry_enabled_default", property(enabled_default)):
+        entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
+        await setup(hass, entry)
+    hub = entry.runtime_data
+    registry = er.async_get(hass)
+    texts = [registry.async_get_entity_id("text", DOMAIN, f"{entry.entry_id}_{c}/heating1/{d}")
+             for c in ("fs1", "fs3") for d in ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday",
+                                               "sunday")]
+    assert len(texts) == 14
+    # unknown until the three slots are read
+    assert all(hass.states.get(t).state == "unknown" for t in texts)
+    from ha_common import wait_until
+    await wait_until(lambda: all(hass.states.get(t).state not in ("unknown", "unavailable") for t in texts))
+    bus = [c for _, c in fake.reads_of() if not hub.model.messages[c.split()[-2] + "/" + c.split()[-1]].passive]
+    listened = len(hub.listened())
+    requests_until_texts = len(bus)
+    await settled(hass, entry)
+    total = len([c for _, c in fake.reads_of()
+                 if not hub.model.messages[c.split()[-2] + "/" + c.split()[-1]].passive])
+    # settings and program days first: the texts have their values after about a third of the first pass
+    assert requests_until_texts < total / 2, (requests_until_texts, total)
+    print(f"\nmessages listened {listened}, bus requests of the first pass {total}, "
+          f"until the 14 texts have values {requests_until_texts} "
+          f"(~{requests_until_texts / 0.4 / 60:.0f} min at 0.4 requests/s, against ~{total / 0.4 / 60:.0f} min)")

@@ -21,7 +21,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import DOMAIN
 from .entity import WeishauptEntity, parse_number
 from .guard import WriteRefused
-from .hub import Hub, WeishauptConfigEntry
+from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import NumberDescription
 from .sensor import UNITS
 from .writer import ConfirmationPending, WriteFailed
@@ -45,6 +45,7 @@ class SettingEntity(WeishauptEntity):
     """What a number and a select of a setting share: the spec, the attributes, the write through the writer."""
 
     _attr_entity_category = EntityCategory.CONFIG
+    _read_priority = SETTING_PRIORITY  # read right after the live values: a setting is shown before it is changed
 
     def __init__(self, hub: Hub, description: NumberDescription, spec: WriteSpec) -> None:
         message = description.message

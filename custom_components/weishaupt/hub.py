@@ -48,8 +48,12 @@ _LOGGER = logging.getLogger(__name__)
 
 type WeishauptConfigEntry = ConfigEntry[Hub]
 
-# Order in which due messages are served: what is cheap and what is watched first.
+# Order in which due messages are served: what is cheap and what is watched first. Passive messages (ebusd's
+# cache), live values, then what an entity that sets a value shows (numbers and selects, then the slots of program
+# days: within one class the shorter interval goes first), then everything else.
 _PRIORITY = {"passive": 0, "cyclic": 1}
+SETTING_PRIORITY = 2
+OTHER_PRIORITY = 3
 
 
 @dataclass
@@ -93,6 +97,7 @@ class Hub:
         self._last_request = 0.0
         self._wake = asyncio.Event()
         self._urgent: set[str] = set()  # messages of an entity just enabled: read first
+        self._priority: dict[str, int] = {}  # class asked for by a listener
         # messages listened to when the entry was last unloaded (None at the first set-up since Home Assistant
         # started): kept by __init__.py across a reload
         self.previously_listened: set[str] | None = None
@@ -152,14 +157,20 @@ class Hub:
     # ---- listeners ------------------------------------------------------------------------------------------
 
     @callback
-    def async_listen(self, keys: tuple[str, ...], update: CALLBACK_TYPE) -> CALLBACK_TYPE:
+    def async_listen(self, keys: tuple[str, ...], update: CALLBACK_TYPE,
+                     priority: int | None = None) -> CALLBACK_TYPE:
         """Call `update` after each reading of one of the messages; they are read while someone listens.
 
         A message nobody listened to before the last reload of the entry belongs to an entity the user has just
         enabled (Home Assistant reloads the entry for it): it is read before any other, once, instead of after the
-        whole first fill."""
+        whole first fill.
+
+        `priority`: the class the listener asks for (SETTING_PRIORITY for the entities that set a value); a message
+        is served in the most urgent class any of its listeners asks for. It changes the order, not the load."""
         for key in keys:
             self._listeners.setdefault(key, []).append(update)
+            if priority is not None:
+                self._priority[key] = min(priority, self._priority.get(key, priority))
             self._due.setdefault(key, 0.0)
             if (self.previously_listened is not None and key not in self.previously_listened
                     and key not in self.readings) or key in self.urgent_at_start:
@@ -208,7 +219,8 @@ class Hub:
             if when <= now:
                 message = self.model.messages[key]
                 poll = "passive" if message.passive else message.poll
-                priority = -1 if key in self._urgent else _PRIORITY.get(poll, 2)
+                priority = -1 if key in self._urgent else min(
+                    _PRIORITY.get(poll, OTHER_PRIORITY), self._priority.get(key, OTHER_PRIORITY))
                 due.append((priority, self.interval(message), when, key))
             elif soonest is None or when < soonest:
                 soonest = when

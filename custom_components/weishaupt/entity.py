@@ -42,6 +42,7 @@ class WeishauptEntity(Entity):
 
     _attr_has_entity_name = True
     _attr_should_poll = False
+    _read_priority: int | None = None  # class of its messages in the reader (hub.SETTING_PRIORITY for settings)
 
     def __init__(self, hub: Hub, device: Device, key: str, translation_key: str, messages: tuple[str, ...]) -> None:
         self.hub = hub
@@ -60,7 +61,7 @@ class WeishauptEntity(Entity):
         )
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(self.hub.async_listen(self._messages, self.async_write_ha_state))
+        self.async_on_remove(self.hub.async_listen(self._messages, self.async_write_ha_state, self._read_priority))
 
     @property
     def available(self) -> bool:

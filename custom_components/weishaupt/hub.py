@@ -54,6 +54,7 @@ type WeishauptConfigEntry = ConfigEntry[Hub]
 _PRIORITY = {"passive": 0, "cyclic": 1}
 SETTING_PRIORITY = 2
 OTHER_PRIORITY = 3
+ONCE_PRIORITY = 4  # read once for the panel: after everything an entity waits for
 # The first pass after a set-up: every message an enabled entity listens to is read once from the device (`read
 # -m 0`: ebusd, which may have stayed up, would otherwise answer from its own cache, with a value up to a day old for
 # the programs). Until every one of them has been asked once, a message already read is asked again only when its
@@ -100,6 +101,10 @@ class Hub:
         self._availability_listeners: list[CALLBACK_TYPE] = []
         # told of each reading without causing any (the panel): key of the message, or None for the availability
         self._observers: list[Callable[[str | None], None]] = []
+        self._closing: list[CALLBACK_TYPE] = []  # told when the entry unloads (the panel subscribes again)
+        self._once: set[str] = set()  # asked once for the panel although no entity listens (`async_read_once`)
+        self.circuits: set[str] = set()  # circuits of the devices present, whose definitions were compared
+        self.named_entities: set[str] = set()  # unique ids of the entities named from the metadata
         self._due: dict[str, float] = {}
         self._failures: dict[str, int] = {}
         self._last_request = 0.0
@@ -142,6 +147,7 @@ class Hub:
             loaded[circuit] = await self.client.definitions(circuit)
         self.mismatches = self.model.compare(circuits, loaded)
         bad = {m.key for m in self.mismatches}
+        self.circuits = circuits
         self.usable = {key for key, message in self.model.messages.items()
                        if message.circuit in circuits and key not in bad and (message.read or message.passive)}
 
@@ -259,12 +265,12 @@ class Hub:
         due, soonest = [], None
         in_first_pass = self.first_pass_done is None and REPEAT_DURING_FIRST_PASS > 0
         wall = time.time()
-        for key in self._listeners:
+        for key in [*self._listeners, *(k for k in self._once if k not in self._listeners)]:
             when = self._due.get(key, 0.0)
             if when <= now:
                 message = self.model.messages[key]
                 poll = "passive" if message.passive else message.poll
-                priority = -1 if key in self._urgent else min(
+                priority = ONCE_PRIORITY if key in self._once else -1 if key in self._urgent else min(
                     _PRIORITY.get(poll, OTHER_PRIORITY), self._priority.get(key, OTHER_PRIORITY))
                 # during the first pass, what was not asked yet goes before a repeat that is not overdue
                 repeat = in_first_pass and key in self._asked and not message.passive and (
@@ -300,6 +306,7 @@ class Hub:
         """Read one message and tell its listeners. Returns the seconds to stay quiet afterwards."""
         key, interval, now = message.key, self.interval(message), time.monotonic()
         self._urgent.discard(key)
+        self._once.discard(key)  # asked once for the panel: not again, even when it fails
         first = key not in self._asked
         self._asked.add(key)
         if self.first_pass_done is None and self._asked >= set(self._listeners):
@@ -379,6 +386,35 @@ class Hub:
             update()
         for observer in list(self._observers):
             observer(key)
+
+    @callback
+    def async_on_close(self, closing: CALLBACK_TYPE) -> CALLBACK_TYPE:
+        """Call `closing` when the entry unloads: an observer of this hub is told to look for the new one."""
+        self._closing.append(closing)
+
+        @callback
+        def remove() -> None:
+            if closing in self._closing:
+                self._closing.remove(closing)
+
+        return remove
+
+    @callback
+    def async_close(self) -> None:
+        for closing in list(self._closing):
+            closing()
+        self._closing.clear()
+
+    @callback
+    def async_read_once(self, keys: tuple[str, ...]) -> int:
+        """Read these messages once although no entity listens to them (a program the panel shows), at the pace of
+        the reader and after what entities wait for. Returns how many are queued."""
+        queued = [key for key in keys if key in self.usable and key not in self._listeners and key not in self._once]
+        for key in queued:
+            self._once.add(key)
+            self._due[key] = 0.0
+        self._wake.set()
+        return len(queued)
 
     @callback
     def async_observe(self, observer: Callable[[str | None], None]) -> CALLBACK_TYPE:

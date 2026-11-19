@@ -152,6 +152,7 @@ def _update_issues(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
 async def async_unload_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
     # what was read before the reload: a message missing from it after the reload is read first
     hub = entry.runtime_data
+    hub.async_close()  # the panel looks for the hub of the reloaded entry
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {"listened": hub.listened(), "readings": dict(hub.readings)}
     if entry.runtime_data.writer is not None:
         entry.runtime_data.writer.drop_all_pending()

@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  bars, formatAge, formatRange, formatValue, languageOf, menuTree, missingReason, redundant, STRINGS, t,
+  bars, formatAge, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  STRINGS, t,
 } from "../src/format.ts";
 import type { Row } from "../src/types.ts";
 
@@ -10,7 +11,7 @@ const row = (extra: Partial<Row> = {}): Row => ({
   key: "em2/RoomNormalTemp/value", message: "em2/RoomNormalTemp", index: 0, menu: "settings", kind: "setting",
   label: { en: "Normal room temperature", fr: "Température ambiante normale" }, description: null, unit: "°C",
   type: "UIN", values: null, range: { min: 16, max: 35, step: 0.5 }, writable: null, read: true, passive: false,
-  entity_id: "number.x", ...extra,
+  entity_id: "number.x", messages: ["em2/RoomNormalTemp"], absent: null, ...extra,
 });
 
 test("both languages have the same words", () => {
@@ -36,6 +37,18 @@ test("a description that repeats the name is not shown", () => {
   assert.ok(redundant("température de départ (valeur d'information i35)", "Température de départ (i35)"));
   assert.ok(!redundant("consigne de température ambiante normale", "Température ambiante normale"));
   assert.ok(redundant("", "x"));
+});
+
+test("absent sensor, register read by two messages, messages not read", () => {
+  const boiler = row({ absent: -40, messages: ["bc1/DHWTemp"], message: "bc1/DHWTemp" });
+  assert.equal(formatValue(boiler, { values: ["-40.0"], when: 0 }, "fr"), "pas de sonde");
+  assert.equal(formatValue(boiler, { values: ["-39.5"], when: 0 }, "en"), "-39.5 °C");
+  const twin = row({ messages: ["ka/RoomNormalTemp", "em1/RoomNormalTemp"] });
+  assert.deepEqual(readingOf(twin, { "em1/RoomNormalTemp": { values: ["20.0"], when: 1 } }), { values: ["20.0"], when: 1 });
+  assert.deepEqual(notUsable([
+    { key: "broadcast/Datetime", reason: "write_only" }, { key: "em3/A", reason: "device_absent" },
+    { key: "em3/B", reason: "device_absent" },
+  ], "en"), ["broadcast/Datetime: write only", "em3: 2 messages, device not on the bus"]);
 });
 
 test("why a row has no value", () => {

@@ -57,6 +57,7 @@ class Field:
     maximum: float | None = None
     step: float | None = None
     description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
+    absent: float | None = None  # the value the device sends when the sensor is not fitted, when the metadata says
 
     @property
     def shown(self) -> bool:
@@ -350,7 +351,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
               f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
-              f.get("min"), f.get("max"), f.get("step"), f.get("description"))
+              f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"))
         for index, f in enumerate(data["fields"]))
     write = data.get("write")
     conditions = None if write is None else WriteConditions(

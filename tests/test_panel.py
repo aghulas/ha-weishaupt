@@ -103,3 +103,75 @@ async def test_no_panel_without_the_frontend(hass):
     with patch("homeassistant.components.panel_custom.async_register_panel", AsyncMock()) as register:
         await panel.async_setup_panel(hass, "0.5.0b1")
     register.assert_not_called()
+
+
+async def test_rows_share_a_register_and_mark_absent_sensors(hass, fake, tmp_path, hass_ws_client):
+    """System manager › circuit 1: the setpoints are read through em1 (same register as ka), changed there; a
+    boiler's °C field with -40 and a manager's with -100 is "no sensor" (release notice), until the metadata says."""
+    entry = await _loaded(hass, fake, tmp_path)
+    tree = panel.tree(hass, entry.runtime_data)
+    devices = {d["id"]: d for d in tree["devices"]}
+    manager = next(d for d in tree["devices"] if d["type"] == "manager")
+    row = next(r for r in manager["rows"] if r["message"] == "ka/RoomNormalTemp")
+    assert row["messages"] == ["ka/RoomNormalTemp", "em1/RoomNormalTemp"]
+    assert row["writable"]["through"] == "em1" and row["entity_id"].startswith("number.")
+    assert row["range"]["min"] is not None
+    assert "em1/RoomNormalTemp" in entry.runtime_data.readings  # read through the number of em1
+    dhw = next(r for r in devices["boiler1"]["rows"] if r["message"] == "bc1/DHWTemp")
+    assert dhw["absent"] == -40.0 and row["absent"] == -100.0
+
+
+async def test_a_program_is_read_once_for_the_grid(hass, fake, tmp_path, hass_ws_client):
+    """A program no enabled entity reads: one request per slot when asked, once, after the entities' reads."""
+    entry = await _loaded(hass, fake, tmp_path)
+    hub = entry.runtime_data
+    members = hub.model.groups["fs2/heating1"].members
+    assert not any(key in hub.readings for key in members)
+    client = await hass_ws_client(hass)
+    await client.send_json({"id": 1, "type": "weishaupt/panel/read_program", "entry_id": entry.entry_id,
+                            "program": "fs2/heating1"})
+    answer = (await client.receive_json())["result"]
+    assert answer["queued"] == 21
+    await settled(hass, entry)
+    from ha_common import wait_until
+    await wait_until(lambda: all(key in hub.readings for key in members))
+    assert panel.program_days(hub, "fs2/heating1")["1"] is not None
+    reads = len(fake.reads_of())
+    await client.send_json({"id": 2, "type": "weishaupt/panel/read_program", "entry_id": entry.entry_id,
+                            "program": "nope"})
+    assert (await client.receive_json())["error"]["code"] == "not_found"
+    await settled(hass, entry)
+    assert len(fake.reads_of()) == reads  # read once, not kept up to date
+    assert all(key not in hub.listened() for key in members)
+
+
+async def test_a_reload_tells_the_panel_and_keeps_values_marked(hass, fake, tmp_path, hass_ws_client):
+    entry = await _loaded(hass, fake, tmp_path)
+    client = await hass_ws_client(hass)
+    await client.send_json({"id": 1, "type": "weishaupt/panel/subscribe", "entry_id": entry.entry_id})
+    await client.receive_json()
+    await client.receive_json()
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    import asyncio
+    while True:
+        event = (await asyncio.wait_for(client.receive_json(), 5))["event"]
+        if event.get("reloaded"):
+            break
+    # the new hub: values kept across the reload, marked until read again
+    hub = entry.runtime_data
+    kept = next(iter(hub.restored), None)
+    if kept is not None:
+        assert panel._reading(hub, kept)["kept"] is True
+
+
+async def test_definitions_name_real_entities_and_messages_not_read(hass, fake, tmp_path):
+    entry = await _loaded(hass, fake, tmp_path)
+    hub = entry.runtime_data
+    hub.named_entities.add(f"{entry.entry_id}_bc1/DHWTemp/value")
+    definitions = panel.tree(hass, hub)["definitions"]
+    assert [e["entity_id"] for e in definitions["named_from_metadata"]][0].startswith("sensor.boiler_1")
+    reasons = {m["key"]: m["reason"] for m in definitions["not_usable"]}
+    assert reasons["broadcast/Datetime"] == "write_only"
+    readable = definitions["usable"] + sum(1 for r in reasons.values() if r in ("mismatch", "other"))
+    assert readable == definitions["usable"]  # the bench: every readable message is loaded

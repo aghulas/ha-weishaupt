@@ -54,6 +54,7 @@ class WeishauptEntity(Entity):
             # a message of a newer metadata file than the translations shipped: the label of the metadata
             self._attr_translation_key = None
             self._attr_name = hub.label(name) + self._name_suffix(hub)
+            hub.named_entities.add(self._attr_unique_id)
         device_name = hub.label(device.label) if hub.untranslated("device", device.id) else None
         scan = hub.address_of(device)
         self._attr_device_info = DeviceInfo(

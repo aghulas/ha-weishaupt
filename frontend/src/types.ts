@@ -35,9 +35,11 @@ export interface Row {
   type: string;
   values: Record<string, Labels> | null; // ebusd name of a value-list entry -> its labels
   range: { min: number | null; max: number | null; step: number | null } | null;
-  writable: { risk: string; source: string; proof: string } | null;
+  writable: { risk: string; source: string; proof: string; through: string | null } | null;
+  messages: string[]; // messages that read this register: the first with a reading is shown
   read: boolean;
   passive: boolean;
+  absent: number | null; // the value the device sends when the sensor is not fitted
   entity_id: string | null;
 }
 
@@ -53,6 +55,7 @@ export interface Program {
   writable: boolean;
   read: boolean;
   listened: boolean; // an enabled entity reads its slots
+  slots: number;
   entity_id: string | null;
 }
 
@@ -77,11 +80,12 @@ export interface Tree {
     commit: string;
     source: string;
     refused: Record<string, string>;
-    named_from_metadata: string[];
+    named_from_metadata: { entity_id: string; disabled: boolean }[];
     not_named: string[];
     mismatches: { key: string; reason: string; detail: string }[];
     messages: number;
     usable: number;
+    not_usable: { key: string; reason: string }[];
   };
   writes: {
     switch: boolean;
@@ -98,12 +102,14 @@ export interface Tree {
 export interface Reading {
   values: string[];
   when: number; // seconds since the epoch, on Home Assistant's clock
+  kept?: boolean; // kept across a reload of the entry, not read again yet
 }
 
 export type Days = Record<string, string[][] | null>; // "1" (Monday) … "7" -> [[from, to], …], null while unread
 
 export interface LiveEvent {
   now: number;
+  reloaded?: boolean; // the entry unloaded: ask the new one
   available?: boolean;
   readings?: Record<string, Reading | null>;
   programs?: Record<string, Days>;

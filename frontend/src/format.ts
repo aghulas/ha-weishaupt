@@ -65,9 +65,24 @@ export const STRINGS: Record<string, Record<string, string>> = {
     editable: "editable through its program-day entities",
     not_editable: "read only: not proven writable on this device",
     not_read_program: "not loaded by ebusd",
-    program_not_listened: "not read: enable the program sensor or its day entities",
+    program_not_listened: "not read by any enabled entity: read it once now, or enable the program sensor to keep it up to date",
     write_hint: "Changes are made in the entity (button Open); the panel only shows. Comfort: written at once; regulation: after a confirmation in Repairs.",
     description: "Description",
+    no_sensor: "no sensor",
+    kept: "kept from before the reload, read again soon",
+    through: "through {circuit}",
+    read_now: "Read now",
+    read_cost: "{n} requests to the bus, about {s} s, once",
+    read_queued: "{n} requests queued; the grid fills in as they are answered",
+    readable: "{usable} of {readable} readable messages loaded by ebusd as described",
+    not_usable: "Messages not read",
+    reason_write_only: "write only",
+    reason_device_absent: "device not on the bus",
+    absent_circuit: "{circuit}: {n} messages, device not on the bus",
+    reason_mismatch: "not loaded as described",
+    reason_other: "not read",
+    disabled: "disabled",
+    reloading: "The integration was reloaded: loading again…",
   },
   fr: {
     title: "Weishaupt",
@@ -128,9 +143,24 @@ export const STRINGS: Record<string, Record<string, string>> = {
     editable: "modifiable par ses entités de jour de programme",
     not_editable: "lecture seule : écriture non prouvée sur cet appareil",
     not_read_program: "non chargé par ebusd",
-    program_not_listened: "non lu : activez le capteur du programme ou ses entités de jour",
+    program_not_listened: "lu par aucune entité activée : lisez-le une fois maintenant, ou activez le capteur du programme pour le tenir à jour",
     write_hint: "Les modifications se font dans l'entité (bouton Ouvrir) ; le panneau ne fait qu'afficher. Confort : écrit aussitôt ; régulation : après une confirmation dans Réparations.",
     description: "Description",
+    no_sensor: "pas de sonde",
+    kept: "conservée d'avant le rechargement, relue bientôt",
+    through: "par {circuit}",
+    read_now: "Lire maintenant",
+    read_cost: "{n} requêtes sur le bus, environ {s} s, une seule fois",
+    read_queued: "{n} requêtes en file ; la grille se remplit au fil des réponses",
+    readable: "{usable} sur {readable} messages lisibles chargés par ebusd comme décrits",
+    not_usable: "Messages non lus",
+    reason_write_only: "écriture seule",
+    reason_device_absent: "appareil absent du bus",
+    absent_circuit: "{circuit} : {n} messages, appareil absent du bus",
+    reason_mismatch: "non chargé comme décrit",
+    reason_other: "non lu",
+    disabled: "désactivée",
+    reloading: "L'intégration a été rechargée : nouveau chargement…",
   },
 };
 
@@ -161,6 +191,7 @@ export function formatValue(row: Row, reading: Reading | null | undefined, langu
   const raw = reading.values[row.index];
   if (raw === undefined) return null;
   if (raw === NOT_AVAILABLE) return t(language, "not_available");
+  if (row.absent !== null && row.absent !== undefined && Number(raw) === row.absent) return t(language, "no_sensor");
   if (row.values) {
     const entry = row.values[raw];
     return entry ? label(entry, language) : raw;
@@ -173,6 +204,29 @@ export function formatValue(row: Row, reading: Reading | null | undefined, langu
 export function redundant(description: string, name: string): boolean {
   const stem = (text: string): string => text.split(" (")[0].trim().toLowerCase();
   return !description || stem(description) === stem(name);
+}
+
+/** The reading of a row: of the first of its messages that has one (a register read by two messages). */
+export function readingOf(row: Row, readings: Record<string, Reading | null>): Reading | null {
+  for (const key of row.messages ?? [row.message]) {
+    const found = readings[key];
+    if (found) return found;
+  }
+  return null;
+}
+
+/** The messages not read, one line each, except those of a device not on the bus: one line per circuit. */
+export function notUsable(items: { key: string; reason: string }[], language: string): string[] {
+  const absent = new Map<string, number>();
+  const lines: string[] = [];
+  for (const item of items) {
+    if (item.reason === "device_absent") {
+      const circuit = item.key.split("/")[0];
+      absent.set(circuit, (absent.get(circuit) ?? 0) + 1);
+    } else lines.push(`${item.key}: ${t(language, `reason_${item.reason}`)}`);
+  }
+  for (const [circuit, n] of absent) lines.push(t(language, "absent_circuit", { circuit, n }));
+  return lines;
 }
 
 /** Why a row has no value, when it has none. */

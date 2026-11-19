@@ -13,6 +13,8 @@ import {
   languageOf,
   menuTree,
   missingReason,
+  notUsable,
+  readingOf,
   redundant,
   t,
   WEEKDAYS,
@@ -46,6 +48,8 @@ export class WeishauptPanel extends LitElement {
     _menu: { state: true },
     _error: { state: true },
     _tick: { state: true },
+    _queued: { state: true },
+    _reloading: { state: true },
   };
 
   declare hass: Hass;
@@ -60,6 +64,8 @@ export class WeishauptPanel extends LitElement {
   declare _menu: string | undefined;
   declare _error: string | undefined;
   declare _tick: number;
+  declare _queued: Record<string, number>;
+  declare _reloading: boolean;
 
   private _unsubscribe?: () => void;
   private _offset = 0; // browser clock minus Home Assistant's clock, in seconds
@@ -72,6 +78,8 @@ export class WeishauptPanel extends LitElement {
     this._programs = {};
     this._available = true;
     this._tick = 0;
+    this._queued = {};
+    this._reloading = false;
   }
 
   private get _lang(): string {
@@ -104,20 +112,39 @@ export class WeishauptPanel extends LitElement {
     }
   }
 
-  private async _select(entryId: string): Promise<void> {
+  private async _select(entryId: string, again = false): Promise<void> {
     this._entryId = entryId;
-    this._tree = undefined;
+    if (!again) {
+      this._tree = undefined;
+      this._device = undefined;
+      this._menu = undefined;
+    }
     this._readings = {};
     this._programs = {};
+    this._queued = {};
     try {
       const tree = await this.hass.callWS<Tree>({ type: "weishaupt/panel/tree", entry_id: entryId });
       this._tree = tree;
-      this._device = tree.devices[0]?.id;
-      this._menu = tree.devices[0]?.menus[0]?.id;
+      // after a reload, stay on the device and menu shown
+      if (!tree.devices.some((d) => d.id === this._device)) {
+        this._device = tree.devices[0]?.id;
+        this._menu = tree.devices[0]?.menus[0]?.id;
+      }
       await this._subscribe(entryId);
     } catch (err) {
+      if (again) throw err;
       this._error = (err as Error).message;
     }
+  }
+
+  private async _readProgram(key: string): Promise<void> {
+    if (!this._entryId) return;
+    const answer = await this.hass.callWS<{ queued: number; seconds: number }>({
+      type: "weishaupt/panel/read_program",
+      entry_id: this._entryId,
+      program: key,
+    });
+    this._queued = { ...this._queued, [key]: answer.queued };
   }
 
   private async _subscribe(entryId: string): Promise<void> {
@@ -130,6 +157,22 @@ export class WeishauptPanel extends LitElement {
 
   private _live(event: LiveEvent): void {
     this._offset = Date.now() / 1000 - event.now;
+    if (event.reloaded) {
+      // the entry unloaded (a reload): ask the new one for its tree and readings, once it is loaded again
+      this._unsubscribe = undefined;
+      this._reloading = true;
+      const retry = (left: number): void => {
+        window.setTimeout(() => {
+          if (!this._entryId || !this.isConnected) return;
+          this._select(this._entryId, true).then(
+            () => (this._reloading = false),
+            () => (left > 0 ? retry(left - 1) : (this._error = t(this._lang, "reloading"))),
+          );
+        }, 2000);
+      };
+      retry(15);
+      return;
+    }
     if (event.available !== undefined) this._available = event.available;
     if (event.readings) this._readings = { ...this._readings, ...event.readings };
     if (event.programs) this._programs = { ...this._programs, ...event.programs };
@@ -167,6 +210,7 @@ export class WeishauptPanel extends LitElement {
         ${this._clock()}
       </header>
       ${this._available ? nothing : html`<div class="message warning" role="status">${t(lang, "unavailable")}</div>`}
+      ${this._reloading ? html`<div class="message" role="status">${t(lang, "reloading")}</div>` : nothing}
       ${this._tree ? this._body(this._tree) : html`<div class="message">${t(lang, "loading")}</div>`}
     `;
   }
@@ -291,7 +335,7 @@ export class WeishauptPanel extends LitElement {
           </thead>
           <tbody>
             ${rows.map((row) => {
-              const reading = this._readings[row.message];
+              const reading = readingOf(row, this._readings);
               const value = formatValue(row, reading, lang);
               const description = redundant(label(row.description, lang), label(row.label, lang))
                 ? ""
@@ -303,12 +347,17 @@ export class WeishauptPanel extends LitElement {
                 </th>
                 <td class="nowrap">${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
                 <td class="secondary nowrap">
-                  ${reading ? this._age(reading) : ""}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
+                  ${reading ? this._age(reading) : ""}${reading?.kept
+                    ? html`<div class="kept">${t(lang, "kept")}</div>`
+                    : nothing}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
                 </td>
                 <td class="nowrap">${formatRange(row)}</td>
                 <td>
                   ${row.writable
-                    ? html`<span class="badge ${row.writable.risk}">${t(lang, row.writable.risk)}</span>`
+                    ? html`<span class="badge ${row.writable.risk}">${t(lang, row.writable.risk)}</span>${row.writable
+                          .through
+                        ? html`<div class="secondary">${t(lang, "through", { circuit: row.writable.through })}</div>`
+                        : nothing}`
                     : html`<span class="secondary">${t(lang, "read_only")}</span>`}
                 </td>
                 <td>
@@ -343,6 +392,16 @@ export class WeishauptPanel extends LitElement {
             : nothing}
         </h3>
         <p class="secondary">${note}</p>
+        ${program.read && !program.listened
+          ? this._queued[program.key] !== undefined
+            ? html`<p class="secondary" role="status">${t(lang, "read_queued", { n: this._queued[program.key] })}</p>`
+            : html`<p>
+                <button class="link" @click=${() => this._readProgram(program.key)}>${t(lang, "read_now")}</button>
+                <span class="secondary"
+                  >${t(lang, "read_cost", { n: program.slots, s: Math.round(program.slots * 2.2) })}</span
+                >
+              </p>`
+          : nothing}
         <table class="week">
           <caption class="visually-hidden">${label(program.label, lang)}</caption>
           <thead>
@@ -396,13 +455,22 @@ export class WeishauptPanel extends LitElement {
           ${d.source === "bundled" ? t(lang, "source_bundled") : t(lang, "source_file", { file: d.source })}
         </dd>
         <dt>${t(lang, "messages")}</dt>
-        <dd>${t(lang, "usable", { usable: d.usable, messages: d.messages })}</dd>
+        <dd>
+          ${t(lang, "readable", {
+            usable: d.usable,
+            readable: d.usable + d.not_usable.filter((m) => m.reason === "mismatch" || m.reason === "other").length,
+          })}
+        </dd>
+        <dt>${t(lang, "not_usable")}</dt>
+        <dd>${list(notUsable(d.not_usable, lang))}</dd>
         <dt>${t(lang, "refused")}</dt>
         <dd>${list(Object.entries(d.refused).map(([file, why]) => `${file}: ${why}`))}</dd>
         <dt>${t(lang, "mismatches")}</dt>
         <dd>${list(d.mismatches.map((m) => `${m.key}: ${m.reason}${m.detail ? ` (${m.detail})` : ""}`))}</dd>
         <dt>${t(lang, "named_from_metadata")}</dt>
-        <dd>${list(d.named_from_metadata)}</dd>
+        <dd>
+          ${list(d.named_from_metadata.map((e) => (e.disabled ? `${e.entity_id} (${t(lang, "disabled")})` : e.entity_id)))}
+        </dd>
         <dt>${t(lang, "not_named")}</dt>
         <dd>${list(d.not_named)}</dd>
         <dt>${t(lang, "ebusd")}</dt>
@@ -560,6 +628,9 @@ export class WeishauptPanel extends LitElement {
     .secondary {
       color: var(--secondary-text-color);
       font-size: 0.9em;
+    }
+    .kept {
+      font-style: italic;
     }
     .badge {
       white-space: nowrap;

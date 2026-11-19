@@ -150,13 +150,23 @@ above).
   values*, *Statistics*, *Settings*, *Weekly programs*…).
 - **The table of a menu**: name and description, value with its unit (a value-list entry by its
   label), when it was read, range and step, whether it is writable and its class (comfort,
-  regulation), and a button to the entity. A value that is not read says why: not loaded by
-  ebusd, or no enabled entity reads it (the panel itself asks nothing from the bus).
+  regulation), and a button to the entity. A value kept across a reload of the integration is
+  shown with its age and marked as kept until it is read again. A register read by two messages
+  (the system manager's direct circuit `em1` and its circuit 1) is shown once, with the value of
+  whichever is read and where it is changed ("through em1"). A temperature the device sends as
+  -40.0 °C (boiler) or -100.0 °C (system manager, heating module) is shown as *no sensor*: these
+  are the values of a sensor that is not fitted (release notice of the definitions); a marker in
+  the metadata replaces this rule when the definitions carry it. A value that is not read says
+  why: not loaded by ebusd, or no enabled entity reads it.
 - **Weekly programs**: every program the definitions know, as a week grid (bars over 24 h and
   the ranges in text), read only; the programs proven writable are changed through their
-  program-day entities.
-- **Definitions**: the definitions in use (shipped or a file beside the configuration), files not
-  used and why, differences with ebusd, entities named from the definitions, the ebusd version,
+  program-day entities. A program no enabled entity reads has a button *Read now*: its 21 slots
+  are read once, at the pace of the bus and after what the entities wait for (about 45 s); it is
+  not kept up to date unless its sensor is enabled. Opening the panel reads nothing.
+- **Definitions**: the definitions in use (shipped or a file beside the configuration), how many
+  readable messages ebusd loaded and each one it did not (write-only messages and the devices
+  not on the bus by circuit), files not used and why, differences with ebusd, the entities named
+  from the definitions by their entity ids, the ebusd version,
   and the state of writes (switch, run-time checksum, writes this hour).
 - The offset of the clock master in the header.
 
@@ -501,6 +511,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.5.0b2: the panel shows values kept across a reload and follows a reload of the entry, a
+  register read by two messages once, absent sensors as such, programs read once on demand,
+  real entity ids and the messages not read.
 - 0.5.0b1: the Weishaupt panel, read only: devices and menus, the table of each menu, weekly
   programs as a week grid, the definitions in use, the clock offset.
 - 0.4.0: the code of 0.4.0b2. On a heating system: definitions 0.5.9 beside the configuration

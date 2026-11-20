@@ -7,6 +7,10 @@ import { LitElement, css, html, nothing, type PropertyValues, type TemplateResul
 import "./week-grid.ts";
 import {
   bars,
+  choose,
+  followPlan,
+  jobText,
+  priceText,
   formatAge,
   formatRange,
   formatValue,
@@ -29,8 +33,21 @@ import {
   WEEKDAYS,
 } from "./format.ts";
 import type {
-  Days, Device, Estimate, FaultTable, Hass, Installation, LiveEvent, Program, Reading, Row, Tree, WriteAnswer,
+  Days, Device, Estimate, FaultTable, Follow, FollowAnswer, Hass, Installation, JobProgress, LiveEvent, Program, Reading,
+  Row, Tree, WriteAnswer,
 } from "./types.ts";
+
+/** A read on demand of a menu, a device or the installation: its cost first, then its job. */
+interface ReadState {
+  device?: string;
+  menu?: string;
+  price?: Estimate;
+  job?: JobProgress;
+  error?: string;
+  reloaded?: boolean; // the entry reloaded while it ran: what was not asked was dropped
+}
+
+const ALL = "__all__";
 
 const DEFINITIONS = "__definitions__";
 const FAULTS = "__faults__";
@@ -70,6 +87,9 @@ export class WeishauptPanel extends LitElement {
     _weekDraft: { state: true },
     _weekResult: { state: true },
     _faults: { state: true },
+    _reads: { state: true },
+    _pending: { state: true },
+    _followNote: { state: true },
   };
 
   declare hass: Hass;
@@ -94,6 +114,9 @@ export class WeishauptPanel extends LitElement {
   declare _weekDraft: Record<string, Record<string, string>>; // program -> day -> text being edited
   declare _weekResult: Record<string, { text: string; error: boolean }>;
   declare _faults: FaultTable[] | undefined;
+  declare _reads: Record<string, ReadState>; // scope (ALL, device, device|menu) -> its read on demand
+  declare _pending: Record<string, boolean>; // entity id -> followed or not, chosen and not applied yet
+  declare _followNote: { text: string; error: boolean } | undefined;
   private _faultTimer?: number;
   private _drag?: { program: string; day: string; from: number; element: HTMLElement };
 
@@ -115,6 +138,8 @@ export class WeishauptPanel extends LitElement {
     this._busy = false;
     this._weekDraft = {};
     this._weekResult = {};
+    this._reads = {};
+    this._pending = {};
   }
 
   private get _lang(): string {
@@ -345,6 +370,10 @@ export class WeishauptPanel extends LitElement {
       // the entry unloaded (a reload): ask the new one for its tree and readings, once it is loaded again
       this._unsubscribe = undefined;
       this._reloading = true;
+      // reads on demand live in the hub that unloaded: what they had not asked is gone
+      this._reads = Object.fromEntries(Object.entries(this._reads).map(([scope, read]) => [
+        scope, read.job && !read.job.ended ? { ...read, reloaded: true } : read,
+      ]));
       const retry = (left: number): void => {
         window.setTimeout(() => {
           if (!this._entryId || !this.isConnected) return;
@@ -364,6 +393,156 @@ export class WeishauptPanel extends LitElement {
       if (Object.keys(event.readings).some((k) => keys.has(k))) this._loadFaults(1000);
     }
     if (event.programs) this._programs = { ...this._programs, ...event.programs };
+    if (event.jobs) {
+      const jobs = event.jobs;
+      this._reads = Object.fromEntries(Object.entries(this._reads).map(([scope, read]) => [
+        scope, read.job && jobs[read.job.id] ? { ...read, job: jobs[read.job.id] } : read,
+      ]));
+    }
+  }
+
+  // ---- reads on demand: a menu, a device, the installation (reads only, at the reader's pace) -----------------
+
+  private _scope(device?: string, menu?: string): string {
+    return device ? (menu ? `${device}|${menu}` : device) : ALL;
+  }
+
+  private async _readCall(scope: string, start: boolean): Promise<void> {
+    const read = this._reads[scope] ?? {};
+    const message: Record<string, unknown> = { type: "weishaupt/panel/read_rows", entry_id: this._entryId, start };
+    if (read.device) message.device = read.device;
+    if (read.menu) message.menu = read.menu;
+    try {
+      const answer = await this.hass.callWS<Estimate>(message);
+      this._reads = { ...this._reads, [scope]: start ? { ...read, price: undefined, job: answer.job } : { ...read, price: answer } };
+    } catch (err) {
+      this._reads = { ...this._reads, [scope]: { ...read, error: (err as Error).message } };
+    }
+  }
+
+  private _price(device?: string, menu?: string): void {
+    const scope = this._scope(device, menu);
+    this._reads = { ...this._reads, [scope]: { device, menu } };
+    void this._readCall(scope, false);
+  }
+
+  private async _stopRead(scope: string): Promise<void> {
+    const read = this._reads[scope];
+    if (!read?.job) return;
+    try {
+      const job = await this.hass.callWS<JobProgress>({
+        type: "weishaupt/panel/stop_read", entry_id: this._entryId, job: read.job.id,
+      });
+      this._reads = { ...this._reads, [scope]: { ...read, job } };
+    } catch (err) {
+      this._reads = { ...this._reads, [scope]: { ...read, error: (err as Error).message } };
+    }
+  }
+
+  private _dismissRead(scope: string): void {
+    const rest = { ...this._reads };
+    delete rest[scope];
+    this._reads = rest;
+  }
+
+  private _readBar(device?: string, menu?: string): TemplateResult {
+    const lang = this._lang;
+    const scope = this._scope(device, menu);
+    const read = this._reads[scope];
+    const what = t(lang, device ? (menu ? "read_scope_menu" : "read_scope_device") : "read_scope_all");
+    if (!read) {
+      return html`<p class="read-bar"><button class="link" @click=${() => this._price(device, menu)}>${what}</button></p>`;
+    }
+    const close = html`<button class="link" @click=${() => this._dismissRead(scope)}>${t(lang, "dismiss")}</button>`;
+    if (read.error) return html`<p class="read-bar error" role="alert">${read.error} ${close}</p>`;
+    if (read.job) {
+      const running = !read.job.ended && !read.reloaded;
+      return html`<p class="read-bar" role="status">
+        ${read.reloaded ? t(lang, "job_reload") : jobText(read.job, lang)}
+        ${running && read.job.total ? html`<progress max=${read.job.total} value=${read.job.done}></progress>` : nothing}
+        ${running
+          ? html`<button class="link" @click=${() => this._stopRead(scope)}>${t(lang, "read_stop")}</button>`
+          : close}
+      </p>`;
+    }
+    if (!read.price) return html`<p class="read-bar secondary">${t(lang, "loading")}</p>`;
+    return html`<p class="read-bar">
+      <strong>${what}</strong> ${priceText(read.price, lang)}
+      <span class="secondary">${t(lang, "read_scope_hint")}</span>
+      ${read.price.queued
+        ? html`<button class="primary" @click=${() => this._readCall(scope, true)}>${t(lang, "read_start")}</button>`
+        : nothing}
+      ${close}
+    </p>`;
+  }
+
+  // ---- following: enable or disable the sensor behind a row, chosen here and applied in one go ------------------
+
+  private _follows(): Follow[] {
+    return (this._tree?.devices ?? []).flatMap((d) => [
+      ...d.rows.map((r) => r.follow), ...d.programs.map((p) => p.follow),
+    ]).filter((f): f is Follow => !!f);
+  }
+
+  private _followed(follow: Follow): boolean {
+    return this._pending[follow.entity_id] ?? follow.enabled;
+  }
+
+  private _toggle(follow: Follow, wanted: boolean): void {
+    this._pending = choose(this._pending, [follow], wanted);
+    this._followNote = undefined;
+  }
+
+  private _followCell(follow: Follow | null): TemplateResult | typeof nothing {
+    const lang = this._lang;
+    if (!follow) return nothing;
+    if (follow.blocked) return html`<span class="secondary">${t(lang, "follow_blocked")}</span>`;
+    const changed = this._pending[follow.entity_id] !== undefined;
+    return html`<label class=${changed ? "follow changed" : "follow"}>
+      <input type="checkbox" .checked=${this._followed(follow)}
+        @change=${(e: Event) => this._toggle(follow, (e.target as HTMLInputElement).checked)} />
+      ${t(lang, "follow")}
+    </label>`;
+  }
+
+  private _followBar(): TemplateResult | typeof nothing {
+    const lang = this._lang;
+    const plan = followPlan(this._pending, this._follows());
+    const n = plan.enable.length + plan.disable.length;
+    if (!n) {
+      return this._followNote
+        ? html`<div class=${this._followNote.error ? "message error" : "message"} role="status">${this._followNote.text}</div>`
+        : nothing;
+    }
+    return html`<div class="message follow-bar" role="status">
+      <p>${t(lang, "follow_pending", { n, enable: plan.enable.length, disable: plan.disable.length })}</p>
+      ${plan.enable.length ? html`<p class="secondary">${t(lang, "follow_reload", { s: 30 })}</p>` : nothing}
+      ${plan.defaultsOff ? html`<p class="warning">${t(lang, "follow_defaults_off", { n: plan.defaultsOff })}</p>` : nothing}
+      <button class="primary" ?disabled=${this._busy} @click=${() => this._applyFollow()}>${t(lang, "follow_apply")}</button>
+      <button class="link" @click=${() => (this._pending = {})}>${t(lang, "follow_discard")}</button>
+    </div>`;
+  }
+
+  private async _applyFollow(): Promise<void> {
+    const lang = this._lang;
+    const plan = followPlan(this._pending, this._follows());
+    this._busy = true;
+    try {
+      const answer = await this.hass.callWS<FollowAnswer>({
+        type: "weishaupt/panel/follow", entry_id: this._entryId, enable: plan.enable, disable: plan.disable,
+      });
+      this._pending = {};
+      const parts = [t(lang, "follow_done", { enabled: answer.enabled.length, disabled: answer.disabled.length })];
+      if (answer.refused.length) parts.push(t(lang, "follow_refused", { n: answer.refused.length }));
+      if (answer.reload) parts.push(t(lang, "follow_reload_soon", { s: answer.reload_after }));
+      this._followNote = { text: parts.join(" "), error: answer.refused.length > 0 };
+      // the registry as it is now (no reload needed for a disabled entity); a reload follows an enabled one
+      if (this._entryId) await this._select(this._entryId, true);
+    } catch (err) {
+      this._followNote = { text: (err as Error).message, error: true };
+    } finally {
+      this._busy = false;
+    }
   }
 
   private _open(entityId: string): void {
@@ -416,6 +595,8 @@ export class WeishauptPanel extends LitElement {
       </header>
       ${this._available ? nothing : html`<div class="message warning" role="status">${t(lang, "unavailable")}</div>`}
       ${this._reloading ? html`<div class="message" role="status">${t(lang, "reloading")}</div>` : nothing}
+      ${this._tree ? html`<div class="top-tools">${this._readBar()}</div>` : nothing}
+      ${this._followBar()}
       ${this._tree ? this._body(this._tree) : html`<div class="message">${t(lang, "loading")}</div>`}
       ${this._dialog ? this._confirmDialog(this._dialog.answer) : nothing}
     `;
@@ -828,10 +1009,23 @@ export class WeishauptPanel extends LitElement {
       .filter(([, rows]) => rows.length);
     return html`<h2>${label(device.label, lang)}${menu ? html` — ${label(menu.label, lang)}` : nothing}</h2>
       ${info.length ? html`<p class="secondary">${info.join(" · ")}</p>` : nothing}
+      ${this._readBar(device.id)}
       ${this._menu === PROGRAMS ? this._programs_view(device) : nothing}
       ${sections.length ? html`<p class="secondary">${t(lang, "write_hint")}</p>` : nothing}
       ${sections.map(
-        ([m, rows]) => html`${m.id !== this._menu ? html`<h3>${label(m.label, lang)}</h3>` : nothing}${this._table(rows)}`,
+        ([m, rows]) => html`${m.id !== this._menu ? html`<h3>${label(m.label, lang)}</h3>` : nothing}
+          <div class="table-tools">
+            ${rows.some((r) => !r.listened && r.read && !r.passive) ? this._readBar(device.id, m.id) : nothing}
+            ${rows.some((r) => r.follow && !r.follow.blocked)
+              ? html`<span>
+                  <button class="link" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), true))}>
+                    ${t(lang, "follow_all")}</button>
+                  <button class="link" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), false))}>
+                    ${t(lang, "follow_none")}</button>
+                </span>`
+              : nothing}
+          </div>
+          ${this._table(rows)}`,
       )}`;
   }
 
@@ -848,6 +1042,7 @@ export class WeishauptPanel extends LitElement {
               <th scope="col">${t(lang, "range")}</th>
               <th scope="col">${t(lang, "write")}</th>
               <th scope="col">${t(lang, "entity")}</th>
+              <th scope="col">${t(lang, "follow")}</th>
             </tr>
           </thead>
           <tbody>
@@ -866,7 +1061,9 @@ export class WeishauptPanel extends LitElement {
                 <td class="secondary nowrap">
                   ${reading ? this._age(reading) : ""}${reading?.kept
                     ? html`<div class="kept">${t(lang, "kept")}</div>`
-                    : nothing}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}
+                    : nothing}${row.passive ? html`<div>${t(lang, "passive")}</div>` : nothing}${reading?.once && !row.passive
+                    ? html`<div class="kept">${t(lang, "read_once")}</div>`
+                    : nothing}
                 </td>
                 <td class="nowrap">${formatRange(row, lang)}</td>
                 <td>${this._writeCell(row)}</td>
@@ -875,8 +1072,9 @@ export class WeishauptPanel extends LitElement {
                     ? html`<button class="link" @click=${() => this._open(row.entity_id!)}>${t(lang, "open")}</button>`
                     : nothing}
                 </td>
+                <td>${this._followCell(row.follow)}</td>
               </tr>${this._editing === row.key
-                ? html`<tr class="edit-row"><td colspan="6">${this._editForm(row)}</td></tr>`
+                ? html`<tr class="edit-row"><td colspan="7">${this._editForm(row)}</td></tr>`
                 : nothing}`;
             })}
           </tbody>
@@ -921,6 +1119,7 @@ export class WeishauptPanel extends LitElement {
           ${program.writable && writes && !editing
             ? html`<button class="link" @click=${() => this._startWeek(program)}>${t(lang, "edit_days")}</button>`
             : nothing}
+          ${this._followCell(program.follow)}
         </h3>
         <p class="secondary">${note}</p>
         ${program.read && !program.listened
@@ -1086,6 +1285,44 @@ export class WeishauptPanel extends LitElement {
   }
 
   static styles = css`
+    .read-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+    .top-tools {
+      padding: 0 16px;
+    }
+    .read-bar progress {
+      width: 160px;
+    }
+    .table-tools {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .follow {
+      white-space: nowrap;
+      font-weight: normal;
+      font-size: 0.9em;
+    }
+    .follow.changed {
+      font-style: italic;
+    }
+    .follow-bar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--card-background-color, var(--primary-background-color));
+      border-bottom: 1px solid var(--divider-color);
+    }
+    .follow-bar p {
+      margin: 0 0 6px;
+    }
     :host {
       display: block;
       min-height: 100vh;
@@ -1247,7 +1484,8 @@ export class WeishauptPanel extends LitElement {
     .message.error {
       color: var(--error-color);
     }
-    .message.warning {
+    .message.warning,
+    .follow-bar .warning {
       color: var(--warning-color);
     }
     table.week th {

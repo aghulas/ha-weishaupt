@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Days, Estimate, Labels, Reading, RegistryEntry, Row, Tree } from "./types.ts";
+import type { Days, Estimate, Follow, JobProgress, Labels, Reading, RegistryEntry, Row, Tree } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -179,6 +179,32 @@ export const STRINGS: Record<string, Record<string, string>> = {
     read_after_queue: "They come after {n} reads already due, {wait}.",
     about_s: "about {n} s",
     about_min: "about {n} min",
+    read_scope_menu: "Read this menu once",
+    read_scope_device: "Read this device once",
+    read_scope_all: "Read everything once",
+    read_scope_hint: "Rows no enabled entity follows are read once, at the pace of the bus, after what the entities wait for.",
+    read_price_one: "1 request, {time}.",
+    read_price_n: "{n} requests, {time}.",
+    read_start: "Start",
+    read_stop: "Stop",
+    dismiss: "Close",
+    job_running: "Reading: {done} of {total} asked, {read} with a value.",
+    job_done: "Read once: {read} of {total} with a value. Not kept up to date: follow a row to keep it.",
+    job_stopped: "Stopped: {done} of {total} asked, {stopped} withdrawn.",
+    job_reload: "The integration reloaded: the reads not yet asked were dropped.",
+    read_once: "read once",
+    follow: "Follow",
+    follow_all: "Follow all",
+    follow_none: "Follow none",
+    follow_blocked: "disabled by its device",
+    follow_pending: "{n} changes to apply: {enable} to follow, {disable} to stop following.",
+    follow_reload: "Home Assistant reloads the integration about {s} s after an entity is enabled: the panel reloads with it, and reads under way stop.",
+    follow_defaults_off: "{n} of them are followed by default (live values, states, counters): disabled, they are no longer read, their history stops, and dashboards or automations that use them no longer find them.",
+    follow_apply: "Apply",
+    follow_discard: "Discard",
+    follow_done: "{enabled} enabled, {disabled} disabled.",
+    follow_reload_soon: "Home Assistant reloads the integration in about {s} s.",
+    follow_refused: "{n} not changed: disabled by their device or config entry, or not this integration's.",
   },
   fr: {
     title: "Weishaupt",
@@ -353,6 +379,32 @@ export const STRINGS: Record<string, Record<string, string>> = {
     read_after_queue: "Elles passent après {n} lectures déjà dues, {wait}.",
     about_s: "environ {n} s",
     about_min: "environ {n} min",
+    read_scope_menu: "Lire ce menu une fois",
+    read_scope_device: "Lire cet appareil une fois",
+    read_scope_all: "Tout lire une fois",
+    read_scope_hint: "Les lignes qu'aucune entité activée ne suit sont lues une fois, au rythme du bus, après ce qu'attendent les entités.",
+    read_price_one: "1 requête, {time}.",
+    read_price_n: "{n} requêtes, {time}.",
+    read_start: "Démarrer",
+    read_stop: "Arrêter",
+    dismiss: "Fermer",
+    job_running: "Lecture : {done} sur {total} demandées, {read} avec une valeur.",
+    job_done: "Lu une fois : {read} sur {total} avec une valeur. Pas tenu à jour : suivez une ligne pour la garder à jour.",
+    job_stopped: "Arrêté : {done} sur {total} demandées, {stopped} retirées.",
+    job_reload: "L'intégration a été rechargée : les lectures pas encore demandées ont été abandonnées.",
+    read_once: "lu une fois",
+    follow: "Suivre",
+    follow_all: "Tout suivre",
+    follow_none: "Ne rien suivre",
+    follow_blocked: "désactivée par son appareil",
+    follow_pending: "{n} changements à appliquer : {enable} à suivre, {disable} à ne plus suivre.",
+    follow_reload: "Home Assistant recharge l'intégration environ {s} s après l'activation d'une entité : le panneau se recharge avec elle, et les lectures en cours s'arrêtent.",
+    follow_defaults_off: "{n} d'entre elles sont suivies par défaut (valeurs instantanées, états, compteurs) : désactivées, elles ne sont plus lues, leur historique s'arrête, et les tableaux de bord ou automatisations qui les utilisent ne les trouvent plus.",
+    follow_apply: "Appliquer",
+    follow_discard: "Annuler",
+    follow_done: "{enabled} activées, {disabled} désactivées.",
+    follow_reload_soon: "Home Assistant recharge l'intégration dans environ {s} s.",
+    follow_refused: "{n} non modifiées : désactivées par leur appareil ou leur entrée, ou pas de cette intégration.",
   },
 };
 
@@ -742,4 +794,68 @@ export function writeSwitch(entities: Record<string, RegistryEntry> | undefined,
   const n = (v: unknown): number | null => (typeof v === "number" ? v : null);
   return { on: state.state === "on", used: n(state.attributes.writes_last_hour),
     max: n(state.attributes.max_writes_per_hour) };
+}
+
+// ---- reads on demand and following entities ---------------------------------------------------------------------
+
+function duration(seconds: number, language: string): string {
+  return seconds >= 90 ? t(language, "about_min", { n: Math.round(seconds / 60) }) : t(language, "about_s", { n: seconds });
+}
+
+/** What a read on demand would cost, before it is started: requests, their time at the reader's pace, and what they
+ * would wait behind. */
+export function priceText(estimate: Estimate, language: string): string {
+  if (estimate.queued === 0) return t(language, "read_nothing");
+  const own = t(language, estimate.queued === 1 ? "read_price_one" : "read_price_n", {
+    n: estimate.queued, time: duration(estimate.seconds, language),
+  });
+  if (estimate.ahead === 0) return own;
+  return `${own} ${t(language, estimate.first_pass ? "read_after_first_pass" : "read_after_queue", {
+    n: estimate.ahead, wait: duration(estimate.wait, language),
+  })}`;
+}
+
+/** Where a read on demand stands. */
+export function jobText(job: JobProgress, language: string): string {
+  if (job.stopped) return t(language, "job_stopped", { done: job.done, total: job.total, stopped: job.stopped });
+  if (job.ended) return t(language, "job_done", { read: job.read, total: job.total });
+  return t(language, "job_running", { done: job.done, total: job.total, read: job.read });
+}
+
+/** The changes chosen in the panel (entity id -> followed or not), against the registry as the tree gave it: what to
+ * enable, what to disable, and how many of those disabled are followed by default. */
+export function followPlan(
+  pending: Record<string, boolean>,
+  follows: (Follow | null | undefined)[],
+): { enable: string[]; disable: string[]; defaultsOff: number } {
+  const known = new Map(follows.filter((f): f is Follow => !!f && !f.blocked).map((f) => [f.entity_id, f]));
+  const enable: string[] = [];
+  const disable: string[] = [];
+  let defaultsOff = 0;
+  for (const [entityId, wanted] of Object.entries(pending)) {
+    const follow = known.get(entityId);
+    if (!follow || follow.enabled === wanted) continue;
+    if (wanted) enable.push(entityId);
+    else {
+      disable.push(entityId);
+      if (follow.default) defaultsOff += 1;
+    }
+  }
+  return { enable: enable.sort(), disable: disable.sort(), defaultsOff };
+}
+
+/** A choice of follow for a set of rows (follow all, follow none) on top of the pending ones: a row already as
+ * wanted drops out of the pending changes. */
+export function choose(
+  pending: Record<string, boolean>,
+  follows: (Follow | null | undefined)[],
+  wanted: boolean,
+): Record<string, boolean> {
+  const next = { ...pending };
+  for (const follow of follows) {
+    if (!follow || follow.blocked) continue;
+    if (follow.enabled === wanted) delete next[follow.entity_id];
+    else next[follow.entity_id] = wanted;
+  }
+  return next;
 }

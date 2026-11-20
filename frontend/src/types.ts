@@ -53,6 +53,35 @@ export interface Row {
   absent: number | null; // the value the device sends when the sensor is not fitted
   edited_on: { device: Labels; key: string } | null; // read from another device's store: changed there
   entity_id: string | null;
+  follow: Follow | null; // the sensor that keeps this row up to date, enabled or not
+  listened: boolean; // an enabled entity reads it
+}
+
+/** The sensor behind a row or a program, as the entity registry has it. */
+export interface Follow {
+  entity_id: string;
+  enabled: boolean;
+  default: boolean; // enabled when created
+  blocked: boolean; // disabled by its device or config entry: not the panel's to change
+}
+
+/** A read on demand the panel started (weishaupt/panel/read_rows), as the server reports it. */
+export interface JobProgress {
+  id: string;
+  total: number;
+  done: number; // asked, whatever came of it
+  read: number; // with a value read since it started
+  stopped: number;
+  ended: boolean;
+}
+
+/** What a follow request did (weishaupt/panel/follow). */
+export interface FollowAnswer {
+  enabled: string[];
+  disabled: string[];
+  refused: { entity_id: string; reason: string }[];
+  reload: boolean;
+  reload_after: number;
 }
 
 export interface Writable {
@@ -112,6 +141,7 @@ export interface Program {
   to_read: number; // slots a "Read now" would really request
   edited_on: { device: Labels; key: string; label: Labels } | null; // read from another device's store
   entity_id: string | null;
+  follow: Follow | null;
 }
 
 export interface Device {
@@ -160,6 +190,7 @@ export interface Reading {
   values: string[];
   when: number; // seconds since the epoch, on Home Assistant's clock
   kept?: boolean; // kept across a reload of the entry, not read again yet
+  once?: boolean; // no enabled entity reads it: read once on demand, not kept up to date
 }
 
 export type Days = Record<string, string[][] | null>; // "1" (Monday) … "7" -> [[from, to], …], null while unread
@@ -170,6 +201,7 @@ export interface LiveEvent {
   available?: boolean;
   readings?: Record<string, Reading | null>;
   programs?: Record<string, Days>;
+  jobs?: Record<string, JobProgress>;
 }
 
 /** The fault tables of a device (weishaupt/panel/faults). */
@@ -201,4 +233,5 @@ export interface Estimate {
   ahead: number;
   wait: number;
   first_pass: boolean;
+  job?: JobProgress;
 }

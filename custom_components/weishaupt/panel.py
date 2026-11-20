@@ -1,10 +1,11 @@
-"""The Weishaupt panel: a read-only view of the installation for administrators, organised like the vendor's
-controllers (device, menu, value), with the weekly programs as a week grid and the definitions in use.
+"""The Weishaupt panel: the installation for administrators, organised like the vendor's controllers (device, menu,
+value), with the weekly programs as a week grid and the definitions in use.
 
 The panel is a web component built from `frontend/` (TypeScript and Lit) into `frontend/dist/weishaupt-panel.js`,
-served by the integration and registered in the sidebar for administrators only. It reads through the WebSocket
-commands below, which only look at what the integration already holds: opening the panel asks nothing from the bus,
-and the panel writes nothing (a change goes through the entity, which the row links to)."""
+served by the integration and registered in the sidebar for administrators only; every WebSocket command below
+requires an administrator. Opening the panel asks nothing from the bus. It reads on demand what no entity follows
+(through the reader's queue, at its pace), enables or disables the sensors behind its rows in the entity registry,
+and writes only through the writer of the entities and its guard."""
 from __future__ import annotations
 
 import time
@@ -37,7 +38,7 @@ async def async_setup_panel(hass: HomeAssistant, version: str) -> None:
     the entities, nor on an installation without it). The URL of the file carries the version, so that an update
     is not hidden by the browser's cache."""
     for command in (ws_installations, ws_tree, ws_subscribe, ws_read_program, ws_write, ws_write_days, ws_clock,
-                    ws_confirm, ws_cancel, ws_faults, ws_read_faults):
+                    ws_confirm, ws_cancel, ws_faults, ws_read_faults, ws_read_rows, ws_stop_read, ws_follow):
         websocket_api.async_register_command(hass, command)
     if "frontend" not in hass.config.components or hass.http is None or not PANEL_FILE.is_file():
         return
@@ -99,6 +100,20 @@ def ws_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
     members = {key: group.key for group in hub.model.groups.values() if group.family == "program"
                for key in group.members}
 
+    ended: set[str] = set()  # jobs whose end this subscriber was told
+
+    def jobs() -> dict[str, Any]:
+        """Progress of the reads asked from the panel that are running, and of those that ended since last told."""
+        found = {}
+        for job in list(hub.read_jobs.values()):
+            if job.id in ended:
+                continue
+            progress = hub.job_progress(job)
+            found[job.id] = progress
+            if progress["ended"]:
+                ended.add(job.id)
+        return found
+
     @callback
     def forward(key: str | None) -> None:
         if key is None:
@@ -107,6 +122,8 @@ def ws_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
             event = {"readings": {key: _reading(hub, key)}, "now": time.time()}
             if key in members:
                 event["programs"] = {members[key]: program_days(hub, members[key])}
+        if progress := jobs():
+            event["jobs"] = progress
         connection.send_message(websocket_api.event_message(msg["id"], event))
 
     stop_observing = hub.async_observe(forward)
@@ -131,7 +148,8 @@ def ws_subscribe(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
         "available": hub.available, "now": time.time(),
         "readings": {key: _reading(hub, key) for key in hub.readings},
         "programs": {key: program_days(hub, key) for key, group in hub.model.groups.items()
-                     if group.family == "program"}}))
+                     if group.family == "program"},
+        "jobs": jobs()}))
 
 
 @websocket_api.require_admin
@@ -429,10 +447,11 @@ def _estimate(queued: int, state: dict[str, Any]) -> dict[str, Any]:
 
 
 def _reading(hub: Hub, key: str) -> dict[str, Any] | None:
-    """The last reading; `kept` while it is the one kept across a reload of the entry, not yet read again."""
+    """The last reading; `kept` while it is the one kept across a reload of the entry, not yet read again; `once`
+    when no enabled entity reads the message: read once on demand, not kept up to date."""
     found = hub.readings.get(key)
     return None if found is None else {"values": list(found.values), "when": found.when,
-                                       "kept": key in hub.restored}
+                                       "kept": key in hub.restored, "once": key not in hub.listened()}
 
 
 def program_days(hub: Hub, group_key: str) -> dict[str, list[list[str]] | None]:
@@ -463,6 +482,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
     """Devices present on the bus with their menus, rows and programs, and the state of the definitions."""
     model, entry = hub.model, hub.entry
     links = _links(hass, entry.entry_id)
+    follow = followable(hass, hub)
     writer = hub.writer
     listened = hub.listened()
     # messages that read the same register as another one of their device (`same_as`): shown on one row
@@ -486,7 +506,11 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "to_read": len(hub.to_read_once(group.members)),
             "edited_on": _edited_on(hub, model.shared_group(group)),
             "entity_id": links.get(f"{group.circuit}/group/{group.id}", {}).get("sensor"),
+            "follow": follow.get(f"{group.circuit}/group/{group.id}"),
         } for group in model.groups.values() if group.family == "program" and group.device == device.id]
+        for row in rows:
+            row["follow"] = follow.get(row["key"])
+            row["listened"] = any(key in listened for key in row["messages"])
         used = {row["menu"] for row in rows} | ({"programs"} if programs else set())
         menus = [{"id": menu.id, "parent": menu.parent, "label": menu.label}
                  for menu in model.menus.get(device.type, ())]
@@ -633,3 +657,129 @@ def _row(hub: Hub, message: Message, fld: Field, links: dict[str, dict[str, str]
         "absent": fld.absent if fld.absent is not None else (ABSENT.get(device_type) if fld.unit == "°C" else None),
         "entity_id": next((entities[p] for p in LINK_ORDER if p in entities), None),
     }
+
+
+# ---- reads on demand for a menu, a device or the installation, and following entities --------------------------------
+#
+# Reads only: the keys go through `Hub.async_read_job`, the same queue, pace and priority as *Read now* of a program
+# (after what the entities wait for, one request at a time). Following an entity enables or disables it in the entity
+# registry, as its own settings dialog does; Home Assistant reloads the entry 30 s after an entity is enabled.
+
+def _row_messages(hub: Hub) -> list[tuple[Any, Message, list[Message]]]:
+    """(device, message, the messages reading the same register) of every row the tree shows."""
+    twins: dict[str, list[Message]] = {}
+    for message in hub.model.messages.values():
+        if message.same_as:
+            twins.setdefault(message.same_as, []).append(message)
+    return [(device, message, twins.get(message.key, [])) for device in hub.devices.values()
+            for message in hub.model.messages.values()
+            if message.device == device.id and message.family != "program" and (message.read or message.passive)
+            and not message.same_as and any(fld.shown for fld in message.fields)]
+
+
+def scope_keys(hub: Hub, device: str | None = None, menu: str | None = None) -> list[str]:
+    """The messages of the rows of a menu (with `device`), a device, or every device, that no enabled entity reads:
+    what a read on demand asks. A row read through another message of its register counts as read."""
+    listened = hub.listened()
+    keys: list[str] = []
+    for found, message, twins in _row_messages(hub):
+        if device is not None and found.id != device or menu is not None and message.menu != menu:
+            continue
+        if any(m.key in listened for m in [message, *twins]):
+            continue
+        if message.key not in keys:
+            keys.append(message.key)
+    return hub.to_read_once(keys)
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/read_rows", vol.Required("entry_id"): str,
+                                  vol.Optional("device"): str, vol.Optional("menu"): str,
+                                  vol.Optional("start", default=False): bool})
+@callback
+def ws_read_rows(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Read once the rows no enabled entity reads, of a menu (`device` and `menu`), a device, or the installation
+    (neither). Without `start`, only what it would cost: the requests, their time, what they wait behind."""
+    hub = _hub(hass, connection, msg)
+    if hub is None:
+        return
+    device, menu = msg.get("device"), msg.get("menu")
+    if device is not None and device not in hub.devices or menu is not None and device is None:
+        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "no such device on the bus")
+        return
+    keys = scope_keys(hub, device, menu)
+    state = hub.queue_state()
+    if not msg["start"]:
+        connection.send_result(msg["id"], _estimate(len(keys), state))
+        return
+    job = hub.async_read_job(keys)
+    connection.send_result(msg["id"], {**_estimate(len(job.keys), state), "job": hub.job_progress(job)})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/stop_read", vol.Required("entry_id"): str,
+                                  vol.Required("job"): str})
+@callback
+def ws_stop_read(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Withdraw what a read on demand has not asked yet; the request being made finishes."""
+    hub = _hub(hass, connection, msg)
+    if hub is None:
+        return
+    job = hub.async_stop_job(msg["job"])
+    if job is None:
+        connection.send_error(msg["id"], websocket_api.ERR_NOT_FOUND, "no such read")
+        return
+    connection.send_result(msg["id"], hub.job_progress(job))
+
+
+# entities disabled by Home Assistant itself (their config entry, their device): not the panel's to enable
+_BLOCKED = (er.RegistryEntryDisabler.CONFIG_ENTRY, er.RegistryEntryDisabler.DEVICE)
+
+
+def followable(hass: HomeAssistant, hub: Hub) -> dict[str, dict[str, Any]]:
+    """Key of a row (`<circuit>/<message>/<field>`) or program (`<circuit>/group/<id>`) -> its sensor in the
+    registry, enabled or not: the entity that makes the reader keep it up to date."""
+    registry = er.async_get(hass)
+    prefix = f"{hub.entry.entry_id}_"
+    defaults = {d.key: (d.platform, d.enabled_default) for d in hub.model.value_entities}
+    defaults |= {d.key: ("sensor", d.enabled_default) for d in hub.model.group_entities}
+    found = {}
+    for item in er.async_entries_for_config_entry(registry, hub.entry.entry_id):
+        key = item.unique_id.removeprefix(prefix)
+        if not item.unique_id.startswith(prefix) or defaults.get(key, (None,))[0] != item.domain:
+            continue
+        found[key] = {"entity_id": item.entity_id, "enabled": item.disabled_by is None,
+                      "default": defaults[key][1], "blocked": item.disabled_by in _BLOCKED}
+    return found
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "weishaupt/panel/follow", vol.Required("entry_id"): str,
+                                  vol.Optional("enable", default=[]): [str],
+                                  vol.Optional("disable", default=[]): [str]})
+@callback
+def ws_follow(hass: HomeAssistant, connection, msg: dict[str, Any]) -> None:
+    """Enable (follow) or disable the sensors of rows and programs, all in one go: Home Assistant reloads the entry
+    once, 30 s after the last entity enabled. Only this entry's own sensors; one disabled by its device or its
+    config entry is left as it is."""
+    hub = _hub(hass, connection, msg)
+    if hub is None:
+        return
+    from homeassistant.config_entries import RELOAD_AFTER_UPDATE_DELAY
+    registry = er.async_get(hass)
+    known = {item["entity_id"]: item for item in followable(hass, hub).values()}
+    changed: dict[str, list[str]] = {"enabled": [], "disabled": []}
+    refused = []
+    for wanted, entity_ids in ((True, msg["enable"]), (False, msg["disable"])):
+        for entity_id in entity_ids:
+            item = known.get(entity_id)
+            if item is None or item["blocked"]:
+                refused.append({"entity_id": entity_id, "reason": "not_followable" if item is None else "blocked"})
+                continue
+            if item["enabled"] == wanted:
+                continue
+            registry.async_update_entity(
+                entity_id, disabled_by=None if wanted else er.RegistryEntryDisabler.USER)
+            changed["enabled" if wanted else "disabled"].append(entity_id)
+    connection.send_result(msg["id"], {**changed, "refused": refused, "reload": bool(changed["enabled"]),
+                                       "reload_after": RELOAD_AFTER_UPDATE_DELAY})

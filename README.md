@@ -206,6 +206,24 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   Programs not proven writable are read only.
 - **Setting the clock**: the header's *Set the clock* asks for the same confirmation as the
   button entity and sends at second 00.
+- **Reading what no entity follows**: a row that no enabled entity reads says *not read: no enabled entity*.
+  *Read this menu once* (above each table), *Read this device once* and *Read everything once* (under the header)
+  first show what it would cost: the requests, their time at the reader's pace and what they wait behind; nothing is
+  asked until *Start*. Then a progress bar, and *Stop*, which withdraws what is not asked yet (the request under way
+  finishes). The reads go into the reader's queue after what the entities wait for, one request at a time, at the
+  gap of the options, as *Read now* of a program; reads only. A value read this way shows its time and *read once*:
+  it is not kept up to date. A reload of the integration drops what was not asked yet, and the panel says so. With
+  definitions 0.6.0, all nine devices and the entities enabled when created, *Read everything once* is 223
+  requests, about 7½ minutes at 2 s (the system manager 58, each room unit 41, each heating module 12, each boiler
+  9); program slots and fault tables keep their own *Read now*. Counted from the metadata on the test bench.
+- **Following**: each row and each program has *Follow*, the sensor that keeps it up to date (enabled), and each
+  table *Follow all* and *Follow none*. Choices are collected and applied together with *Apply*, which enables or
+  disables those sensors in Home Assistant's entity registry, as their own settings would. Home Assistant reloads
+  the integration about 30 s after an entity is enabled (once, however many were enabled); the panel says so and
+  reloads with it. A disabled sensor stops at once, with no reload. Disabling a sensor that is followed by default
+  (live values, states, counters) is allowed and says what it stops: no more readings, no more history, and
+  dashboards or automations that use it no longer find it. An entity disabled by its device or its config entry is
+  left as it is. Administrators only, checked by Home Assistant for each command.
 - **Faults** (read only), per device that has them: the boilers' fault memory, most recent first
   when its pointer is read, each entry with its code, the text of the manual's fault list as the
   definitions give it, and the values the automat stored with it (the automat stores no time);
@@ -682,6 +700,8 @@ under the same name. After the update:
 
 The release notes on GitHub give each version in full; here only what changed what you install or see.
 
+- 0.11.0: the panel reads on demand what no entity follows, per menu, per device or everything, with its cost
+  first, a progress bar and a stop; and follows or stops following rows and programs, applied in one go.
 - 0.10.2: documentation only: install the add-on with the run-time checksum from the start if you mean to write,
   *Reconfigure* when ebusd moves, one way to a shell, switch Writes off after use, the size of the telegram log;
   writing in one section, developer sections at the end.

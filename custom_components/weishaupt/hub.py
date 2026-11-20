@@ -84,6 +84,17 @@ class Statistics:
     invalid_by_message: dict[str, int] = field(default_factory=dict)
 
 
+@dataclass
+class ReadJob:
+    """Reads asked from the panel for a menu, a device or the installation, followed until all are asked."""
+
+    id: str
+    keys: tuple[str, ...]
+    started: float
+    stopped: int = 0
+    ended: float | None = None
+
+
 class Hub:
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, client: EbusdClient, model: Model) -> None:
         self.hass, self.entry, self.client, self.model = hass, entry, client, model
@@ -104,6 +115,11 @@ class Hub:
         self._observers: list[Callable[[str | None], None]] = []
         self._closing: list[CALLBACK_TYPE] = []  # told when the entry unloads (the panel subscribes again)
         self._once: set[str] = set()  # asked once for the panel although no entity listens (`async_read_once`)
+        # reads asked from the panel's tables (`async_read_job`): id -> the keys it queued, when it started; dropped
+        # with the hub at a reload
+        self.read_jobs: dict[str, ReadJob] = {}
+        self._job_of: dict[str, str] = {}  # key queued once -> the job that queued it
+        self._job_counter = 0
         self.circuits: set[str] = set()  # circuits of the devices present, whose definitions were compared
         self.named_entities: set[str] = set()  # unique ids of the entities named from the metadata
         self._due: dict[str, float] = {}
@@ -311,7 +327,11 @@ class Hub:
                 wait = self._last_request + self.request_gap - time.monotonic()
                 if wait > 0:
                     await asyncio.sleep(wait)
+            in_job = key in self._job_of
             pause = await self._read(message)
+            if in_job:  # a read the panel follows was asked, whatever came of it: its progress moves on
+                for observer in list(self._observers):
+                    observer(None)
             if pause:
                 await asyncio.sleep(pause)
 
@@ -320,6 +340,7 @@ class Hub:
         key, interval, now = message.key, self.interval(message), time.monotonic()
         self._urgent.discard(key)
         self._once.discard(key)  # asked once for the panel: not again, even when it fails
+        self._job_of.pop(key, None)
         first = key not in self._asked
         self._asked.add(key)
         if self.first_pass_done is None and self._asked >= set(self._listeners):
@@ -440,6 +461,48 @@ class Hub:
             self._due[key] = 0.0
         self._wake.set()
         return len(queued)
+
+    @callback
+    def async_read_job(self, keys: list[str]) -> ReadJob:
+        """Read these messages once, as `async_read_once`, as one job the panel follows and can stop."""
+        queued = self.to_read_once(keys)
+        for old in [j.id for j in self.read_jobs.values() if j.ended is not None and time.time() - j.ended > 600]:
+            del self.read_jobs[old]
+        self._job_counter += 1
+        job = ReadJob(f"read{self._job_counter}", tuple(queued), time.time())
+        self.read_jobs[job.id] = job
+        self.async_read_once(tuple(queued))
+        for key in queued:
+            self._job_of[key] = job.id
+        if not queued:
+            job.ended = time.time()
+        return job
+
+    def job_progress(self, job: ReadJob) -> dict[str, Any]:
+        """How far a job is: asked (done), with a value read since it started (read), stopped, ended."""
+        left = sum(1 for key in job.keys if self._job_of.get(key) == job.id)
+        read = sum(1 for key in job.keys if (r := self.readings.get(key)) is not None and r.when >= job.started)
+        if left == 0 and job.ended is None:
+            job.ended = time.time()
+        return {"id": job.id, "total": len(job.keys), "done": len(job.keys) - left - job.stopped, "read": read,
+                "stopped": job.stopped, "ended": job.ended is not None}
+
+    @callback
+    def async_stop_job(self, job_id: str) -> ReadJob | None:
+        """Withdraw what a job has not asked yet; what is being asked now finishes. Nothing else is touched: the
+        job queued only keys nobody else had queued."""
+        job = self.read_jobs.get(job_id)
+        if job is None:
+            return None
+        stopped = [key for key in job.keys if self._job_of.get(key) == job.id]
+        for key in stopped:
+            self._once.discard(key)
+            del self._job_of[key]
+        job.stopped += len(stopped)
+        job.ended = job.ended or time.time()
+        for observer in list(self._observers):
+            observer(None)
+        return job
 
     @callback
     def async_observe(self, observer: Callable[[str | None], None]) -> CALLBACK_TYPE:

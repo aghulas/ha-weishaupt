@@ -210,3 +210,35 @@ test("the card: the write switch and its counters", () => {
   assert.deepEqual(writeSwitch(entities, states), { on: true, used: 2, max: 30 });
   assert.equal(writeSwitch({}, states), null);
 });
+
+test("read on demand: its cost before it starts, then where it stands", async () => {
+  const { priceText, jobText } = await import("../src/format.ts");
+  const price = { queued: 223, seconds: 446, ahead: 0, wait: 0, first_pass: false };
+  assert.equal(priceText(price, "en"), "223 requests, about 7 min.");
+  assert.equal(priceText({ ...price, queued: 1, seconds: 2 }, "fr"), "1 requête, environ 2 s.");
+  assert.equal(priceText({ ...price, ahead: 50, wait: 100, first_pass: true }, "en"),
+    "223 requests, about 7 min. They come after the first pass that follows a start: 50 reads still due, about 2 min.");
+  assert.equal(priceText({ ...price, queued: 0 }, "en"), t("en", "read_nothing"));
+  const job = { id: "read1", total: 12, done: 5, read: 4, stopped: 0, ended: false };
+  assert.equal(jobText(job, "en"), "Reading: 5 of 12 asked, 4 with a value.");
+  assert.match(jobText({ ...job, done: 12, read: 11, ended: true }, "fr"), /^Lu une fois : 11 sur 12/);
+  assert.equal(jobText({ ...job, stopped: 7, ended: true }, "en"), "Stopped: 5 of 12 asked, 7 withdrawn.");
+});
+
+test("following: chosen rows against the registry, defaults that stop, blocked left alone", async () => {
+  const { followPlan, choose } = await import("../src/format.ts");
+  const live = { entity_id: "sensor.flow", enabled: true, default: true, blocked: false };
+  const setting = { entity_id: "sensor.blocking", enabled: false, default: false, blocked: false };
+  const held = { entity_id: "sensor.held", enabled: false, default: false, blocked: true };
+  const off = { entity_id: "sensor.mine", enabled: true, default: false, blocked: false };
+  let pending = choose({}, [live, setting, held, off], true);
+  assert.deepEqual(pending, { "sensor.blocking": true }); // follow all: only what is not followed yet
+  pending = choose(pending, [live, off], false);
+  assert.deepEqual(followPlan(pending, [live, setting, held, off]), {
+    enable: ["sensor.blocking"], disable: ["sensor.flow", "sensor.mine"], defaultsOff: 1,
+  });
+  // back to what it was: nothing pending for it
+  assert.deepEqual(choose(pending, [live], true), { "sensor.blocking": true, "sensor.mine": false });
+  // a blocked or unknown entity never gets into the plan
+  assert.deepEqual(followPlan({ "sensor.held": true, "sensor.other": true }, [held]), { enable: [], disable: [], defaultsOff: 0 });
+});

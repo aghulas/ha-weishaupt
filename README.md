@@ -10,8 +10,9 @@ Not affiliated with Weishaupt or with the ebusd project. It is provided as is, w
 remain the reference.
 
 **Read only unless you enable writes.** Out of the box it sends nothing to the heating system but read requests.
-With writes enabled, it can change what a release of the definitions proves writable (83 settings, 12 weekly
-programs and the clock with definitions 0.6.0, see [Writing settings](#writing-settings)) and nothing else, through
+With writes enabled, it can change what a release of the definitions proves writable (with definitions 0.6.0, 83
+of its 92 settings, the nine without a range kept read only, 12 weekly programs and the clock; see
+[Writing settings](#writing-settings)) and nothing else, through
 a write guard, with a confirmation by a person for every setting that changes the regulation. Its ebusd client
 refuses every command other than `info`, `find`, `read`, one form of register write and the clock broadcast.
 
@@ -27,17 +28,19 @@ Do the steps in this order. Nothing here writes to the heating system.
 - An eBUS adapter and **ebusd 26.1** connected to the bus. On Home Assistant OS this is usually the ebusd add-on
   ([LukasGrebe/ha-addons](https://github.com/LukasGrebe/ha-addons)). A stock ebusd is enough for reading.
 - **Definitions 0.6.0 or a later 0.6.x** loaded by that ebusd, started with `--scanconfig`: take a release tagged
-  `weishaupt-…` from <https://github.com/aghulas/ebusd-configuration/releases> and follow its notice. GitHub marks
-  these releases *pre-release*; 0.6.0 is nevertheless the one this version is built for. These definitions are not
+  `weishaupt-…` from <https://github.com/aghulas/ebusd-configuration/releases>, the latest 0.6.x, and follow its
+  notice. 0.6.0 is flagged *pre-release* on GitHub; from 0.6.1 the releases are normal ones. These definitions are not
   part of the official ebusd configuration yet: with a local `--configpath`, ebusd no longer uses the official
   online files.
 - With the add-on: each option of ebusd is one entry of *Additional ebusd options*, and a folder in the add-on's
   configuration folder (`/addon_configs/<prefix>_ebusd/` on the host) is `/config/…` for ebusd (the add-on's
   documentation, *App config folder*).
 
-**Check that ebusd loaded them**, before installing the integration. With the add-on, *Open Web UI* on its Info
-page opens a terminal; elsewhere use `ebusctl`. `ebusctl info` gives one line per device found, with the file it
-loaded:
+**Check that ebusd loaded them**, before installing the integration, with `ebusctl` where ebusd runs. With the
+add-on, as the definitions notice says: the add-on's documentation offers a shell under **Open Web UI**; where that
+page shows ebusd's web page instead (as on the test installation), use the SSH add-on with its protection mode off:
+`docker ps` shows the add-on's container (its name ends in `_ebusd`), and each command below becomes
+`docker exec <container> ebusctl …`. `ebusctl info` gives one line per device found, with the file it loaded:
 
 ```text
 address 08: slave #11, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kromschroeder/08.w.bc1.csv"
@@ -129,8 +132,9 @@ every write while one is missing.
    writing is switched on for a session of changes.
 
 This integration does not use MQTT. If the ebusd add-on's MQTT discovery is on (its default), ebusd publishes
-entities of its own: whatever of them can write does not pass through this guard, and with a stock ebusd must not
-be used to write these devices.
+entities of its own; with the file the add-on seeds (`mqtt-hassio.cfg`, `filter-direction = r|u`) they are read
+only, and writable messages become entities only if that filter is changed (definitions notice). Such entities do
+not pass through this guard: do not change the filter with a stock ebusd.
 
 Each setting has a **risk class** from the definitions: **comfort** settings (room and hot-water setpoints, the
 program days) are written as soon as you set them; **regulation** settings (heating curve, limits, cascade and
@@ -444,9 +448,10 @@ What is writable is decided by the definitions, not by the integration: a settin
 entity (a select for a choice) only when the metadata of the release gives it **write conditions** (the
 definitions prove the write on a bus and an evidence record names it) and ebusd loaded its write
 definition as the release has it. Structural settings (circuit type, boiler sequence…) never have
-write conditions. The metadata of 0.6.0 gives write conditions to 92 settings of one value; nine of them, the
-control variation and the third holiday registers of the three room units, have no range, their meaning not
-established: they stay read only. That leaves 83, 15 of them comfort, each with a change and its restore captured
+write conditions. The definitions notice counts 92 settings written on the test installation, and the metadata of
+0.6.0 gives all 92 write conditions; nine of them, the control variation and the two third holiday registers
+(start, end) of the three room units, have no range, their meaning not established: the integration keeps them read
+only. That leaves 83, 15 of them comfort, each with a change and its restore captured
 on the bus of the test installation (fixtures of the release):
 
 | Device | Comfort | Regulation | Source |

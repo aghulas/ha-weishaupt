@@ -15,7 +15,7 @@
       },
       "reconfigure": {
         "title": "ebusd",
-        "description": "New address of the same ebusd.",
+        "description": "New address of the ebusd in use. The entry, its devices, entities, history and options are kept.",
         "data": {
           "host": "Host",
           "port": "Port"
@@ -24,10 +24,39 @@
           "host": "Host name or IP address of ebusd.",
           "port": "TCP command port of ebusd, 8888 unless it was changed."
         }
+      },
+      "addons": {
+        "title": "ebusd",
+        "description": "The ebusd add-ons found on this Home Assistant. Tick each one this integration may use: they run one at a time (one adapter), and the integration uses the one that is running. A stopped add-on is kept without being tested. You can also enter the address of an ebusd elsewhere. Nothing is written to the heating system unless writes are enabled later in the options.",
+        "data": {
+          "addons": "ebusd add-ons",
+          "host": "Other ebusd: host",
+          "port": "Other ebusd: port"
+        },
+        "data_description": {
+          "addons": "Name, host name and state of each ebusd add-on.",
+          "host": "Optional: host name or IP address of an ebusd that is not an add-on of this Home Assistant.",
+          "port": "TCP command port of that ebusd, 8888 unless it was changed."
+        }
+      },
+      "reconfigure_addons": {
+        "title": "ebusd",
+        "description": "The ebusd add-ons and the other ebusd this integration may use. The entry, its devices, entities, history and options are kept.",
+        "data": {
+          "addons": "ebusd add-ons",
+          "host": "Other ebusd: host",
+          "port": "Other ebusd: port"
+        },
+        "data_description": {
+          "addons": "Name, host name and state of each ebusd add-on.",
+          "host": "Optional: host name or IP address of an ebusd that is not an add-on of this Home Assistant. Empty: none.",
+          "port": "TCP command port of that ebusd, 8888 unless it was changed."
+        }
       }
     },
     "error": {
-      "cannot_connect": "No ebusd answers at this address."
+      "cannot_connect": "No ebusd answers at this address.",
+      "no_endpoint": "Choose at least one ebusd."
     },
     "abort": {
       "already_configured": "This ebusd is already configured."
@@ -36,22 +65,49 @@
   "options": {
     "step": {
       "init": {
+        "title": "Options",
+        "menu_options": {
+          "settings": "Bus load and writes",
+          "ebusd": "Which ebusd",
+          "telegram_log": "Telegram log of each ebusd"
+        }
+      },
+      "settings": {
         "title": "Bus load and writes",
         "data": {
           "request_gap": "Time between two requests",
           "cyclic_interval": "Interval of the live values",
           "writes_enabled": "Enable writes of the proven settings",
-          "telegram_db": "Telegram log of ebusd",
           "max_writes_per_hour": "Maximum writes per hour"
         },
         "data_description": {
           "request_gap": "The integration never sends two requests closer together than this.",
           "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
           "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
-          "telegram_db": "Path of the SQLite telegram log the ebusd add-on keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed.",
           "max_writes_per_hour": "Writes accepted within any sliding hour (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
         },
         "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set."
+      },
+      "ebusd": {
+        "title": "Which ebusd",
+        "description": "In use now: {label}. Follow the running ebusd: the integration uses the one that answers with a signal on the bus, and moves to another known one when the one in use stops answering. Pinned: it uses that one only. Changing this reloads the integration: entities and history are kept, the write switch is off, the build is checked again. No add-on is started or stopped.",
+        "data": {
+          "use": "ebusd to use"
+        }
+      },
+      "telegram_log": {
+        "title": "Telegram log",
+        "description": "Each ebusd add-on keeps its own telegram log (its option sqlite_db). Choose the ebusd whose log path you want to set.",
+        "data": {
+          "endpoint": "ebusd"
+        }
+      },
+      "telegram_log_path": {
+        "title": "Telegram log of {label}",
+        "description": "Path of the SQLite telegram log this ebusd keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed.",
+        "data": {
+          "telegram_db": "Telegram log"
+        }
       }
     }
   },
@@ -153,6 +209,35 @@
           "removed": "{device} and its entities were removed."
         }
       }
+    },
+    "ebusd_not_running": {
+      "title": "ebusd {label} does not answer",
+      "description": "The ebusd this integration uses does not answer, and no other known ebusd answers either. Its entities are unavailable until one does. Start the ebusd add-on you use (Settings > Add-ons), or check the address under Devices & services > Weishaupt > Reconfigure.\n\n{endpoints}"
+    },
+    "ebusd_not_running_fixable": {
+      "title": "ebusd {label} does not answer",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Use another ebusd",
+            "description": "{label} does not answer, and another known ebusd does. Choose it, or let the integration follow the running ebusd. The integration reloads; no add-on is started or stopped and nothing is sent to the bus.",
+            "data": {
+              "use": "ebusd to use"
+            }
+          }
+        },
+        "abort": {
+          "no_entry": "The integration entry is not there any more: nothing was changed.",
+          "none_answers": "No other ebusd answers now: nothing was changed."
+        },
+        "create_entry": {
+          "switched": "The integration now uses the ebusd you chose."
+        }
+      }
+    },
+    "ebusd_several": {
+      "title": "Several ebusd answer with a signal",
+      "description": "{labels} answer with a signal on the bus. One adapter should serve one ebusd at a time. The integration keeps {label} and does not switch between them. Stop the ebusd add-on you do not use, or pin one in the options (Which ebusd)."
     }
   },
   "exceptions": {
@@ -251,6 +336,9 @@
     },
     "bad_day_overlap": {
       "message": "{day}: the ranges overlap. Expected ranges one after the other, like 06:30-12:00, 13:00-18:00."
+    },
+    "no_ebusd": {
+      "message": "None of the {count} ebusd of this entry answers."
     }
   },
   "weekdays": {
@@ -322,6 +410,11 @@
         "circulation_stored": "Circulation program",
         "dhw": "Hot water program (system manager)",
         "circulation": "Circulation program (system manager)"
+      }
+    },
+    "ebusd_choice": {
+      "options": {
+        "follow": "Follow the running ebusd"
       }
     }
   }

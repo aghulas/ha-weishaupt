@@ -43,6 +43,7 @@ from .ebusd import (
     EbusdNoData,
     EbusdNoSignal,
 )
+from .endpoints import SWITCH_AFTER_FAILURES
 from .model import Device, Message, Mismatch, Model
 
 _LOGGER = logging.getLogger(__name__)
@@ -140,6 +141,12 @@ class Hub:
         # whether ebusd computes the run-time checksum, probed at every set-up whether writes are enabled or not
         # (the writer's probe when there is a writer): which ebusd build answers, found without sending anything to
         # the bus
+        self.endpoint = None  # endpoints.Endpoint in use, set by __init__.py
+        # told after SWITCH_AFTER_FAILURES failed connections in a row (another endpoint may answer), and when ebusd
+        # answers again after being unavailable; set by __init__.py
+        self.on_lost: Callable[[], Any] | None = None
+        self.on_back: Callable[[], Any] | None = None
+        self.connection_failures = 0  # in a row
         self.build_capability = "not checked"
         self.build_probe_answers: list[str] = []
         # where the metadata comes from (metadata_file.py), and the names the bundled translations hold when it is
@@ -370,6 +377,9 @@ class Hub:
             self._due[key] = now + interval  # passive message not seen yet: nothing wrong
             return 0.0
         except EbusdConnectionError as err:
+            self.connection_failures += 1
+            if self.connection_failures == SWITCH_AFTER_FAILURES and self.on_lost is not None:
+                self.on_lost()
             self.statistics.connection_lost += 1
             self.statistics.last_error = str(err)
             self._set_available(False, f"ebusd cannot be reached: {err}")
@@ -527,6 +537,8 @@ class Hub:
         return remove
 
     def _set_available(self, available: bool, reason: str = "") -> None:
+        if available:
+            self.connection_failures = 0  # ebusd answered, with a signal or not
         if available == self.available:
             return
         self.available = available
@@ -534,6 +546,8 @@ class Hub:
             observer(None)
         if available:
             _LOGGER.info("ebusd answers again")
+            if self.on_back is not None:
+                self.on_back()
         else:
             _LOGGER.warning("%s; the values are unavailable until it answers", reason)
         for update in list(self._availability_listeners):

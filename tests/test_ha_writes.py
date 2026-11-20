@@ -506,7 +506,7 @@ async def test_migration_enables_the_numbers_0_3_0b2_disabled(hass, fake, log):
     sensor = registry.async_get_or_create(
         "sensor", DOMAIN, f"{entry.entry_id}_ka/BlockingTime/value", config_entry=entry, disabled_by=integration)
     await setup(hass, entry)
-    assert (entry.version, entry.minor_version) == (2, 2)
+    assert (entry.version, entry.minor_version) == (2, 3)  # and on to 2.3 (endpoints)
     assert registry.async_get(by_integration.entity_id).disabled_by is None
     assert registry.async_get(by_user.entity_id).disabled_by is user
     assert registry.async_get(sensor.entity_id).disabled_by is integration

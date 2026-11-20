@@ -25,7 +25,46 @@ async def async_create_fix_flow(hass: HomeAssistant, issue_id: str, data: dict[s
         return RemoveOlderEntitiesFlow(data or {})
     if (data or {}).get("kind") == "device_absent":
         return RemoveAbsentDeviceFlow(data or {})
+    if (data or {}).get("kind") == "ebusd_choice":
+        return EbusdChoiceFlow(data or {})
     return ConfirmWriteFlow(data or {})
+
+
+class EbusdChoiceFlow(RepairsFlow):
+    """The ebusd in use does not answer and another one does: use that one (pinned), or follow the running one.
+    Only the entry changes, and it reloads; no add-on is started or stopped, nothing is sent to the bus."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._entry_id = data.get("entry_id")
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        return await self.async_step_choose()
+
+    async def async_step_choose(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        from homeassistant.helpers import issue_registry as ir
+        from homeassistant.helpers import selector
+
+        from . import endpoints
+        from .const import DOMAIN
+        entry = self.hass.config_entries.async_get_entry(self._entry_id) if self._entry_id else None
+        if entry is None:
+            return self.async_abort(reason="no_entry")
+        data = dict(entry.data)
+        if user_input is not None:
+            endpoints.apply_choice(self.hass, entry, user_input["use"])
+            ir.async_delete_issue(self.hass, DOMAIN, endpoints.issue_not_running(entry.entry_id))
+            return self.async_create_entry(data={}, description="switched")
+        in_use = endpoints.current(data)
+        surveys = await endpoints.survey(endpoints.endpoints_of(data))
+        answering = [s.endpoint for s in surveys if s.answers and s.endpoint.key != in_use.key]
+        if not answering:
+            return self.async_abort(reason="none_answers")
+        options = [selector.SelectOptionDict(value=endpoints.MODE_FOLLOW, label="follow")] + [
+            selector.SelectOptionDict(value=e.key, label=e.label) for e in answering]
+        schema = vol.Schema({vol.Required("use", default=endpoints.MODE_FOLLOW): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=options, translation_key="ebusd_choice"))})
+        return self.async_show_form(step_id="choose", data_schema=schema,
+                                    description_placeholders={"label": in_use.label})
 
 
 class RemoveAbsentDeviceFlow(RepairsFlow):

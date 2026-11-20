@@ -12,7 +12,7 @@ import logging
 import time
 from pathlib import Path
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_HOST, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -21,7 +21,8 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
-from .const import CONF_WRITES_ENABLED, DOCUMENTATION_URL, DOMAIN
+from . import endpoints
+from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOCUMENTATION_URL, DOMAIN
 from .devices import DeviceWatch
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
@@ -30,6 +31,7 @@ from .metadata_file import FOLDER as METADATA_FOLDER, choose
 from .model import ACCEPTED_DEFINITIONS, WEEKDAYS
 from .panel import async_setup_panel
 from .services import async_register_services
+from .supervisor import addon_states
 from .writer import Writer, async_probe_build
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR,
@@ -49,9 +51,64 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+async def _async_pick_endpoint(hass: HomeAssistant, entry: WeishauptConfigEntry) -> None:
+    """In `follow` mode with several endpoints: ask each `info` (nothing reaches the bus) and use the one with a
+    signal (endpoints.choose). The entry's data is updated before anything listens to it: no reload. Pinned, or
+    one endpoint: the one in use, as before 0.12.0."""
+    data = dict(entry.data)
+    candidates = endpoints.endpoints_of(data)
+    if endpoints.mode_of(data) != endpoints.MODE_FOLLOW or len(candidates) < 2:
+        return
+    in_use = endpoints.current(data)
+    surveys = await endpoints.survey(candidates)
+    chosen, with_signal = endpoints.choose(in_use, surveys)
+    endpoints.update_several(hass, entry, with_signal)
+    if chosen is None:
+        endpoints.raise_not_running(hass, entry, surveys, addon_states(hass))
+        raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="no_ebusd",
+                                  translation_placeholders={"count": str(len(candidates))})
+    if chosen.key != in_use.key:
+        _LOGGER.warning("ebusd %s does not answer with a signal: using %s", in_use.label, chosen.label)
+        hass.config_entries.async_update_entry(entry, data=endpoints.use(data, chosen))
+
+
+async def _async_lost(hass: HomeAssistant, entry: WeishauptConfigEntry) -> None:
+    """The ebusd in use failed SWITCH_AFTER_FAILURES connections in a row. Following: another endpoint that answers
+    with a signal is used (the entry reloads). Otherwise, or pinned: the repair that says so."""
+    data = dict(entry.data)
+    in_use = endpoints.current(data)
+    surveys = await endpoints.survey(endpoints.endpoints_of(data))
+    if entry.state is not ConfigEntryState.LOADED or entry.runtime_data.available:
+        return  # unloaded meanwhile, or the ebusd in use answers again
+    if endpoints.mode_of(data) == endpoints.MODE_FOLLOW:
+        other = next((s.endpoint for s in surveys if s.signal and s.endpoint.key != in_use.key), None)
+        if other is not None:
+            _LOGGER.warning("ebusd %s no longer answers: using %s", in_use.label, other.label)
+            hass.config_entries.async_update_entry(entry, data=endpoints.use(data, other))  # reloads
+            return
+    endpoints.raise_not_running(hass, entry, surveys, addon_states(hass))
+
+
+async def _async_back(hass: HomeAssistant, entry: WeishauptConfigEntry) -> None:
+    """The ebusd in use answers again: the repair goes; another build behind the same address (the add-on updated
+    in place) reloads the entry, so that its definitions are compared and its build probed again."""
+    endpoints.clear_not_running(hass, entry.entry_id)
+    hub = entry.runtime_data
+    try:
+        info = await hub.client.info()
+    except EbusdError:
+        return
+    if hub.info is not None and info.version != hub.info.version and entry.state is ConfigEntryState.LOADED:
+        _LOGGER.warning("ebusd now reports version %s (was %s): reloading", info.version, hub.info.version)
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
+    await _async_pick_endpoint(hass, entry)
+    in_use = endpoints.current(dict(entry.data))
     choice = await hass.async_add_executor_job(choose, Path(hass.config.path(METADATA_FOLDER)))
-    hub = Hub(hass, entry, EbusdClient(entry.data[CONF_HOST], entry.data[CONF_PORT]), choice.model)
+    hub = Hub(hass, entry, EbusdClient(in_use.host, in_use.port), choice.model)
+    hub.endpoint = in_use
     hub.metadata_source, hub.metadata_refused = choice.source, choice.refused
     if choice.source != "bundled":
         hub.translated = await hass.async_add_executor_job(_bundled_names)
@@ -63,6 +120,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     try:
         await hub.async_setup(expected)
     except EbusdError as err:
+        candidates = endpoints.endpoints_of(dict(entry.data))
+        surveys = await endpoints.survey(candidates)
+        endpoints.raise_not_running(hass, entry, surveys, addon_states(hass))
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                   translation_placeholders={"error": str(err)}) from err
     waiting = hass.data.setdefault(f"{DOMAIN}_waiting_for_scan", {})
@@ -84,7 +144,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
         hub.restore(kept["readings"])
     hub.urgent_at_start = hass.data.get(f"{DOMAIN}_enabled_by_migration", {}).pop(entry.entry_id, set())
     if entry.options.get(CONF_WRITES_ENABLED):
-        hub.writer = Writer(hass, hub, dict(entry.options))
+        # the telegram log of the ebusd in use: each add-on has its own
+        hub.writer = Writer(hass, hub, dict(entry.options) | {CONF_TELEGRAM_DB: in_use.telegram_db})
         try:
             await hub.writer.async_setup()
         except EbusdError as err:
@@ -98,6 +159,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
             raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                       translation_placeholders={"error": str(err)}) from err
     entry.runtime_data = hub
+    endpoints.clear_not_running(hass, entry.entry_id)
+    hub.on_lost = lambda: entry.async_create_background_task(hass, _async_lost(hass, entry), f"{DOMAIN} ebusd lost")
+    hub.on_back = lambda: entry.async_create_background_task(hass, _async_back(hass, entry), f"{DOMAIN} ebusd back")
     assert hub.info is not None
     hub.device_id = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id, identifiers={hub_identifier(hub)}, name="ebusd", manufacturer="ebusd",
@@ -293,7 +357,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     from homeassistant.helpers.storage import Store
     await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.writes").async_remove()
     await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.devices").async_remove()
-    for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities", "old_entities"):
+    for issue in ("no_devices", "definitions_mismatch", "definitions_file", "stale_entities", "old_entities",
+                  "ebusd_not_running", "ebusd_several"):
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")
 
 
@@ -316,6 +381,14 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 enabled.add("/".join(item.unique_id.removeprefix(f"{entry.entry_id}_").split("/")[:2]))
         hass.data.setdefault(f"{DOMAIN}_enabled_by_migration", {})[entry.entry_id] = enabled
         hass.config_entries.async_update_entry(entry, minor_version=2)
+    if entry.version == 2 and entry.minor_version < 3:
+        # 2.3 (0.12.0): a list of ebusd endpoints. The address of the entry becomes the one endpoint, pinned, with
+        # the telegram log of the options: the entry behaves as before until the user changes it
+        options = dict(entry.options)
+        endpoint = endpoints.Endpoint(entry.data[CONF_HOST], int(entry.data[CONF_PORT]), "ebusd",
+                                      telegram_db=options.pop(CONF_TELEGRAM_DB, None) or DEFAULT_TELEGRAM_DB)
+        data = {**entry.data, endpoints.CONF_ENDPOINTS: [endpoint.as_dict()], endpoints.CONF_MODE: endpoints.MODE_PINNED}
+        hass.config_entries.async_update_entry(entry, data=data, options=options, minor_version=3)
     return entry.version <= 2
 
 

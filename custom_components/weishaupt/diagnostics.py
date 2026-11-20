@@ -16,6 +16,7 @@ from homeassistant.components.diagnostics import REDACTED, async_redact_data
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
+from . import endpoints
 from .hub import WeishauptConfigEntry
 from .const import DOMAIN
 from .model import ACCEPTED_DEFINITIONS
@@ -27,8 +28,10 @@ TO_REDACT = {CONF_HOST, "unique_id", "entry_id", "title", "telegram_db", "user_i
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]:
     # the values behind the redacted keys also appear inside texts (an error naming ebusd's address, a path):
     # replaced wherever they are found
+    candidates = endpoints.endpoints_of(dict(entry.data))
     secrets = [str(v) for v in (entry.data.get(CONF_HOST), entry.options.get("telegram_db"), entry.unique_id,
-                                entry.entry_id) if v and len(str(v)) > 2]
+                                entry.entry_id, *(e.host for e in candidates), *(e.telegram_db for e in candidates))
+               if v and len(str(v)) > 2]
     secrets += [user.id for user in await hass.auth.async_get_users()]
     data = async_redact_data(_collect(hass, entry), TO_REDACT)
     return _scrub(data, sorted(set(secrets), key=len, reverse=True)) | {"redacted": sorted(TO_REDACT)}
@@ -70,6 +73,9 @@ def _collect(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]
                 for a in (info.addresses.values() if info else ())],
             "commands_sent": dict(hub.client.requests),
             "run_time_checksum": hub.capability,
+            "endpoint_in_use": hub.endpoint.label if hub.endpoint is not None else None,
+            "mode": endpoints.mode_of(dict(entry.data)),
+            "endpoints": [{"label": e.label, "addon": e.addon} for e in endpoints.endpoints_of(dict(entry.data))],
             "probe_answers": hub.writer.probe_answers if hub.writer is not None else hub.build_probe_answers,
         },
         "devices": sorted(hub.devices),

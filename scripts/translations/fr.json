@@ -15,7 +15,7 @@
       },
       "reconfigure": {
         "title": "ebusd",
-        "description": "Nouvelle adresse du même ebusd.",
+        "description": "Nouvelle adresse de l'ebusd utilisé. L'entrée, ses appareils, entités, historique et options sont conservés.",
         "data": {
           "host": "Hôte",
           "port": "Port"
@@ -24,10 +24,39 @@
           "host": "Nom d'hôte ou adresse IP d'ebusd.",
           "port": "Port de commande TCP d'ebusd, 8888 s'il n'a pas été changé."
         }
+      },
+      "addons": {
+        "title": "ebusd",
+        "description": "Les modules complémentaires ebusd trouvés sur ce Home Assistant. Cochez chacun de ceux que l'intégration peut utiliser : ils fonctionnent un à la fois (un seul adaptateur), et l'intégration utilise celui qui est démarré. Un module arrêté est gardé sans être testé. Vous pouvez aussi saisir l'adresse d'un ebusd ailleurs. Rien n'est écrit vers l'installation de chauffage tant que les écritures ne sont pas activées dans les options.",
+        "data": {
+          "addons": "Modules ebusd",
+          "host": "Autre ebusd : hôte",
+          "port": "Autre ebusd : port"
+        },
+        "data_description": {
+          "addons": "Nom, nom d'hôte et état de chaque module ebusd.",
+          "host": "Facultatif : nom d'hôte ou adresse IP d'un ebusd qui n'est pas un module de ce Home Assistant.",
+          "port": "Port de commande TCP de cet ebusd, 8888 s'il n'a pas été changé."
+        }
+      },
+      "reconfigure_addons": {
+        "title": "ebusd",
+        "description": "Les modules ebusd et l'autre ebusd que l'intégration peut utiliser. L'entrée, ses appareils, entités, historique et options sont conservés.",
+        "data": {
+          "addons": "Modules ebusd",
+          "host": "Autre ebusd : hôte",
+          "port": "Autre ebusd : port"
+        },
+        "data_description": {
+          "addons": "Nom, nom d'hôte et état de chaque module ebusd.",
+          "host": "Facultatif : nom d'hôte ou adresse IP d'un ebusd qui n'est pas un module de ce Home Assistant. Vide : aucun.",
+          "port": "Port de commande TCP de cet ebusd, 8888 s'il n'a pas été changé."
+        }
       }
     },
     "error": {
-      "cannot_connect": "Aucun ebusd ne répond à cette adresse."
+      "cannot_connect": "Aucun ebusd ne répond à cette adresse.",
+      "no_endpoint": "Choisissez au moins un ebusd."
     },
     "abort": {
       "already_configured": "Cet ebusd est déjà configuré."
@@ -36,22 +65,49 @@
   "options": {
     "step": {
       "init": {
+        "title": "Options",
+        "menu_options": {
+          "settings": "Charge sur le bus et écritures",
+          "ebusd": "Quel ebusd",
+          "telegram_log": "Journal des télégrammes de chaque ebusd"
+        }
+      },
+      "settings": {
         "title": "Charge sur le bus et écritures",
         "data": {
           "request_gap": "Délai entre deux requêtes",
           "cyclic_interval": "Intervalle des valeurs instantanées",
           "writes_enabled": "Activer l'écriture des réglages prouvés",
-          "telegram_db": "Journal des télégrammes d'ebusd",
           "max_writes_per_hour": "Écritures par heure au maximum"
         },
         "data_description": {
           "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
           "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
           "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
-          "telegram_db": "Chemin du journal SQLite des télégrammes que tient le module complémentaire ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté.",
           "max_writes_per_hour": "Écritures acceptées sur toute heure glissante (1 à 200, 30 par défaut). La limite protège la mémoire des régulateurs de l'usure : gardez 30 en service normal. Une valeur plus haute est réservée à une campagne d'essais surveillée ; remettez 30 à la fin de la campagne. La modifier recharge l'intégration, ce qui remet le compte à zéro."
         },
         "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés."
+      },
+      "ebusd": {
+        "title": "Quel ebusd",
+        "description": "Utilisé maintenant : {label}. Suivre l'ebusd en marche : l'intégration utilise celui qui répond avec un signal sur le bus, et passe à un autre ebusd connu quand celui utilisé ne répond plus. Fixé : elle n'utilise que celui-là. Changer ce choix recharge l'intégration : entités et historique sont conservés, l'interrupteur d'écriture est éteint, le build est vérifié de nouveau. Aucun module n'est démarré ni arrêté.",
+        "data": {
+          "use": "ebusd à utiliser"
+        }
+      },
+      "telegram_log": {
+        "title": "Journal des télégrammes",
+        "description": "Chaque module ebusd tient son propre journal des télégrammes (son option sqlite_db). Choisissez l'ebusd dont vous voulez régler le chemin du journal.",
+        "data": {
+          "endpoint": "ebusd"
+        }
+      },
+      "telegram_log_path": {
+        "title": "Journal des télégrammes de {label}",
+        "description": "Chemin du journal SQLite des télégrammes que tient cet ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté.",
+        "data": {
+          "telegram_db": "Journal des télégrammes"
+        }
       }
     }
   },
@@ -153,6 +209,35 @@
           "removed": "{device} et ses entités ont été supprimés."
         }
       }
+    },
+    "ebusd_not_running": {
+      "title": "L'ebusd {label} ne répond pas",
+      "description": "L'ebusd qu'utilise l'intégration ne répond pas, et aucun autre ebusd connu ne répond non plus. Ses entités sont indisponibles jusqu'à ce qu'un ebusd réponde. Démarrez le module ebusd que vous utilisez (Paramètres > Modules complémentaires), ou vérifiez l'adresse sous Appareils et services > Weishaupt > Reconfigurer.\n\n{endpoints}"
+    },
+    "ebusd_not_running_fixable": {
+      "title": "L'ebusd {label} ne répond pas",
+      "fix_flow": {
+        "step": {
+          "choose": {
+            "title": "Utiliser un autre ebusd",
+            "description": "{label} ne répond pas, et un autre ebusd connu répond. Choisissez-le, ou laissez l'intégration suivre l'ebusd en marche. L'intégration se recharge ; aucun module n'est démarré ni arrêté et rien n'est envoyé sur le bus.",
+            "data": {
+              "use": "ebusd à utiliser"
+            }
+          }
+        },
+        "abort": {
+          "no_entry": "L'entrée de l'intégration n'existe plus : rien n'a été changé.",
+          "none_answers": "Aucun autre ebusd ne répond maintenant : rien n'a été changé."
+        },
+        "create_entry": {
+          "switched": "L'intégration utilise maintenant l'ebusd choisi."
+        }
+      }
+    },
+    "ebusd_several": {
+      "title": "Plusieurs ebusd répondent avec un signal",
+      "description": "{labels} répondent avec un signal sur le bus. Un adaptateur ne devrait servir qu'un ebusd à la fois. L'intégration garde {label} et ne bascule pas de l'un à l'autre. Arrêtez le module ebusd que vous n'utilisez pas, ou fixez-en un dans les options (Quel ebusd)."
     }
   },
   "exceptions": {
@@ -251,6 +336,9 @@
     },
     "bad_day_overlap": {
       "message": "{day} : les plages se chevauchent. Attendu : des plages l'une après l'autre, comme 06:30-12:00, 13:00-18:00."
+    },
+    "no_ebusd": {
+      "message": "Aucun des {count} ebusd de cette entrée ne répond."
     }
   },
   "weekdays": {
@@ -322,6 +410,11 @@
         "circulation_stored": "Programme de circulation",
         "dhw": "Programme d'eau chaude (gestionnaire de système)",
         "circulation": "Programme de circulation (gestionnaire de système)"
+      }
+    },
+    "ebusd_choice": {
+      "options": {
+        "follow": "Suivre l'ebusd en marche"
       }
     }
   }

@@ -3,6 +3,7 @@
   "name": "Weishaupt WTC / WCM (ebusd, unofficial)",
   "after_dependencies": [
     "frontend",
+    "hassio",
     "http",
     "panel_custom",
     "websocket_api"

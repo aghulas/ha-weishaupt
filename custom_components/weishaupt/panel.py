@@ -17,6 +17,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 
+from . import endpoints
 from .const import DOMAIN
 from .hub import Hub
 from .model import Field, Message
@@ -525,7 +526,10 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
         "entry_id": entry.entry_id, "title": entry.title,
         "ebusd": {"version": hub.info.version if hub.info else None, "available": hub.available,
                   "own_address": hub.own_address,
-                  "capability": hub.capability},
+                  "capability": hub.capability,
+                  "endpoint": hub.endpoint.label if hub.endpoint is not None else None,
+                  "mode": endpoints.mode_of(dict(entry.data)),
+                  "endpoints": [e.label for e in endpoints.endpoints_of(dict(entry.data))]},
         "definitions": {
             "version": model.version, "commit": model.commit, "source": hub.metadata_source,
             "refused": hub.metadata_refused, "named_from_metadata": _named(hass, hub),

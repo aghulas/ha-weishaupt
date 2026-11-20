@@ -206,10 +206,10 @@ def update_older_issue(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 
 def _follow_renames(hass: HomeAssistant, entry: ConfigEntry, hub: Hub) -> None:
-    """A definitions release renamed a message: its entity keeps its registry entry (entity id, history,
-    settings of the user) and gets the unique id built from the new name."""
+    """A definitions release renamed a message or a field: its entity keeps its registry entry (entity id, history,
+    settings of the user) and gets the unique id built from the new name. Sensors and settings alike."""
     registry = er.async_get(hass)
-    for description in hub.model.value_entities:
+    for description in [*hub.model.value_entities, *hub.model.setting_entities]:
         if description.former_key is None:
             continue
         old, new = (f"{entry.entry_id}_{key}" for key in (description.former_key, description.key))

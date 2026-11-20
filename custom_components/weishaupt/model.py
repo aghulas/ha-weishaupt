@@ -27,7 +27,9 @@ METADATA_FILE = Path(__file__).parent / "metadata.json"
 # definition is not loaded). 0.5.5 changes only the metadata (write ranges, risk classes), which the integration
 # ships itself: what ebusd loads from 0.5.3 on is the same for reads and writes. So the range starts at 0.5.3. A
 # later 0.5.x only adds messages.
-ACCEPTED_DEFINITIONS = ">=0.5.3, <0.6"
+# 0.6 renamed fields of HcMode, retyped MixerPump and LegionellaStartTime, renamed DHWExceeded: the second number of
+# the definitions changed. With ebusd still on 0.5.x the comparison names the messages that differ (see README).
+ACCEPTED_DEFINITIONS = ">=0.6.0, <0.7"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "
@@ -58,6 +60,7 @@ class Field:
     step: float | None = None
     description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
     absent: float | None = None  # the value the device sends when the sensor is not fitted, when the metadata says
+    renamed_from: str | None = None  # the field's former name, when a release renamed it (definitions 0.6.0 and later)
 
     @property
     def shown(self) -> bool:
@@ -191,9 +194,8 @@ class ValueEntity:
 
     @property
     def former_key(self) -> str | None:
-        """Key the entity had before its message was renamed, None when it was not."""
-        former = self.message.renamed_from
-        return f"{former}/{self.field.name}" if former else None
+        """Key the entity had before its message or its field was renamed, None when neither was."""
+        return former_key(self.message, self.field)
 
     @property
     def diagnostic(self) -> bool:
@@ -223,6 +225,10 @@ class NumberDescription:
     @property
     def key(self) -> str:
         return f"{self.message.key}/{self.field.name}"
+
+    @property
+    def former_key(self) -> str | None:
+        return former_key(self.message, self.field)
 
     @property
     def platform(self) -> str:
@@ -364,7 +370,7 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
               f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
-              f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"))
+              f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"), f.get("renamed_from"))
         for index, f in enumerate(data["fields"]))
     write = data.get("write")
     conditions = None if write is None else WriteConditions(
@@ -382,10 +388,21 @@ def _base_type(name: str) -> str:
     return name[:-2] if name.startswith("BI") and name.endswith(":1") else name
 
 
+def former_key(message: Message, fld: Field) -> str | None:
+    """`<message>/<field>` before a release renamed the message (`renamed_from` on the message) or the field
+    (`renamed_from` on the field, definitions 0.6.0 and later); None when neither was renamed."""
+    if not message.renamed_from and not fld.renamed_from:
+        return None
+    return f"{message.renamed_from or message.key}/{fld.renamed_from or fld.name}"
+
+
 def _difference(message: Message, definition) -> str:
-    """Empty when the definition ebusd loaded is the one the metadata describes."""
+    """Empty when the definition ebusd loaded is the one the metadata describes. A field renamed by a later release
+    (`renamed_from`) may still carry its former name in ebusd: the values are the same, read by position."""
     loaded = [f for f in definition.fields if not f.type.startswith("IGN")]
-    if [f.name for f in loaded] != [f.name for f in message.fields]:
+    names = [f.name for f in loaded]
+    if len(names) != len(message.fields) or any(
+            name not in (ours.name, ours.renamed_from) for name, ours in zip(names, message.fields)):
         return f"fields {','.join(f.name for f in loaded)}"
     for ours, theirs in zip(message.fields, loaded):
         if _base_type(theirs.type) != _base_type(ours.type):
@@ -413,9 +430,7 @@ def _value_entities(model: Model) -> tuple[ValueEntity, ...]:
         if not (message.read or message.passive):  # write-only (the date and time broadcast): nothing to show
             continue
         shown = [f for f in message.fields if f.shown]
-        for fld in shown:
-            if fld.type.startswith(("TTQ",)):
-                continue
+        for fld in shown:  # a time of day (TTQ, LegionellaStartTime from 0.6.0) is shown as its text, 08:30
             single = len(shown) == 1
             label = message.label if single or fld.label is None else fld.label
             composed = {lang: f"{message.label[lang]}{NAME_SEPARATOR}{text}" for lang, text in label.items()}

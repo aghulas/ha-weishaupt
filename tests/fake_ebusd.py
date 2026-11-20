@@ -41,6 +41,19 @@ def crc(data: bytes) -> int:
     return value
 
 
+def _neutral(type_: str, divisor_or_values: str) -> str:
+    """A plausible decoded value for a field without a recorded answer."""
+    if "=" in divisor_or_values:
+        return divisor_or_values.split(";")[0].split("=", 1)[1]
+    if type_.startswith(("TTQ", "TTH", "TTM")):
+        return "00:00"
+    if type_.startswith(("HEX", "STR", "NTS")):
+        return "-"
+    if divisor_or_values and divisor_or_values.lstrip("-").isdigit() and int(divisor_or_values) > 1:
+        return f"{0:.{len(divisor_or_values) - 1}f}"
+    return "0"
+
+
 class FakeEbusd:
     def __init__(self, golden: dict) -> None:
         # the recording was made without a bus: a running installation reports a signal
@@ -48,6 +61,10 @@ class FakeEbusd:
         self.definitions: dict[str, str] = dict(golden["definitions"])
         self._golden_definitions: dict[str, str] = dict(golden["definitions"])
         self.reads: dict[str, str] = dict(golden["reads"])
+        # a message the release has no fixture for (definitions 0.6.0: 51, mostly of room units 2 and 3) gets an
+        # answer: the recorded one of the same message on another circuit, else a neutral value per field
+        self.synthesized: set[str] = set()
+        self._synthesize()
         self.write_definitions: dict[str, str] = dict(golden["write_definitions"])
         self.runtime_checksum = True  # the fork's build; False: a stock ebusd
         self.not_taken: set[str] = set()  # settings whose device acknowledges a write and keeps its value
@@ -70,6 +87,24 @@ class FakeEbusd:
         self.max_active = 0
         self.port = 0
         self._server: asyncio.Server | None = None
+
+    def _synthesize(self) -> None:
+        by_name: dict[str, str] = {}
+        for key, text in self.reads.items():
+            by_name.setdefault(key.split("/")[1], text)
+        for circuit, text in self.definitions.items():
+            for row in csv.reader(io.StringIO(text)):
+                if len(row) < 8 or not row[0].startswith("r") or f"{circuit}/{row[2]}" in self.reads:
+                    continue
+                key = f"{circuit}/{row[2]}"
+                fields = [row[i:i + 6] for i in range(8, len(row) - 5, 6)]
+                fields = [f for f in fields if f and f[0] and not f[2].startswith("IGN")]
+                if row[2] in by_name and len(by_name[row[2]].split(";")) == len(fields):
+                    answer = by_name[row[2]]
+                else:
+                    answer = ";".join(_neutral(f[2], f[3]) for f in fields)
+                self.reads[key] = answer
+                self.synthesized.add(key)
 
     # ---- knobs for the tests --------------------------------------------------------------------------------
 

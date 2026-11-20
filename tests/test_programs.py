@@ -65,12 +65,13 @@ def test_slots_of_a_day():
 
 def test_the_programs_the_definitions_prove(programs):
     """The five programs of room units 1 and 3, the hot-water and circulation programs of the system manager's own
-    circuit (em1, the hot-water program the installation applies); nothing of room unit 2. 252 slots."""
+    circuit (em1, the hot-water program the installation applies); nothing of room unit 2, whose program 1 is kept
+    by room unit 1 and changed there. 252 slots."""
     found, specs, refused = programs
     assert sorted(found) == [f"{c}/{p}" for c in ("em1",) for p in ("circulation", "dhw")] + [
         f"{c}/{p}" for c in ("fs1", "fs3") for p in ("circulation_stored", "dhw_stored", "heating1", "heating2",
                                                      "heating3")]
-    assert refused == [] and len(specs) == 12 * 21 == 252
+    assert refused == ["fs2/heating1: kept by fs1/heating1, changed there"] and len(specs) == 12 * 21 == 252
     assert not [key for key in specs if key.startswith("fs2/")]
     assert found["fs1/heating1"].day_keys(7) == ("fs1/HCProgram1Sun1", "fs1/HCProgram1Sun2", "fs1/HCProgram1Sun3")
     sun3 = specs["fs1/HCProgram1Sun3"]

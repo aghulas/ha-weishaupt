@@ -42,7 +42,7 @@ async def test_only_reading_commands_reach_ebusd(hass, fake):
     # disabled by default, so never requested: per-fault counters, programs a room unit only stores, the clock
     assert not [k for k in asked if "FaultCounters" in k or "Program" in k or k.startswith("em1/System")
                 or hub.model.messages[k].kind == "setting"]
-    assert len(asked) == 69 and hub.statistics.bus_requests == 61  # 8 passive messages come from the cache
+    assert len(asked) == 85 and hub.statistics.bus_requests == 72  # 13 passive messages come from the cache
     assert hub.statistics.bus_requests + hub.statistics.cache_reads == len(asked)
 
 
@@ -93,7 +93,7 @@ async def test_requests_are_spaced(hass, fake):
     reads = fake.reads_of()
     passive = [(t, c) for t, c in reads if hub.model.messages[_message(c)].passive]
     bus = [(t, c) for t, c in reads if not hub.model.messages[_message(c)].passive]
-    assert len(passive) == 8 and passive[-1][0] - passive[0][0] < gap  # all at once, before the first request
+    assert len(passive) == 13 and passive[-1][0] - passive[0][0] < gap  # all at once, before the first request
     gaps = [b[0] - a[0] for a, b in zip(bus, bus[1:])]
     assert min(gaps) >= gap * 0.9
     assert max(gaps) < gap * 3  # and no slower than asked while messages are due

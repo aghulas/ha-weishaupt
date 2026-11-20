@@ -59,5 +59,5 @@ async def test_fault_tables_are_for_administrators(hass, fake, hass_ws_client, h
         assert not answer["success"] and answer["error"]["code"] == "unauthorized"
     admin = await hass_ws_client(hass)
     await admin.send_json({"id": 9, "type": "weishaupt/panel/read_faults", "entry_id": entry.entry_id,
-                           "device": "room1"})
+                           "device": "module2"})  # no fault message (room units have a fault log from 0.5.14)
     assert (await admin.receive_json())["error"]["code"] == "not_found"

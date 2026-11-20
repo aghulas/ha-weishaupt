@@ -440,6 +440,9 @@
       "module_hcmode_valveopening": {
         "name": "Vanne mélangeuse, ouverture"
       },
+      "module_mixerpump": {
+        "name": "Pompe du circuit mélangé"
+      },
       "system_kastatus_burnerstatus": {
         "name": "Brûleur"
       },
@@ -505,6 +508,12 @@
       "manager_legionellasetpoint": {
         "name": "Consigne de température anti-légionelle (réglage)"
       },
+      "manager_modulationmax": {
+        "name": "Modulation maximale (plage optimale) (réglage)"
+      },
+      "manager_modulationmin": {
+        "name": "Modulation minimale (plage optimale) (réglage)"
+      },
       "manager_regulationi": {
         "name": "Régulateur de puissance, facteur I (réglage)"
       },
@@ -553,6 +562,9 @@
       "room_boilermcboosttemp": {
         "name": "Surélévation de température chaudière (réglage)"
       },
+      "room_controlvariation": {
+        "name": "Variante de régulation (réglage)"
+      },
       "room_dhwsetpoint": {
         "name": "Consigne de température ECS (réglage)"
       },
@@ -561,6 +573,24 @@
       },
       "room_gradientcurve": {
         "name": "Pente de la courbe de chauffe (réglage)"
+      },
+      "room_holidayendday": {
+        "name": "Jour de fin des vacances (réglage)"
+      },
+      "room_holidayendmonth": {
+        "name": "Mois de fin des vacances (réglage)"
+      },
+      "room_holidayendthird": {
+        "name": "Fin des vacances, troisième registre (réglage)"
+      },
+      "room_holidaystartday": {
+        "name": "Jour de début des vacances (réglage)"
+      },
+      "room_holidaystartmonth": {
+        "name": "Mois de début des vacances (réglage)"
+      },
+      "room_holidaystartthird": {
+        "name": "Début des vacances, troisième registre (réglage)"
       },
       "room_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel (réglage)"
@@ -628,6 +658,21 @@
       },
       "boiler_dhwtemp": {
         "name": "Température ECS (i34)"
+      },
+      "boiler_eventcounters_burnerhourstoday": {
+        "name": "Heures brûleur du jour (selon le symbole)"
+      },
+      "boiler_eventcounters_ignitionstoday": {
+        "name": "Allumages du jour (selon le symbole)"
+      },
+      "boiler_eventcounters_poweroncount": {
+        "name": "Mises sous tension"
+      },
+      "boiler_eventcounters_resetcount": {
+        "name": "Réinitialisations"
+      },
+      "boiler_eventcounters_shutoffcount": {
+        "name": "Coupures"
       },
       "boiler_fault_history": {
         "name": "Mémoire de défauts",
@@ -760,6 +805,18 @@
       "boiler_outsidetemp": {
         "name": "Température extérieure (i33)"
       },
+      "boiler_powerdemand_dhwsettemp": {
+        "name": "Consigne de température ECS"
+      },
+      "boiler_powerdemand_heatdemandtemp": {
+        "name": "Température de départ demandée"
+      },
+      "boiler_powerdemand_modulation": {
+        "name": "Demande de modulation"
+      },
+      "boiler_powerdemand_status": {
+        "name": "État de la demande"
+      },
       "boiler_returntemp": {
         "name": "Température retour (i37)"
       },
@@ -889,6 +946,37 @@
       "manager_boilermcboosttemp": {
         "name": "Surélévation de température chaudière"
       },
+      "manager_boilersequence1first": {
+        "name": "Ordre des chaudières 1, première",
+        "state": {
+          "a": "Chaudière A",
+          "b": "Chaudière B"
+        }
+      },
+      "manager_boilersequence1second": {
+        "name": "Ordre des chaudières 1, deuxième",
+        "state": {
+          "a": "Chaudière A",
+          "b": "Chaudière B"
+        }
+      },
+      "manager_boilersequence2first": {
+        "name": "Ordre des chaudières 2, première",
+        "state": {
+          "a": "Chaudière A",
+          "b": "Chaudière B"
+        }
+      },
+      "manager_boilersequence2second": {
+        "name": "Ordre des chaudières 2, deuxième",
+        "state": {
+          "a": "Chaudière A",
+          "b": "Chaudière B"
+        }
+      },
+      "manager_calorifierexcesstemp": {
+        "name": "Surélévation stock tampon"
+      },
       "manager_calorifierswitchdiff": {
         "name": "Différentiel de commutation du stock tampon"
       },
@@ -898,13 +986,19 @@
       "manager_configstatus": {
         "name": "État de la configuration"
       },
+      "manager_decoupleexcesstemp": {
+        "name": "Surélévation casse-pression"
+      },
+      "manager_decouplemaxtemp": {
+        "name": "Température maximale casse-pression"
+      },
       "manager_decouplemintemp": {
         "name": "Température minimale de bouteille casse-pression"
       },
       "manager_decoupletemp": {
         "name": "Sonde de bouteille casse-pression B22"
       },
-      "manager_dhwexceeded": {
+      "manager_dhwexcesstemp": {
         "name": "Surélévation de température ECS"
       },
       "manager_dhwlegionelladay": {
@@ -930,6 +1024,9 @@
       },
       "manager_dhwloadtime": {
         "name": "Temps de charge maximal ECS"
+      },
+      "manager_dhwsetbacktemp": {
+        "name": "Consigne ECS réduite"
       },
       "manager_dhwsetpoint": {
         "name": "Consigne de température ECS"
@@ -1023,6 +1120,18 @@
       "manager_legionellasetpoint": {
         "name": "Consigne de température anti-légionelle"
       },
+      "manager_legionellastarttime": {
+        "name": "Heure anti-légionelle"
+      },
+      "manager_modulationdifftemp": {
+        "name": "Différentiel de modulation"
+      },
+      "manager_modulationmax": {
+        "name": "Modulation maximale (plage optimale)"
+      },
+      "manager_modulationmin": {
+        "name": "Modulation minimale (plage optimale)"
+      },
       "manager_modulationstatus": {
         "name": "Degré de modulation"
       },
@@ -1031,6 +1140,9 @@
       },
       "manager_outsideweightedtemp": {
         "name": "Température extérieure pondérée"
+      },
+      "manager_plateexchangerprimarytemp": {
+        "name": "Échangeur à plaques, primaire B24"
       },
       "manager_regulationi": {
         "name": "Régulateur de puissance, facteur I"
@@ -1046,6 +1158,46 @@
       },
       "manager_roomsetbacktemp": {
         "name": "Température ambiante réduite"
+      },
+      "manager_summertimeendday": {
+        "name": "Fin heure d'été, jour"
+      },
+      "manager_summertimeendmonth": {
+        "name": "Fin heure d'été, mois",
+        "state": {
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
+        }
+      },
+      "manager_summertimestartday": {
+        "name": "Début heure d'été, jour"
+      },
+      "manager_summertimestartmonth": {
+        "name": "Début heure d'été, mois",
+        "state": {
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
+        }
       },
       "manager_summerwinterchangeovertemp": {
         "name": "Commutation été/hiver"
@@ -1109,6 +1261,9 @@
       "module_boilermcboosttemp": {
         "name": "Surélévation de température chaudière"
       },
+      "module_circulationreturnsettemp": {
+        "name": "Consigne retour circulation ECS"
+      },
       "module_gradientcurve": {
         "name": "Pente de la courbe de chauffe"
       },
@@ -1136,6 +1291,9 @@
       "module_hcmode_supplyhctemp": {
         "name": "Échange commande à distance / module d'extension – Température de départ"
       },
+      "module_mixerparameter": {
+        "name": "Paramètre de la vanne mélangeuse"
+      },
       "module_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel"
       },
@@ -1159,6 +1317,12 @@
       },
       "module_supplymintemp": {
         "name": "Température de départ minimale"
+      },
+      "module_versionmajor": {
+        "name": "Version du logiciel, partie majeure"
+      },
+      "module_versionminor": {
+        "name": "Version du logiciel, partie mineure"
       },
       "program_circulation": {
         "name": "Programme de circulation ECS",
@@ -1366,8 +1530,79 @@
       "room_boilermcboosttemp": {
         "name": "Surélévation de température chaudière"
       },
+      "room_controlvariation": {
+        "name": "Variante de régulation"
+      },
+      "room_dhwlegionelladay": {
+        "name": "Jour anti-légionelle (mémorisé)",
+        "state": {
+          "off": "Arrêt",
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
+      },
+      "room_dhwloadingpriority": {
+        "name": "Priorité ECS (mémorisée)",
+        "state": {
+          "priority": "Priorité",
+          "sliding": "Mobile",
+          "parallel": "Parallèle"
+        }
+      },
+      "room_dhwmaxtemp": {
+        "name": "Température ECS maximale (mémorisée)"
+      },
+      "room_dhwsetbacktemp": {
+        "name": "Consigne ECS réduite (mémorisée)"
+      },
       "room_dhwsetpoint": {
         "name": "Consigne de température ECS"
+      },
+      "room_errorcode": {
+        "name": "Code défaut de l'entrée"
+      },
+      "room_errorday": {
+        "name": "Jour du mois du défaut"
+      },
+      "room_errordevice": {
+        "name": "Origine du défaut de l'entrée"
+      },
+      "room_errorhour": {
+        "name": "Heure du défaut"
+      },
+      "room_errorid": {
+        "name": "Entrée sélectionnée de l'historique des défauts"
+      },
+      "room_errorminute": {
+        "name": "Minute du défaut"
+      },
+      "room_errormonth": {
+        "name": "Mois du défaut",
+        "state": {
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
+        }
+      },
+      "room_errortype": {
+        "name": "Type de défaut de l'entrée"
+      },
+      "room_erroryear": {
+        "name": "Année du défaut"
       },
       "room_frostprotectionlimittemp": {
         "name": "Température limite hors-gel"
@@ -1378,6 +1613,35 @@
       "room_heatdemandtemp": {
         "name": "Température de départ demandée"
       },
+      "room_heatingcircuittype": {
+        "name": "Type de circuit de chauffage",
+        "state": {
+          "floor_base_heating": "Réchauffage de base plancher",
+          "floor_heating": "Plancher chauffant",
+          "radiator60": "Radiateurs 60",
+          "radiator70": "Radiateurs 70",
+          "convector": "Convecteurs",
+          "universal": "Universel"
+        }
+      },
+      "room_holidayendday": {
+        "name": "Jour de fin des vacances"
+      },
+      "room_holidayendmonth": {
+        "name": "Mois de fin des vacances"
+      },
+      "room_holidayendthird": {
+        "name": "Fin des vacances, troisième registre"
+      },
+      "room_holidaystartday": {
+        "name": "Jour de début des vacances"
+      },
+      "room_holidaystartmonth": {
+        "name": "Mois de début des vacances"
+      },
+      "room_holidaystartthird": {
+        "name": "Début des vacances, troisième registre"
+      },
       "room_holidaytemplevel": {
         "name": "Niveau de température pendant les vacances",
         "state": {
@@ -1385,11 +1649,26 @@
           "setback": "Réduit"
         }
       },
+      "room_legionellacirculationtime": {
+        "name": "Temps de circulation anti-légionelle (mémorisé)"
+      },
+      "room_legionellasetpoint": {
+        "name": "Consigne anti-légionelle (mémorisée)"
+      },
+      "room_outsidemixedtemp": {
+        "name": "Température extérieure mélangée"
+      },
       "room_outsidetemp": {
         "name": "Température extérieure"
       },
       "room_outsideweightedtemp": {
         "name": "Température extérieure pondérée"
+      },
+      "room_powerdemand_heatdemandtemp": {
+        "name": "Température de départ demandée (envoyée)"
+      },
+      "room_powerdemand_status": {
+        "name": "État de la demande"
       },
       "room_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel"
@@ -1400,8 +1679,51 @@
       "room_roomsetbacktemp": {
         "name": "Température ambiante réduite"
       },
+      "room_roomsetpointtemp": {
+        "name": "Consigne d'ambiance en vigueur"
+      },
       "room_roomtemp": {
         "name": "Température ambiante"
+      },
+      "room_summertimeendday": {
+        "name": "Fin heure d'été, jour"
+      },
+      "room_summertimeendmonth": {
+        "name": "Fin heure d'été, mois",
+        "state": {
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
+        }
+      },
+      "room_summertimestartday": {
+        "name": "Début heure d'été, jour"
+      },
+      "room_summertimestartmonth": {
+        "name": "Début heure d'été, mois",
+        "state": {
+          "january": "Janvier",
+          "february": "Février",
+          "march": "Mars",
+          "april": "Avril",
+          "may": "Mai",
+          "june": "Juin",
+          "july": "Juillet",
+          "august": "Août",
+          "september": "Septembre",
+          "october": "Octobre",
+          "november": "Novembre",
+          "december": "Décembre"
+        }
       },
       "room_summerwinterchangeovertemp": {
         "name": "Commutation été/hiver"
@@ -1417,6 +1739,12 @@
       },
       "room_switchonruntime": {
         "name": "Durée d'anticipation de l'optimisation au démarrage"
+      },
+      "room_versionmajor": {
+        "name": "Version du logiciel, partie majeure"
+      },
+      "room_versionminor": {
+        "name": "Version du logiciel, partie mineure"
       },
       "system_kastatus_dhwtemp": {
         "name": "Température ECS"

@@ -37,7 +37,7 @@ def test_parse_info_of_a_running_ebusd():
 
 def test_parse_definitions(golden):
     definitions = {d.name: d for d in parse_definitions(golden["definitions"]["bc1"])}
-    assert len(definitions) == 26
+    assert len(definitions) == 28
     counters = definitions["Counters"]
     assert counters.is_read and not counters.is_passive
     assert [(f.name, f.type, f.unit) for f in counters.fields] == [
@@ -89,7 +89,7 @@ async def test_client_against_the_simulated_ebusd(fake):
     client = EbusdClient("127.0.0.1", fake.port)
     info = await client.info()
     assert info.signal and info.slave("15") is not None
-    assert len(await client.definitions("ka")) == 33
+    assert len(await client.definitions("ka")) == 50
     assert await client.definitions("nothing") == []
     assert await client.read("bc1", "Temperatures", 300) == ("0", "60", "52", "63", "15")
     assert await client.read("ka", "Boiler1Power", 900) == ("54", "23", "100")

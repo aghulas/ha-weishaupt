@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.5.8",
-  "commit": "f1989ab",
-  "messages": 542,
-  "csv_lines": 865,
-  "loaded_by_ebusd": 925,
-  "sidecar_sha256": "70fb40f512b4b13f08cb882b2013e0a6d4673299bfeea806a9c876387a01e51a"
+  "version": "0.6.0",
+  "commit": "f7309e6",
+  "messages": 669,
+  "csv_lines": 1013,
+  "loaded_by_ebusd": 1073,
+  "sidecar_sha256": "02fe622efab9c69efcafba0d6defa13eddfe548818d58f475ce4bcfaf176d0f9"
  },
  "languages": [
   "en",
@@ -425,6 +425,114 @@
   ]
  },
  "messages": {
+  "bc1/PowerDemand": {
+   "circuit": "bc1",
+   "name": "PowerDemand",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "process",
+   "kind": "live",
+   "label": {
+    "en": "Heat demand of the cascade manager",
+    "fr": "Demande de chaleur du manager de cascade"
+   },
+   "description": {
+    "en": "heat demand of the cascade manager to the first boiler",
+    "fr": "demande de chaleur du manager de cascade à la première chaudière"
+   },
+   "read": false,
+   "passive": true,
+   "poll": "passive",
+   "poll_basis": "passive",
+   "evidence": [
+    "heat-demand"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "status",
+     "type": "UCH",
+     "description": {
+      "en": "request state: power requested (0x66, 0xee) or not (0x55, 0x00) from the cascade manager; 0xbb or 0x55 from a room unit",
+      "fr": "état de la demande : puissance demandée (0x66, 0xee) ou non (0x55, 0x00) par le manager de cascade ; 0xbb ou 0x55 d'une commande à distance"
+     },
+     "label": {
+      "en": "Request state",
+      "fr": "État de la demande"
+     },
+     "kind": "diagnostic"
+    },
+    {
+     "name": "ukn2",
+     "type": "UCH",
+     "description": {
+      "en": "second byte, meaning not established",
+      "fr": "deuxième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "heatdemandtemp",
+     "type": "D2C",
+     "unit": "°C",
+     "description": {
+      "en": "requested flow temperature",
+      "fr": "température de départ demandée"
+     },
+     "label": {
+      "en": "Requested flow temperature",
+      "fr": "Température de départ demandée"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn5",
+     "type": "HEX:2",
+     "description": {
+      "en": "fifth and sixth byte, meaning not established",
+      "fr": "cinquième et sixième octets, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "modulation",
+     "type": "D1C",
+     "unit": "%",
+     "description": {
+      "en": "modulation demand",
+      "fr": "demande de modulation"
+     },
+     "label": {
+      "en": "Modulation demand",
+      "fr": "Demande de modulation"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "dhwsettemp",
+     "type": "D1C",
+     "unit": "°C",
+     "description": {
+      "en": "domestic hot water setpoint",
+      "fr": "consigne de température ECS"
+     },
+     "label": {
+      "en": "Hot water setpoint",
+      "fr": "Consigne de température ECS"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn9",
+     "type": "UCH",
+     "description": {
+      "en": "ninth byte, meaning not established",
+      "fr": "neuvième octet, signification non établie"
+     },
+     "skip": true
+    }
+   ]
+  },
   "bc1/BurnerServiceHours": {
    "circuit": "bc1",
    "name": "BurnerServiceHours",
@@ -596,7 +704,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -631,7 +740,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -666,7 +776,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -809,6 +920,121 @@
     }
    ]
   },
+  "bc1/EventCounters": {
+   "circuit": "bc1",
+   "name": "EventCounters",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "statistics",
+   "kind": "counter",
+   "label": {
+    "en": "Event counters",
+    "fr": "Compteurs d'événements"
+   },
+   "description": {
+    "en": "event counters: burner hours and ignitions of the day, switch-ons, resets, shut-offs",
+    "fr": "compteurs d'événements : heures brûleur et allumages du jour, mises sous tension, réinitialisations, coupures"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "survey-reads"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "burnerhourstoday",
+     "type": "UCH",
+     "unit": "h",
+     "description": {
+      "en": "burner hours of the current day, by the firmware symbol",
+      "fr": "heures de fonctionnement du brûleur du jour, selon le symbole du firmware"
+     },
+     "label": {
+      "en": "Burner hours today (by the symbol)",
+      "fr": "Heures brûleur du jour (selon le symbole)"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "ignitionstoday",
+     "type": "UCH",
+     "description": {
+      "en": "ignitions of the current day, by the firmware symbol",
+      "fr": "allumages du jour, selon le symbole du firmware"
+     },
+     "label": {
+      "en": "Ignitions today (by the symbol)",
+      "fr": "Allumages du jour (selon le symbole)"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "poweroncount",
+     "type": "U3N",
+     "description": {
+      "en": "number of mains switch-ons",
+      "fr": "nombre de mises sous tension"
+     },
+     "label": {
+      "en": "Mains switch-ons",
+      "fr": "Mises sous tension"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "ukn6",
+     "type": "U3N",
+     "description": {
+      "en": "sixth to eighth byte, meaning not established",
+      "fr": "sixième à huitième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "resetcount",
+     "type": "U3N",
+     "description": {
+      "en": "number of resets",
+      "fr": "nombre de réinitialisations"
+     },
+     "label": {
+      "en": "Resets",
+      "fr": "Réinitialisations"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "shutoffcount",
+     "type": "U3N",
+     "description": {
+      "en": "number of shut-offs",
+      "fr": "nombre de coupures"
+     },
+     "label": {
+      "en": "Shut-offs",
+      "fr": "Coupures"
+     },
+     "kind": "counter"
+    }
+   ]
+  },
   "bc1/Temperatures": {
    "circuit": "bc1",
    "name": "Temperatures",
@@ -859,7 +1085,8 @@
       "en": "Return temperature",
       "fr": "Température retour"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "fluegastemp",
@@ -873,7 +1100,8 @@
       "en": "Flue gas temperature",
       "fr": "Température des fumées"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "supplytemp",
@@ -887,7 +1115,8 @@
       "en": "Flow temperature",
       "fr": "Température de départ"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "outsidetemp",
@@ -901,7 +1130,8 @@
       "en": "Outside temperature",
       "fr": "Température extérieure"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     }
    ]
   },
@@ -4537,7 +4767,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -100.0
     }
    ]
   },
@@ -4572,7 +4803,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -100.0
     }
    ]
   },
@@ -4607,7 +4839,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -100.0
     }
    ]
   },
@@ -4890,20 +5123,20 @@
     }
    ]
   },
-  "ka/DHWExceeded": {
+  "ka/DHWExcessTemp": {
    "circuit": "ka",
-   "name": "DHWExceeded",
+   "name": "DHWExcessTemp",
    "address": "15",
    "device": "manager",
    "menu": "dhw",
    "kind": "setting",
    "label": {
-    "en": "Hot water exceed temperature",
+    "en": "Hot water excess",
     "fr": "Surélévation de température ECS"
    },
    "description": {
-    "en": "hot water exceed temperature",
-    "fr": "surélévation de température ECS"
+    "en": "hot water excess over its setpoint, as a temperature difference; which parameter it is is not established",
+    "fr": "surélévation de l'ECS au-dessus de sa consigne, en différence de température ; le paramètre correspondant n'est pas établi"
    },
    "read": true,
    "passive": false,
@@ -4912,15 +5145,16 @@
    "evidence": [
     "ka-reads"
    ],
+   "renamed_from": "ka/DHWExceeded",
    "fields": [
     {
      "name": "value",
      "type": "UIN",
      "divisor": 10,
-     "unit": "°C",
+     "unit": "K",
      "description": {
-      "en": "temperature",
-      "fr": "température"
+      "en": "temperature difference",
+      "fr": "différentiel de température"
      }
     }
    ]
@@ -5595,6 +5829,880 @@
     }
    ]
   },
+  "ka/ModulationMax": {
+   "circuit": "ka",
+   "name": "ModulationMax",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum modulation (optimal range)",
+    "fr": "Modulation maximale (plage optimale)"
+   },
+   "description": {
+    "en": "upper limit of the optimal operating range of the cascade",
+    "fr": "limite haute de la plage de fonctionnement optimale de la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "ka-modulation-limits"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "unit": "%",
+     "min": 30,
+     "max": 100,
+     "description": {
+      "en": "percent",
+      "fr": "pour cent"
+     }
+    }
+   ]
+  },
+  "ka/ModulationMin": {
+   "circuit": "ka",
+   "name": "ModulationMin",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Minimum modulation (optimal range)",
+    "fr": "Modulation minimale (plage optimale)"
+   },
+   "description": {
+    "en": "lower limit of the optimal operating range of the cascade",
+    "fr": "limite basse de la plage de fonctionnement optimale de la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "ka-modulation-limits"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "unit": "%",
+     "min": 30,
+     "max": 100,
+     "description": {
+      "en": "percent",
+      "fr": "pour cent"
+     }
+    }
+   ]
+  },
+  "ka/ModulationDiffTemp": {
+   "circuit": "ka",
+   "name": "ModulationDiffTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Modulation differential",
+    "fr": "Différentiel de modulation"
+   },
+   "description": {
+    "en": "modulation differential added to the system setpoint for the modulation limit (parameter 538)",
+    "fr": "différentiel de modulation ajouté à la consigne du système pour la température limite de modulation (paramètre 538)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "ka/DeCoupleExcessTemp": {
+   "circuit": "ka",
+   "name": "DeCoupleExcessTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "separator",
+   "kind": "setting",
+   "label": {
+    "en": "De-couple excess",
+    "fr": "Surélévation casse-pression"
+   },
+   "description": {
+    "en": "de-couple excess over the system setpoint (parameter 551)",
+    "fr": "surélévation de la bouteille casse-pression par rapport à la consigne du système (paramètre 551)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "ka/DeCoupleMaxTemp": {
+   "circuit": "ka",
+   "name": "DeCoupleMaxTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "separator",
+   "kind": "setting",
+   "label": {
+    "en": "De-couple maximum",
+    "fr": "Température maximale casse-pression"
+   },
+   "description": {
+    "en": "de-couple maximum temperature (parameter 553)",
+    "fr": "température maximale de la bouteille casse-pression (paramètre 553)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "ka/CalorifierExcessTemp": {
+   "circuit": "ka",
+   "name": "CalorifierExcessTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "buffer",
+   "kind": "setting",
+   "label": {
+    "en": "Buffer excess",
+    "fr": "Surélévation stock tampon"
+   },
+   "description": {
+    "en": "calorifier (buffer storage) excess, to make up for the losses of the pipes (parameter 561)",
+    "fr": "surélévation de température du stock tampon, pour compenser les pertes des conduites (paramètre 561)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "ka/SummerTimeStartDay": {
+   "circuit": "ka",
+   "name": "SummerTimeStartDay",
+   "address": "15",
+   "device": "manager",
+   "menu": "date",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, day",
+    "fr": "Début heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the start of summer time (parameter 593)",
+    "fr": "jour du début de l'heure d'été (paramètre 593)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "ka/SummerTimeStartMonth": {
+   "circuit": "ka",
+   "name": "SummerTimeStartMonth",
+   "address": "15",
+   "device": "manager",
+   "menu": "date",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, month",
+    "fr": "Début heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the start of summer time (parameter 593)",
+    "fr": "mois du début de l'heure d'été (paramètre 593)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "ka/SummerTimeEndDay": {
+   "circuit": "ka",
+   "name": "SummerTimeEndDay",
+   "address": "15",
+   "device": "manager",
+   "menu": "date",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, day",
+    "fr": "Fin heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the end of summer time (parameter 594)",
+    "fr": "jour de la fin de l'heure d'été (paramètre 594)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "ka/SummerTimeEndMonth": {
+   "circuit": "ka",
+   "name": "SummerTimeEndMonth",
+   "address": "15",
+   "device": "manager",
+   "menu": "date",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, month",
+    "fr": "Fin heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the end of summer time (parameter 594)",
+    "fr": "mois de la fin de l'heure d'été (paramètre 594)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "ka/BoilerSequence1First": {
+   "circuit": "ka",
+   "name": "BoilerSequence1First",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler sequence 1, first",
+    "fr": "Ordre des chaudières 1, première"
+   },
+   "description": {
+    "en": "boiler sequence 1, first position",
+    "fr": "ordre d'enclenchement des chaudières 1, première position"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "A",
+      "1": "B"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Boiler A",
+       "fr": "Chaudière A"
+      },
+      "1": {
+       "en": "Boiler B",
+       "fr": "Chaudière B"
+      }
+     },
+     "description": {
+      "en": "boiler of the cascade, by its letter",
+      "fr": "chaudière de la cascade, par sa lettre"
+     }
+    }
+   ]
+  },
+  "ka/BoilerSequence1Second": {
+   "circuit": "ka",
+   "name": "BoilerSequence1Second",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler sequence 1, second",
+    "fr": "Ordre des chaudières 1, deuxième"
+   },
+   "description": {
+    "en": "boiler sequence 1, second position",
+    "fr": "ordre d'enclenchement des chaudières 1, deuxième position"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "A",
+      "1": "B"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Boiler A",
+       "fr": "Chaudière A"
+      },
+      "1": {
+       "en": "Boiler B",
+       "fr": "Chaudière B"
+      }
+     },
+     "description": {
+      "en": "boiler of the cascade, by its letter",
+      "fr": "chaudière de la cascade, par sa lettre"
+     }
+    }
+   ]
+  },
+  "ka/BoilerSequence2First": {
+   "circuit": "ka",
+   "name": "BoilerSequence2First",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler sequence 2, first",
+    "fr": "Ordre des chaudières 2, première"
+   },
+   "description": {
+    "en": "boiler sequence 2, first position",
+    "fr": "ordre d'enclenchement des chaudières 2, première position"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "A",
+      "1": "B"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Boiler A",
+       "fr": "Chaudière A"
+      },
+      "1": {
+       "en": "Boiler B",
+       "fr": "Chaudière B"
+      }
+     },
+     "description": {
+      "en": "boiler of the cascade, by its letter",
+      "fr": "chaudière de la cascade, par sa lettre"
+     }
+    }
+   ]
+  },
+  "ka/BoilerSequence2Second": {
+   "circuit": "ka",
+   "name": "BoilerSequence2Second",
+   "address": "15",
+   "device": "manager",
+   "menu": "cascade",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler sequence 2, second",
+    "fr": "Ordre des chaudières 2, deuxième"
+   },
+   "description": {
+    "en": "boiler sequence 2, second position",
+    "fr": "ordre d'enclenchement des chaudières 2, deuxième position"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "A",
+      "1": "B"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Boiler A",
+       "fr": "Chaudière A"
+      },
+      "1": {
+       "en": "Boiler B",
+       "fr": "Chaudière B"
+      }
+     },
+     "description": {
+      "en": "boiler of the cascade, by its letter",
+      "fr": "chaudière de la cascade, par sa lettre"
+     }
+    }
+   ]
+  },
+  "ka/DHWSetbackTemp": {
+   "circuit": "ka",
+   "name": "DHWSetbackTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "dhw",
+   "kind": "setting",
+   "label": {
+    "en": "Reduced hot water setpoint",
+    "fr": "Consigne ECS réduite"
+   },
+   "description": {
+    "en": "reduced hot-water setpoint (parameter 573)",
+    "fr": "consigne ECS réduite (paramètre 573)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "ka/LegionellaStartTime": {
+   "circuit": "ka",
+   "name": "LegionellaStartTime",
+   "address": "15",
+   "device": "manager",
+   "menu": "dhw",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella start time",
+    "fr": "Heure anti-légionelle"
+   },
+   "description": {
+    "en": "start time of the legionella protection (parameter 581)",
+    "fr": "heure de démarrage de la fonction anti-légionelle (paramètre 581)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "TTQ"
+    }
+   ]
+  },
+  "ka/PlateExchangerPrimaryTemp": {
+   "circuit": "ka",
+   "name": "PlateExchangerPrimaryTemp",
+   "address": "15",
+   "device": "manager",
+   "menu": "separator",
+   "kind": "live",
+   "label": {
+    "en": "Plate exchanger primary B24",
+    "fr": "Échangeur à plaques, primaire B24"
+   },
+   "description": {
+    "en": "primary sensor B24 of the plate exchanger; -100.0 when not fitted",
+    "fr": "sonde primaire B24 de l'échangeur à plaques ; -100.0 lorsqu'elle n'est pas raccordée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     },
+     "absent": -100.0
+    }
+   ]
+  },
+  "bc2/PowerDemand": {
+   "circuit": "bc2",
+   "name": "PowerDemand",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "process",
+   "kind": "live",
+   "label": {
+    "en": "Heat demand of the cascade manager",
+    "fr": "Demande de chaleur du manager de cascade"
+   },
+   "description": {
+    "en": "heat demand of the cascade manager to the second boiler",
+    "fr": "demande de chaleur du manager de cascade à la seconde chaudière"
+   },
+   "read": false,
+   "passive": true,
+   "poll": "passive",
+   "poll_basis": "passive",
+   "evidence": [
+    "heat-demand"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "status",
+     "type": "UCH",
+     "description": {
+      "en": "request state: power requested (0x66, 0xee) or not (0x55, 0x00) from the cascade manager; 0xbb or 0x55 from a room unit",
+      "fr": "état de la demande : puissance demandée (0x66, 0xee) ou non (0x55, 0x00) par le manager de cascade ; 0xbb ou 0x55 d'une commande à distance"
+     },
+     "label": {
+      "en": "Request state",
+      "fr": "État de la demande"
+     },
+     "kind": "diagnostic"
+    },
+    {
+     "name": "ukn2",
+     "type": "UCH",
+     "description": {
+      "en": "second byte, meaning not established",
+      "fr": "deuxième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "heatdemandtemp",
+     "type": "D2C",
+     "unit": "°C",
+     "description": {
+      "en": "requested flow temperature",
+      "fr": "température de départ demandée"
+     },
+     "label": {
+      "en": "Requested flow temperature",
+      "fr": "Température de départ demandée"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn5",
+     "type": "HEX:2",
+     "description": {
+      "en": "fifth and sixth byte, meaning not established",
+      "fr": "cinquième et sixième octets, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "modulation",
+     "type": "D1C",
+     "unit": "%",
+     "description": {
+      "en": "modulation demand",
+      "fr": "demande de modulation"
+     },
+     "label": {
+      "en": "Modulation demand",
+      "fr": "Demande de modulation"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "dhwsettemp",
+     "type": "D1C",
+     "unit": "°C",
+     "description": {
+      "en": "domestic hot water setpoint",
+      "fr": "consigne de température ECS"
+     },
+     "label": {
+      "en": "Hot water setpoint",
+      "fr": "Consigne de température ECS"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn9",
+     "type": "UCH",
+     "description": {
+      "en": "ninth byte, meaning not established",
+      "fr": "neuvième octet, signification non établie"
+     },
+     "skip": true
+    }
+   ]
+  },
   "bc2/BurnerServiceHours": {
    "circuit": "bc2",
    "name": "BurnerServiceHours",
@@ -5766,7 +6874,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -5801,7 +6910,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -5836,7 +6946,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -40.0
     }
    ]
   },
@@ -5979,6 +7090,121 @@
     }
    ]
   },
+  "bc2/EventCounters": {
+   "circuit": "bc2",
+   "name": "EventCounters",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "statistics",
+   "kind": "counter",
+   "label": {
+    "en": "Event counters",
+    "fr": "Compteurs d'événements"
+   },
+   "description": {
+    "en": "event counters: burner hours and ignitions of the day, switch-ons, resets, shut-offs",
+    "fr": "compteurs d'événements : heures brûleur et allumages du jour, mises sous tension, réinitialisations, coupures"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "survey-reads"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "burnerhourstoday",
+     "type": "UCH",
+     "unit": "h",
+     "description": {
+      "en": "burner hours of the current day, by the firmware symbol",
+      "fr": "heures de fonctionnement du brûleur du jour, selon le symbole du firmware"
+     },
+     "label": {
+      "en": "Burner hours today (by the symbol)",
+      "fr": "Heures brûleur du jour (selon le symbole)"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "ignitionstoday",
+     "type": "UCH",
+     "description": {
+      "en": "ignitions of the current day, by the firmware symbol",
+      "fr": "allumages du jour, selon le symbole du firmware"
+     },
+     "label": {
+      "en": "Ignitions today (by the symbol)",
+      "fr": "Allumages du jour (selon le symbole)"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "poweroncount",
+     "type": "U3N",
+     "description": {
+      "en": "number of mains switch-ons",
+      "fr": "nombre de mises sous tension"
+     },
+     "label": {
+      "en": "Mains switch-ons",
+      "fr": "Mises sous tension"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "ukn6",
+     "type": "U3N",
+     "description": {
+      "en": "sixth to eighth byte, meaning not established",
+      "fr": "sixième à huitième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "resetcount",
+     "type": "U3N",
+     "description": {
+      "en": "number of resets",
+      "fr": "nombre de réinitialisations"
+     },
+     "label": {
+      "en": "Resets",
+      "fr": "Réinitialisations"
+     },
+     "kind": "counter"
+    },
+    {
+     "name": "shutoffcount",
+     "type": "U3N",
+     "description": {
+      "en": "number of shut-offs",
+      "fr": "nombre de coupures"
+     },
+     "label": {
+      "en": "Shut-offs",
+      "fr": "Coupures"
+     },
+     "kind": "counter"
+    }
+   ]
+  },
   "bc2/Temperatures": {
    "circuit": "bc2",
    "name": "Temperatures",
@@ -6029,7 +7255,8 @@
       "en": "Return temperature",
       "fr": "Température retour"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "fluegastemp",
@@ -6043,7 +7270,8 @@
       "en": "Flue gas temperature",
       "fr": "Température des fumées"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "supplytemp",
@@ -6057,7 +7285,8 @@
       "en": "Flow temperature",
       "fr": "Température de départ"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     },
     {
      "name": "outsidetemp",
@@ -6071,7 +7300,8 @@
       "en": "Outside temperature",
       "fr": "Température extérieure"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -40.0
     }
    ]
   },
@@ -8465,6 +9695,106 @@
     }
    ]
   },
+  "fs1/PowerDemand": {
+   "circuit": "fs1",
+   "name": "PowerDemand",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Heat demand to the cascade manager",
+    "fr": "Demande de chaleur au manager de cascade"
+   },
+   "description": {
+    "en": "heat demand of the room unit to the cascade manager",
+    "fr": "demande de chaleur de la commande à distance au manager de cascade"
+   },
+   "read": false,
+   "passive": true,
+   "poll": "passive",
+   "poll_basis": "passive",
+   "evidence": [
+    "heat-demand"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "status",
+     "type": "UCH",
+     "description": {
+      "en": "request state: power requested (0x66, 0xee) or not (0x55, 0x00) from the cascade manager; 0xbb or 0x55 from a room unit",
+      "fr": "état de la demande : puissance demandée (0x66, 0xee) ou non (0x55, 0x00) par le manager de cascade ; 0xbb ou 0x55 d'une commande à distance"
+     },
+     "label": {
+      "en": "Request state",
+      "fr": "État de la demande"
+     },
+     "kind": "diagnostic"
+    },
+    {
+     "name": "ukn2",
+     "type": "UCH",
+     "description": {
+      "en": "second byte, meaning not established",
+      "fr": "deuxième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "heatdemandtemp",
+     "type": "D2C",
+     "unit": "°C",
+     "description": {
+      "en": "requested flow temperature",
+      "fr": "température de départ demandée"
+     },
+     "label": {
+      "en": "Requested flow temperature (sent)",
+      "fr": "Température de départ demandée (envoyée)"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn5",
+     "type": "HEX:2",
+     "description": {
+      "en": "fifth and sixth byte, meaning not established",
+      "fr": "cinquième et sixième octets, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "modulation",
+     "type": "D1C",
+     "unit": "%",
+     "description": {
+      "en": "modulation demand",
+      "fr": "demande de modulation"
+     },
+     "skip": true
+    },
+    {
+     "name": "dhwsettemp",
+     "type": "D1C",
+     "unit": "°C",
+     "description": {
+      "en": "domestic hot water setpoint",
+      "fr": "consigne de température ECS"
+     },
+     "skip": true
+    },
+    {
+     "name": "ukn9",
+     "type": "UCH",
+     "description": {
+      "en": "ninth byte, meaning not established",
+      "fr": "neuvième octet, signification non établie"
+     },
+     "skip": true
+    }
+   ]
+  },
   "fs1/HeatDemandTemp": {
    "circuit": "fs1",
    "name": "HeatDemandTemp",
@@ -8637,6 +9967,1051 @@
       "en": "temperature",
       "fr": "température"
      }
+    }
+   ]
+  },
+  "fs1/RoomSetpointTemp": {
+   "circuit": "fs1",
+   "name": "RoomSetpointTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Room setpoint in effect",
+    "fr": "Consigne d'ambiance en vigueur"
+   },
+   "description": {
+    "en": "room setpoint in effect",
+    "fr": "consigne d'ambiance en vigueur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/OutsideMixedTemp": {
+   "circuit": "fs1",
+   "name": "OutsideMixedTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Outside temperature, mixed",
+    "fr": "Température extérieure mélangée"
+   },
+   "description": {
+    "en": "outside temperature, mixed",
+    "fr": "température extérieure mélangée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     },
+     "absent": -100.0
+    }
+   ]
+  },
+  "fs1/HeatingCircuitType": {
+   "circuit": "fs1",
+   "name": "HeatingCircuitType",
+   "address": "35",
+   "device": "room1",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Heating circuit type",
+    "fr": "Type de circuit de chauffage"
+   },
+   "description": {
+    "en": "heating circuit type, read only",
+    "fr": "type de circuit de chauffage, en lecture seule"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "FloorBaseHeating",
+      "1": "FloorHeating",
+      "2": "Radiator60",
+      "3": "Radiator70",
+      "4": "Convector",
+      "5": "Universal"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Floor base heating",
+       "fr": "Réchauffage de base plancher"
+      },
+      "1": {
+       "en": "Underfloor heating",
+       "fr": "Plancher chauffant"
+      },
+      "2": {
+       "en": "Radiators 60 °C",
+       "fr": "Radiateurs 60"
+      },
+      "3": {
+       "en": "Radiators 70 °C",
+       "fr": "Radiateurs 70"
+      },
+      "4": {
+       "en": "Convectors",
+       "fr": "Convecteurs"
+      },
+      "5": {
+       "en": "Universal",
+       "fr": "Universel"
+      }
+     },
+     "description": {
+      "en": "heating circuit type",
+      "fr": "type de circuit de chauffage"
+     }
+    }
+   ]
+  },
+  "fs1/VersionMajor": {
+   "circuit": "fs1",
+   "name": "VersionMajor",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, major part",
+    "fr": "Version du logiciel, partie majeure"
+   },
+   "description": {
+    "en": "software version, major part",
+    "fr": "version du logiciel, partie principale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/VersionMinor": {
+   "circuit": "fs1",
+   "name": "VersionMinor",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, minor part",
+    "fr": "Version du logiciel, partie mineure"
+   },
+   "description": {
+    "en": "software version, minor part",
+    "fr": "version du logiciel, partie secondaire"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/DHWLoadingPriority": {
+   "circuit": "fs1",
+   "name": "DHWLoadingPriority",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water priority (stored)",
+    "fr": "Priorité ECS (mémorisée)"
+   },
+   "description": {
+    "en": "priority of the hot water loading over the heating circuit",
+    "fr": "priorité de la charge ECS sur le circuit de chauffage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Priority",
+      "1": "Sliding",
+      "2": "Parallel"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Priority",
+       "fr": "Priorité"
+      },
+      "1": {
+       "en": "Sliding",
+       "fr": "Mobile"
+      },
+      "2": {
+       "en": "Parallel",
+       "fr": "Parallèle"
+      }
+     },
+     "description": {
+      "en": "hot water loading with priority over the heating circuit, in parallel with it, or sliding",
+      "fr": "charge ECS prioritaire sur le circuit de chauffage, en parallèle, ou mobile"
+     }
+    }
+   ]
+  },
+  "fs1/DHWSetbackTemp": {
+   "circuit": "fs1",
+   "name": "DHWSetbackTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Reduced hot water setpoint (stored)",
+    "fr": "Consigne ECS réduite (mémorisée)"
+   },
+   "description": {
+    "en": "reduced hot-water setpoint",
+    "fr": "consigne ECS réduite"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/DHWMaxTemp": {
+   "circuit": "fs1",
+   "name": "DHWMaxTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum hot water temperature (stored)",
+    "fr": "Température ECS maximale (mémorisée)"
+   },
+   "description": {
+    "en": "maximum hot-water temperature",
+    "fr": "température ECS maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/DHWLegionellaDay": {
+   "circuit": "fs1",
+   "name": "DHWLegionellaDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella day (stored)",
+    "fr": "Jour anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "day of the legionella protection",
+    "fr": "jour de la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "Monday",
+       "fr": "Lundi"
+      },
+      "2": {
+       "en": "Tuesday",
+       "fr": "Mardi"
+      },
+      "3": {
+       "en": "Wednesday",
+       "fr": "Mercredi"
+      },
+      "4": {
+       "en": "Thursday",
+       "fr": "Jeudi"
+      },
+      "5": {
+       "en": "Friday",
+       "fr": "Vendredi"
+      },
+      "6": {
+       "en": "Saturday",
+       "fr": "Samedi"
+      },
+      "7": {
+       "en": "Sunday",
+       "fr": "Dimanche"
+      }
+     },
+     "description": {
+      "en": "day of the week, or off",
+      "fr": "jour de la semaine, ou arrêt"
+     }
+    }
+   ]
+  },
+  "fs1/LegionellaCirculationTime": {
+   "circuit": "fs1",
+   "name": "LegionellaCirculationTime",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation time with legionella (stored)",
+    "fr": "Temps de circulation anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "running time of the circulation pump during the legionella protection",
+    "fr": "temps de fonctionnement de la pompe de circulation ECS pendant la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "unit": "s",
+     "description": {
+      "en": "seconds",
+      "fr": "secondes"
+     }
+    }
+   ]
+  },
+  "fs1/LegionellaSetpoint": {
+   "circuit": "fs1",
+   "name": "LegionellaSetpoint",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella setpoint (stored)",
+    "fr": "Consigne anti-légionelle (mémorisée)"
+   },
+   "description": {
+    "en": "hot water setpoint of the legionella protection",
+    "fr": "consigne de température anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/SummerTimeStartDay": {
+   "circuit": "fs1",
+   "name": "SummerTimeStartDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, day",
+    "fr": "Début heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the start of summer time",
+    "fr": "jour du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/SummerTimeStartMonth": {
+   "circuit": "fs1",
+   "name": "SummerTimeStartMonth",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, month",
+    "fr": "Début heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the start of summer time",
+    "fr": "mois du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs1/SummerTimeEndDay": {
+   "circuit": "fs1",
+   "name": "SummerTimeEndDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, day",
+    "fr": "Fin heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the end of summer time",
+    "fr": "jour de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/SummerTimeEndMonth": {
+   "circuit": "fs1",
+   "name": "SummerTimeEndMonth",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, month",
+    "fr": "Fin heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the end of summer time",
+    "fr": "mois de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs1/ErrorId": {
+   "circuit": "fs1",
+   "name": "ErrorId",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Selected fault-log entry",
+    "fr": "Entrée sélectionnée de l'historique des défauts"
+   },
+   "description": {
+    "en": "selected fault-log entry (0 = most recent)",
+    "fr": "entrée sélectionnée de l'historique des défauts (0 = la plus récente)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorCode": {
+   "circuit": "fs1",
+   "name": "ErrorCode",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault code of the entry",
+    "fr": "Code défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault code of the selected entry",
+    "fr": "code défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorType": {
+   "circuit": "fs1",
+   "name": "ErrorType",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault type of the entry",
+    "fr": "Type de défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault type of the selected entry",
+    "fr": "type de défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorDevice": {
+   "circuit": "fs1",
+   "name": "ErrorDevice",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Origin of the entry",
+    "fr": "Origine du défaut de l'entrée"
+   },
+   "description": {
+    "en": "device that raised the selected entry",
+    "fr": "origine du défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorMinute": {
+   "circuit": "fs1",
+   "name": "ErrorMinute",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault minute",
+    "fr": "Minute du défaut"
+   },
+   "description": {
+    "en": "fault minute",
+    "fr": "minute du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorHour": {
+   "circuit": "fs1",
+   "name": "ErrorHour",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault hour",
+    "fr": "Heure du défaut"
+   },
+   "description": {
+    "en": "fault hour",
+    "fr": "heure du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorDay": {
+   "circuit": "fs1",
+   "name": "ErrorDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault day of the month",
+    "fr": "Jour du mois du défaut"
+   },
+   "description": {
+    "en": "fault day of the month",
+    "fr": "jour du mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/ErrorMonth": {
+   "circuit": "fs1",
+   "name": "ErrorMonth",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault month",
+    "fr": "Mois du défaut"
+   },
+   "description": {
+    "en": "fault month",
+    "fr": "mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs1/ErrorYear": {
+   "circuit": "fs1",
+   "name": "ErrorYear",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault year",
+    "fr": "Année du défaut"
+   },
+   "description": {
+    "en": "fault year",
+    "fr": "année du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
     }
    ]
   },
@@ -9071,6 +11446,272 @@
       "en": "temperature level during a holiday period",
       "fr": "niveau de température pendant les vacances"
      }
+    }
+   ]
+  },
+  "fs1/ControlVariation": {
+   "circuit": "fs1",
+   "name": "ControlVariation",
+   "address": "35",
+   "device": "room1",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Control variation",
+    "fr": "Variante de régulation"
+   },
+   "description": {
+    "en": "control variation of the heating circuit (parameter 315): 0 constant flow temperature, 1 outside temperature",
+    "fr": "variante de régulation du circuit de chauffage (paramètre 315) : 0 température de départ constante, 1 en fonction de la température extérieure"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "room-units-control-variation"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/HolidayStartDay": {
+   "circuit": "fs1",
+   "name": "HolidayStartDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start day",
+    "fr": "Jour de début des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period starts",
+    "fr": "jour du mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs1/HolidayStartMonth": {
+   "circuit": "fs1",
+   "name": "HolidayStartMonth",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start month",
+    "fr": "Mois de début des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period starts",
+    "fr": "mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs1/HolidayStartThird": {
+   "circuit": "fs1",
+   "name": "HolidayStartThird",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start, third register",
+    "fr": "Début des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the start date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de début des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs1/HolidayEndDay": {
+   "circuit": "fs1",
+   "name": "HolidayEndDay",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end day",
+    "fr": "Jour de fin des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period ends",
+    "fr": "jour du mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs1/HolidayEndMonth": {
+   "circuit": "fs1",
+   "name": "HolidayEndMonth",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end month",
+    "fr": "Mois de fin des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period ends",
+    "fr": "mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs1/HolidayEndThird": {
+   "circuit": "fs1",
+   "name": "HolidayEndThird",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end, third register",
+    "fr": "Fin des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the end date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de fin des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
     }
    ]
   },
@@ -20319,9 +22960,10 @@
    "compose": false,
    "fields": [
     {
-     "name": "ink1_1",
+     "name": "ukn1_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_1"
     },
     {
      "name": "heating",
@@ -20347,34 +22989,40 @@
      "kind": "state"
     },
     {
-     "name": "ink1_3",
+     "name": "ukn1_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_3"
     },
     {
-     "name": "ink1_4",
+     "name": "ukn1_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_4"
     },
     {
-     "name": "ink1_5",
+     "name": "ukn1_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_5"
     },
     {
-     "name": "ink1_6",
+     "name": "ukn1_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_6"
     },
     {
-     "name": "ink1_7",
+     "name": "ukn1_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_7"
     },
     {
-     "name": "ink1_8",
+     "name": "ukn1_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_8"
     },
     {
      "name": "supplyhcsettemp",
@@ -20411,19 +23059,22 @@
      "kind": "live"
     },
     {
-     "name": "ink2_1",
+     "name": "ukn2_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_1"
     },
     {
-     "name": "ink2_2",
+     "name": "ukn2_2",
      "type": "BI1",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_2"
     },
     {
-     "name": "ink2_3",
+     "name": "ukn2_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_3"
     },
     {
      "name": "dhw",
@@ -20449,24 +23100,28 @@
      "kind": "state"
     },
     {
-     "name": "ink2_5",
+     "name": "ukn2_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_5"
     },
     {
-     "name": "ink2_6",
+     "name": "ukn2_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_6"
     },
     {
-     "name": "ink2_7",
+     "name": "ukn2_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_7"
     },
     {
-     "name": "ink2_8",
+     "name": "ukn2_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_8"
     },
     {
      "name": "opmode",
@@ -20551,24 +23206,28 @@
      "kind": "state"
     },
     {
-     "name": "opmode_4",
+     "name": "ukn3_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_4"
     },
     {
-     "name": "opmode_5",
+     "name": "ukn3_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_5"
     },
     {
-     "name": "opmode_6",
+     "name": "ukn3_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_6"
     },
     {
-     "name": "opmode_7",
+     "name": "ukn3_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_7"
     },
     {
      "name": "supplyhctemp",
@@ -20599,7 +23258,8 @@
       "en": "Outside temperature",
       "fr": "Température extérieure"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -100.0
     },
     {
      "name": "boilermcboosttemp",
@@ -21268,12 +23928,7 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN",
-     "unit": "h",
-     "description": {
-      "en": "hours",
-      "fr": "heures"
-     }
+     "type": "UIN"
     }
    ]
   },
@@ -21302,12 +23957,7 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN",
-     "unit": "min",
-     "description": {
-      "en": "minutes",
-      "fr": "minutes"
-     }
+     "type": "UIN"
     }
    ]
   },
@@ -21336,12 +23986,7 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN",
-     "unit": "s",
-     "description": {
-      "en": "seconds",
-      "fr": "secondes"
-     }
+     "type": "UIN"
     }
    ]
   },
@@ -25894,12 +28539,7 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN",
-     "unit": "min",
-     "description": {
-      "en": "minutes",
-      "fr": "minutes"
-     }
+     "type": "UIN"
     }
    ]
   },
@@ -25928,12 +28568,7 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN",
-     "unit": "h",
-     "description": {
-      "en": "hours",
-      "fr": "heures"
-     }
+     "type": "UIN"
     }
    ]
   },
@@ -26117,9 +28752,10 @@
    "compose": false,
    "fields": [
     {
-     "name": "ink1_1",
+     "name": "ukn1_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_1"
     },
     {
      "name": "heating",
@@ -26145,34 +28781,40 @@
      "kind": "state"
     },
     {
-     "name": "ink1_3",
+     "name": "ukn1_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_3"
     },
     {
-     "name": "ink1_4",
+     "name": "ukn1_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_4"
     },
     {
-     "name": "ink1_5",
+     "name": "ukn1_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_5"
     },
     {
-     "name": "ink1_6",
+     "name": "ukn1_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_6"
     },
     {
-     "name": "ink1_7",
+     "name": "ukn1_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_7"
     },
     {
-     "name": "ink1_8",
+     "name": "ukn1_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_8"
     },
     {
      "name": "supplyhcsettemp",
@@ -26209,19 +28851,22 @@
      "kind": "live"
     },
     {
-     "name": "ink2_1",
+     "name": "ukn2_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_1"
     },
     {
-     "name": "ink2_2",
+     "name": "ukn2_2",
      "type": "BI1",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_2"
     },
     {
-     "name": "ink2_3",
+     "name": "ukn2_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_3"
     },
     {
      "name": "dhw",
@@ -26247,24 +28892,28 @@
      "kind": "state"
     },
     {
-     "name": "ink2_5",
+     "name": "ukn2_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_5"
     },
     {
-     "name": "ink2_6",
+     "name": "ukn2_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_6"
     },
     {
-     "name": "ink2_7",
+     "name": "ukn2_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_7"
     },
     {
-     "name": "ink2_8",
+     "name": "ukn2_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_8"
     },
     {
      "name": "opmode",
@@ -26349,24 +28998,28 @@
      "kind": "state"
     },
     {
-     "name": "opmode_4",
+     "name": "ukn3_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_4"
     },
     {
-     "name": "opmode_5",
+     "name": "ukn3_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_5"
     },
     {
-     "name": "opmode_6",
+     "name": "ukn3_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_6"
     },
     {
-     "name": "opmode_7",
+     "name": "ukn3_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_7"
     },
     {
      "name": "supplyhctemp",
@@ -26397,7 +29050,8 @@
       "en": "Outside temperature",
       "fr": "Température extérieure"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -100.0
     },
     {
      "name": "boilermcboosttemp",
@@ -26509,7 +29163,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -100.0
     }
    ]
   },
@@ -26545,6 +29200,181 @@
       "en": "temperature difference",
       "fr": "différentiel de température"
      }
+    }
+   ]
+  },
+  "em2/MixerParameter": {
+   "circuit": "em2",
+   "name": "MixerParameter",
+   "address": "51",
+   "device": "module2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Mixer parameter",
+    "fr": "Paramètre de la vanne mélangeuse"
+   },
+   "description": {
+    "en": "mixer parameter",
+    "fr": "paramètre de la vanne mélangeuse"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "em2/MixerPump": {
+   "circuit": "em2",
+   "name": "MixerPump",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "state",
+   "label": {
+    "en": "Mixer circuit pump",
+    "fr": "Pompe du circuit mélangé"
+   },
+   "description": {
+    "en": "state of the mixer-circuit pump",
+    "fr": "état de la pompe du circuit mélangé"
+   },
+   "read": true,
+   "passive": false,
+   "poll": null,
+   "poll_basis": null,
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "on"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "On",
+       "fr": "Marche"
+      }
+     },
+     "description": {
+      "en": "off or on",
+      "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
+  "em2/CirculationReturnSetTemp": {
+   "circuit": "em2",
+   "name": "CirculationReturnSetTemp",
+   "address": "51",
+   "device": "module2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation return setpoint",
+    "fr": "Consigne retour circulation ECS"
+   },
+   "description": {
+    "en": "circulation return temperature setpoint",
+    "fr": "consigne de température de retour de la circulation ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em2/VersionMajor": {
+   "circuit": "em2",
+   "name": "VersionMajor",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, major part",
+    "fr": "Version du logiciel, partie majeure"
+   },
+   "description": {
+    "en": "software version, major part",
+    "fr": "version du logiciel, partie principale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "em2/VersionMinor": {
+   "circuit": "em2",
+   "name": "VersionMinor",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, minor part",
+    "fr": "Version du logiciel, partie mineure"
+   },
+   "description": {
+    "en": "software version, minor part",
+    "fr": "version du logiciel, partie secondaire"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
     }
    ]
   },
@@ -26906,9 +29736,10 @@
    "compose": false,
    "fields": [
     {
-     "name": "ink1_1",
+     "name": "ukn1_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_1"
     },
     {
      "name": "heating",
@@ -26934,34 +29765,40 @@
      "kind": "state"
     },
     {
-     "name": "ink1_3",
+     "name": "ukn1_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_3"
     },
     {
-     "name": "ink1_4",
+     "name": "ukn1_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_4"
     },
     {
-     "name": "ink1_5",
+     "name": "ukn1_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_5"
     },
     {
-     "name": "ink1_6",
+     "name": "ukn1_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_6"
     },
     {
-     "name": "ink1_7",
+     "name": "ukn1_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_7"
     },
     {
-     "name": "ink1_8",
+     "name": "ukn1_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink1_8"
     },
     {
      "name": "supplyhcsettemp",
@@ -26998,19 +29835,22 @@
      "kind": "live"
     },
     {
-     "name": "ink2_1",
+     "name": "ukn2_1",
      "type": "BI0",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_1"
     },
     {
-     "name": "ink2_2",
+     "name": "ukn2_2",
      "type": "BI1",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_2"
     },
     {
-     "name": "ink2_3",
+     "name": "ukn2_3",
      "type": "BI2",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_3"
     },
     {
      "name": "dhw",
@@ -27036,24 +29876,28 @@
      "kind": "state"
     },
     {
-     "name": "ink2_5",
+     "name": "ukn2_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_5"
     },
     {
-     "name": "ink2_6",
+     "name": "ukn2_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_6"
     },
     {
-     "name": "ink2_7",
+     "name": "ukn2_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_7"
     },
     {
-     "name": "ink2_8",
+     "name": "ukn2_8",
      "type": "BI7",
-     "skip": true
+     "skip": true,
+     "renamed_from": "ink2_8"
     },
     {
      "name": "opmode",
@@ -27138,24 +29982,28 @@
      "kind": "state"
     },
     {
-     "name": "opmode_4",
+     "name": "ukn3_4",
      "type": "BI3",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_4"
     },
     {
-     "name": "opmode_5",
+     "name": "ukn3_5",
      "type": "BI4",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_5"
     },
     {
-     "name": "opmode_6",
+     "name": "ukn3_6",
      "type": "BI5",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_6"
     },
     {
-     "name": "opmode_7",
+     "name": "ukn3_7",
      "type": "BI6",
-     "skip": true
+     "skip": true,
+     "renamed_from": "opmode_7"
     },
     {
      "name": "supplyhctemp",
@@ -27186,7 +30034,8 @@
       "en": "Outside temperature",
       "fr": "Température extérieure"
      },
-     "kind": "live"
+     "kind": "live",
+     "absent": -100.0
     },
     {
      "name": "boilermcboosttemp",
@@ -27631,7 +30480,8 @@
      "description": {
       "en": "temperature",
       "fr": "température"
-     }
+     },
+     "absent": -100.0
     }
    ]
   },
@@ -27667,6 +30517,281 @@
       "en": "temperature difference",
       "fr": "différentiel de température"
      }
+    }
+   ]
+  },
+  "em3/MixerParameter": {
+   "circuit": "em3",
+   "name": "MixerParameter",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Mixer parameter",
+    "fr": "Paramètre de la vanne mélangeuse"
+   },
+   "description": {
+    "en": "mixer parameter",
+    "fr": "paramètre de la vanne mélangeuse"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "K",
+     "description": {
+      "en": "temperature difference",
+      "fr": "différentiel de température"
+     }
+    }
+   ]
+  },
+  "em3/MixerPump": {
+   "circuit": "em3",
+   "name": "MixerPump",
+   "address": "52",
+   "device": "module3",
+   "menu": "info",
+   "kind": "state",
+   "label": {
+    "en": "Mixer circuit pump",
+    "fr": "Pompe du circuit mélangé"
+   },
+   "description": {
+    "en": "state of the mixer-circuit pump",
+    "fr": "état de la pompe du circuit mélangé"
+   },
+   "read": true,
+   "passive": false,
+   "poll": null,
+   "poll_basis": null,
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "on"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "On",
+       "fr": "Marche"
+      }
+     },
+     "description": {
+      "en": "off or on",
+      "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
+  "em3/CirculationReturnSetTemp": {
+   "circuit": "em3",
+   "name": "CirculationReturnSetTemp",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation return setpoint",
+    "fr": "Consigne retour circulation ECS"
+   },
+   "description": {
+    "en": "circulation return temperature setpoint",
+    "fr": "consigne de température de retour de la circulation ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em3/VersionMajor": {
+   "circuit": "em3",
+   "name": "VersionMajor",
+   "address": "52",
+   "device": "module3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, major part",
+    "fr": "Version du logiciel, partie majeure"
+   },
+   "description": {
+    "en": "software version, major part",
+    "fr": "version du logiciel, partie principale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "em3/VersionMinor": {
+   "circuit": "em3",
+   "name": "VersionMinor",
+   "address": "52",
+   "device": "module3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, minor part",
+    "fr": "Version du logiciel, partie mineure"
+   },
+   "description": {
+    "en": "software version, minor part",
+    "fr": "version du logiciel, partie secondaire"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/PowerDemand": {
+   "circuit": "fs2",
+   "name": "PowerDemand",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Heat demand to the cascade manager",
+    "fr": "Demande de chaleur au manager de cascade"
+   },
+   "description": {
+    "en": "heat demand of the room unit to the cascade manager",
+    "fr": "demande de chaleur de la commande à distance au manager de cascade"
+   },
+   "read": false,
+   "passive": true,
+   "poll": "passive",
+   "poll_basis": "passive",
+   "evidence": [
+    "heat-demand"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "status",
+     "type": "UCH",
+     "description": {
+      "en": "request state: power requested (0x66, 0xee) or not (0x55, 0x00) from the cascade manager; 0xbb or 0x55 from a room unit",
+      "fr": "état de la demande : puissance demandée (0x66, 0xee) ou non (0x55, 0x00) par le manager de cascade ; 0xbb ou 0x55 d'une commande à distance"
+     },
+     "label": {
+      "en": "Request state",
+      "fr": "État de la demande"
+     },
+     "kind": "diagnostic"
+    },
+    {
+     "name": "ukn2",
+     "type": "UCH",
+     "description": {
+      "en": "second byte, meaning not established",
+      "fr": "deuxième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "heatdemandtemp",
+     "type": "D2C",
+     "unit": "°C",
+     "description": {
+      "en": "requested flow temperature",
+      "fr": "température de départ demandée"
+     },
+     "label": {
+      "en": "Requested flow temperature (sent)",
+      "fr": "Température de départ demandée (envoyée)"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn5",
+     "type": "HEX:2",
+     "description": {
+      "en": "fifth and sixth byte, meaning not established",
+      "fr": "cinquième et sixième octets, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "modulation",
+     "type": "D1C",
+     "unit": "%",
+     "description": {
+      "en": "modulation demand",
+      "fr": "demande de modulation"
+     },
+     "skip": true
+    },
+    {
+     "name": "dhwsettemp",
+     "type": "D1C",
+     "unit": "°C",
+     "description": {
+      "en": "domestic hot water setpoint",
+      "fr": "consigne de température ECS"
+     },
+     "skip": true
+    },
+    {
+     "name": "ukn9",
+     "type": "UCH",
+     "description": {
+      "en": "ninth byte, meaning not established",
+      "fr": "neuvième octet, signification non établie"
+     },
+     "skip": true
     }
    ]
   },
@@ -27845,6 +30970,1051 @@
     }
    ]
   },
+  "fs2/RoomSetpointTemp": {
+   "circuit": "fs2",
+   "name": "RoomSetpointTemp",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Room setpoint in effect",
+    "fr": "Consigne d'ambiance en vigueur"
+   },
+   "description": {
+    "en": "room setpoint in effect",
+    "fr": "consigne d'ambiance en vigueur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/OutsideMixedTemp": {
+   "circuit": "fs2",
+   "name": "OutsideMixedTemp",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Outside temperature, mixed",
+    "fr": "Température extérieure mélangée"
+   },
+   "description": {
+    "en": "outside temperature, mixed",
+    "fr": "température extérieure mélangée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     },
+     "absent": -100.0
+    }
+   ]
+  },
+  "fs2/HeatingCircuitType": {
+   "circuit": "fs2",
+   "name": "HeatingCircuitType",
+   "address": "75",
+   "device": "room2",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Heating circuit type",
+    "fr": "Type de circuit de chauffage"
+   },
+   "description": {
+    "en": "heating circuit type, read only",
+    "fr": "type de circuit de chauffage, en lecture seule"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "FloorBaseHeating",
+      "1": "FloorHeating",
+      "2": "Radiator60",
+      "3": "Radiator70",
+      "4": "Convector",
+      "5": "Universal"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Floor base heating",
+       "fr": "Réchauffage de base plancher"
+      },
+      "1": {
+       "en": "Underfloor heating",
+       "fr": "Plancher chauffant"
+      },
+      "2": {
+       "en": "Radiators 60 °C",
+       "fr": "Radiateurs 60"
+      },
+      "3": {
+       "en": "Radiators 70 °C",
+       "fr": "Radiateurs 70"
+      },
+      "4": {
+       "en": "Convectors",
+       "fr": "Convecteurs"
+      },
+      "5": {
+       "en": "Universal",
+       "fr": "Universel"
+      }
+     },
+     "description": {
+      "en": "heating circuit type",
+      "fr": "type de circuit de chauffage"
+     }
+    }
+   ]
+  },
+  "fs2/VersionMajor": {
+   "circuit": "fs2",
+   "name": "VersionMajor",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, major part",
+    "fr": "Version du logiciel, partie majeure"
+   },
+   "description": {
+    "en": "software version, major part",
+    "fr": "version du logiciel, partie principale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/VersionMinor": {
+   "circuit": "fs2",
+   "name": "VersionMinor",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, minor part",
+    "fr": "Version du logiciel, partie mineure"
+   },
+   "description": {
+    "en": "software version, minor part",
+    "fr": "version du logiciel, partie secondaire"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/DHWLoadingPriority": {
+   "circuit": "fs2",
+   "name": "DHWLoadingPriority",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water priority (stored)",
+    "fr": "Priorité ECS (mémorisée)"
+   },
+   "description": {
+    "en": "priority of the hot water loading over the heating circuit",
+    "fr": "priorité de la charge ECS sur le circuit de chauffage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Priority",
+      "1": "Sliding",
+      "2": "Parallel"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Priority",
+       "fr": "Priorité"
+      },
+      "1": {
+       "en": "Sliding",
+       "fr": "Mobile"
+      },
+      "2": {
+       "en": "Parallel",
+       "fr": "Parallèle"
+      }
+     },
+     "description": {
+      "en": "hot water loading with priority over the heating circuit, in parallel with it, or sliding",
+      "fr": "charge ECS prioritaire sur le circuit de chauffage, en parallèle, ou mobile"
+     }
+    }
+   ]
+  },
+  "fs2/DHWSetbackTemp": {
+   "circuit": "fs2",
+   "name": "DHWSetbackTemp",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Reduced hot water setpoint (stored)",
+    "fr": "Consigne ECS réduite (mémorisée)"
+   },
+   "description": {
+    "en": "reduced hot-water setpoint",
+    "fr": "consigne ECS réduite"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/DHWMaxTemp": {
+   "circuit": "fs2",
+   "name": "DHWMaxTemp",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum hot water temperature (stored)",
+    "fr": "Température ECS maximale (mémorisée)"
+   },
+   "description": {
+    "en": "maximum hot-water temperature",
+    "fr": "température ECS maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/DHWLegionellaDay": {
+   "circuit": "fs2",
+   "name": "DHWLegionellaDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella day (stored)",
+    "fr": "Jour anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "day of the legionella protection",
+    "fr": "jour de la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "Monday",
+       "fr": "Lundi"
+      },
+      "2": {
+       "en": "Tuesday",
+       "fr": "Mardi"
+      },
+      "3": {
+       "en": "Wednesday",
+       "fr": "Mercredi"
+      },
+      "4": {
+       "en": "Thursday",
+       "fr": "Jeudi"
+      },
+      "5": {
+       "en": "Friday",
+       "fr": "Vendredi"
+      },
+      "6": {
+       "en": "Saturday",
+       "fr": "Samedi"
+      },
+      "7": {
+       "en": "Sunday",
+       "fr": "Dimanche"
+      }
+     },
+     "description": {
+      "en": "day of the week, or off",
+      "fr": "jour de la semaine, ou arrêt"
+     }
+    }
+   ]
+  },
+  "fs2/LegionellaCirculationTime": {
+   "circuit": "fs2",
+   "name": "LegionellaCirculationTime",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation time with legionella (stored)",
+    "fr": "Temps de circulation anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "running time of the circulation pump during the legionella protection",
+    "fr": "temps de fonctionnement de la pompe de circulation ECS pendant la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "unit": "s",
+     "description": {
+      "en": "seconds",
+      "fr": "secondes"
+     }
+    }
+   ]
+  },
+  "fs2/LegionellaSetpoint": {
+   "circuit": "fs2",
+   "name": "LegionellaSetpoint",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella setpoint (stored)",
+    "fr": "Consigne anti-légionelle (mémorisée)"
+   },
+   "description": {
+    "en": "hot water setpoint of the legionella protection",
+    "fr": "consigne de température anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs2/SummerTimeStartDay": {
+   "circuit": "fs2",
+   "name": "SummerTimeStartDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, day",
+    "fr": "Début heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the start of summer time",
+    "fr": "jour du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/SummerTimeStartMonth": {
+   "circuit": "fs2",
+   "name": "SummerTimeStartMonth",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, month",
+    "fr": "Début heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the start of summer time",
+    "fr": "mois du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs2/SummerTimeEndDay": {
+   "circuit": "fs2",
+   "name": "SummerTimeEndDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, day",
+    "fr": "Fin heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the end of summer time",
+    "fr": "jour de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/SummerTimeEndMonth": {
+   "circuit": "fs2",
+   "name": "SummerTimeEndMonth",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, month",
+    "fr": "Fin heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the end of summer time",
+    "fr": "mois de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs2/ErrorId": {
+   "circuit": "fs2",
+   "name": "ErrorId",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Selected fault-log entry",
+    "fr": "Entrée sélectionnée de l'historique des défauts"
+   },
+   "description": {
+    "en": "selected fault-log entry (0 = most recent)",
+    "fr": "entrée sélectionnée de l'historique des défauts (0 = la plus récente)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorCode": {
+   "circuit": "fs2",
+   "name": "ErrorCode",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault code of the entry",
+    "fr": "Code défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault code of the selected entry",
+    "fr": "code défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorType": {
+   "circuit": "fs2",
+   "name": "ErrorType",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault type of the entry",
+    "fr": "Type de défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault type of the selected entry",
+    "fr": "type de défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorDevice": {
+   "circuit": "fs2",
+   "name": "ErrorDevice",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Origin of the entry",
+    "fr": "Origine du défaut de l'entrée"
+   },
+   "description": {
+    "en": "device that raised the selected entry",
+    "fr": "origine du défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorMinute": {
+   "circuit": "fs2",
+   "name": "ErrorMinute",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault minute",
+    "fr": "Minute du défaut"
+   },
+   "description": {
+    "en": "fault minute",
+    "fr": "minute du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorHour": {
+   "circuit": "fs2",
+   "name": "ErrorHour",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault hour",
+    "fr": "Heure du défaut"
+   },
+   "description": {
+    "en": "fault hour",
+    "fr": "heure du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorDay": {
+   "circuit": "fs2",
+   "name": "ErrorDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault day of the month",
+    "fr": "Jour du mois du défaut"
+   },
+   "description": {
+    "en": "fault day of the month",
+    "fr": "jour du mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/ErrorMonth": {
+   "circuit": "fs2",
+   "name": "ErrorMonth",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault month",
+    "fr": "Mois du défaut"
+   },
+   "description": {
+    "en": "fault month",
+    "fr": "mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs2/ErrorYear": {
+   "circuit": "fs2",
+   "name": "ErrorYear",
+   "address": "75",
+   "device": "room2",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault year",
+    "fr": "Année du défaut"
+   },
+   "description": {
+    "en": "fault year",
+    "fr": "année du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
   "fs2/RoomNormalTemp": {
    "circuit": "fs2",
    "name": "RoomNormalTemp",
@@ -27905,8 +32075,8 @@
     "fr": "Température ambiante réduite"
    },
    "description": {
-    "en": "setback room temperature setpoint",
-    "fr": "consigne de température ambiante réduite"
+    "en": "setback room temperature setpoint, read only: seen to be the setpoint of room unit 1, written through 35.w.fs1",
+    "fr": "consigne de température ambiante réduite, en lecture seule : vue comme la consigne de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -27914,21 +32084,10 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "room-units-reads"
+    "room-units-reads",
+    "room-units-shared-store"
    ],
-   "write": {
-    "source": "ff",
-    "runtime_checksum": true,
-    "risk": "comfort",
-    "proof": "change-observed",
-    "open": [
-     "copy-in-use"
-    ],
-    "min": 10.0,
-    "max": 21.5,
-    "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
-   },
+   "shared_with": "fs1/RoomSetbackTemp",
    "fields": [
     {
      "name": "value",
@@ -27954,8 +32113,8 @@
     "fr": "Température ambiante hors-gel"
    },
    "description": {
-    "en": "room temperature setpoint of the frost protection",
-    "fr": "consigne de température ambiante hors-gel"
+    "en": "room temperature setpoint of the frost protection, read only: seen to be the setpoint of room unit 1, written through 35.w.fs1",
+    "fr": "consigne de température ambiante hors-gel, en lecture seule : vue comme la consigne de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -27963,17 +32122,10 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "room-units-reads"
+    "room-units-reads",
+    "room-units-shared-store"
    ],
-   "write": {
-    "source": "ff",
-    "runtime_checksum": true,
-    "risk": "regulation",
-    "proof": "change-observed",
-    "open": [
-     "copy-in-use"
-    ]
-   },
+   "shared_with": "fs1/RoomFrostProtectionTemp",
    "fields": [
     {
      "name": "value",
@@ -28326,6 +32478,272 @@
     }
    ]
   },
+  "fs2/ControlVariation": {
+   "circuit": "fs2",
+   "name": "ControlVariation",
+   "address": "75",
+   "device": "room2",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Control variation",
+    "fr": "Variante de régulation"
+   },
+   "description": {
+    "en": "control variation of the heating circuit (parameter 315): 0 constant flow temperature, 1 outside temperature",
+    "fr": "variante de régulation du circuit de chauffage (paramètre 315) : 0 température de départ constante, 1 en fonction de la température extérieure"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "room-units-control-variation"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/HolidayStartDay": {
+   "circuit": "fs2",
+   "name": "HolidayStartDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start day",
+    "fr": "Jour de début des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period starts",
+    "fr": "jour du mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs2/HolidayStartMonth": {
+   "circuit": "fs2",
+   "name": "HolidayStartMonth",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start month",
+    "fr": "Mois de début des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period starts",
+    "fr": "mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs2/HolidayStartThird": {
+   "circuit": "fs2",
+   "name": "HolidayStartThird",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start, third register",
+    "fr": "Début des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the start date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de début des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs2/HolidayEndDay": {
+   "circuit": "fs2",
+   "name": "HolidayEndDay",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end day",
+    "fr": "Jour de fin des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period ends",
+    "fr": "jour du mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs2/HolidayEndMonth": {
+   "circuit": "fs2",
+   "name": "HolidayEndMonth",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end month",
+    "fr": "Mois de fin des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period ends",
+    "fr": "mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs2/HolidayEndThird": {
+   "circuit": "fs2",
+   "name": "HolidayEndThird",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end, third register",
+    "fr": "Fin des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the end date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de fin des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
   "fs2/SwitchOnRuntime": {
    "circuit": "fs2",
    "name": "SwitchOnRuntime",
@@ -28432,17 +32850,19 @@
     "fr": "Programme de chauffe 1, lundi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Monday slot 1",
-    "fr": "programme de chauffe 1, lundi, plage horaire 1"
+    "en": "heating program 1, Monday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, lundi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Mon1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -28529,17 +32949,19 @@
     "fr": "Programme de chauffe 1, lundi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Monday slot 2",
-    "fr": "programme de chauffe 1, lundi, plage horaire 2"
+    "en": "heating program 1, Monday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, lundi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Mon2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -28626,17 +33048,19 @@
     "fr": "Programme de chauffe 1, lundi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Monday slot 3",
-    "fr": "programme de chauffe 1, lundi, plage horaire 3"
+    "en": "heating program 1, Monday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, lundi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Mon3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -28723,17 +33147,19 @@
     "fr": "Programme de chauffe 1, mardi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Tuesday slot 1",
-    "fr": "programme de chauffe 1, mardi, plage horaire 1"
+    "en": "heating program 1, Tuesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mardi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Tue1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -28820,17 +33246,19 @@
     "fr": "Programme de chauffe 1, mardi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Tuesday slot 2",
-    "fr": "programme de chauffe 1, mardi, plage horaire 2"
+    "en": "heating program 1, Tuesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mardi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Tue2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -28917,17 +33345,19 @@
     "fr": "Programme de chauffe 1, mardi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Tuesday slot 3",
-    "fr": "programme de chauffe 1, mardi, plage horaire 3"
+    "en": "heating program 1, Tuesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mardi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Tue3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29014,17 +33444,19 @@
     "fr": "Programme de chauffe 1, mercredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Wednesday slot 1",
-    "fr": "programme de chauffe 1, mercredi, plage horaire 1"
+    "en": "heating program 1, Wednesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mercredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Wed1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29111,17 +33543,19 @@
     "fr": "Programme de chauffe 1, mercredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Wednesday slot 2",
-    "fr": "programme de chauffe 1, mercredi, plage horaire 2"
+    "en": "heating program 1, Wednesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mercredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Wed2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29208,17 +33642,19 @@
     "fr": "Programme de chauffe 1, mercredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Wednesday slot 3",
-    "fr": "programme de chauffe 1, mercredi, plage horaire 3"
+    "en": "heating program 1, Wednesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, mercredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Wed3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29305,17 +33741,19 @@
     "fr": "Programme de chauffe 1, jeudi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Thursday slot 1",
-    "fr": "programme de chauffe 1, jeudi, plage horaire 1"
+    "en": "heating program 1, Thursday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, jeudi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Thu1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29402,17 +33840,19 @@
     "fr": "Programme de chauffe 1, jeudi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Thursday slot 2",
-    "fr": "programme de chauffe 1, jeudi, plage horaire 2"
+    "en": "heating program 1, Thursday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, jeudi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Thu2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29499,17 +33939,19 @@
     "fr": "Programme de chauffe 1, jeudi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Thursday slot 3",
-    "fr": "programme de chauffe 1, jeudi, plage horaire 3"
+    "en": "heating program 1, Thursday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, jeudi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Thu3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29596,17 +34038,19 @@
     "fr": "Programme de chauffe 1, vendredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Friday slot 1",
-    "fr": "programme de chauffe 1, vendredi, plage horaire 1"
+    "en": "heating program 1, Friday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, vendredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Fri1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29693,17 +34137,19 @@
     "fr": "Programme de chauffe 1, vendredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Friday slot 2",
-    "fr": "programme de chauffe 1, vendredi, plage horaire 2"
+    "en": "heating program 1, Friday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, vendredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Fri2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29790,17 +34236,19 @@
     "fr": "Programme de chauffe 1, vendredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Friday slot 3",
-    "fr": "programme de chauffe 1, vendredi, plage horaire 3"
+    "en": "heating program 1, Friday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, vendredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Fri3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29887,17 +34335,19 @@
     "fr": "Programme de chauffe 1, samedi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Saturday slot 1",
-    "fr": "programme de chauffe 1, samedi, plage horaire 1"
+    "en": "heating program 1, Saturday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, samedi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sat1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -29984,17 +34434,19 @@
     "fr": "Programme de chauffe 1, samedi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Saturday slot 2",
-    "fr": "programme de chauffe 1, samedi, plage horaire 2"
+    "en": "heating program 1, Saturday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, samedi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sat2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -30081,17 +34533,19 @@
     "fr": "Programme de chauffe 1, samedi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Saturday slot 3",
-    "fr": "programme de chauffe 1, samedi, plage horaire 3"
+    "en": "heating program 1, Saturday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, samedi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sat3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -30178,17 +34632,19 @@
     "fr": "Programme de chauffe 1, dimanche, plage horaire 1"
    },
    "description": {
-    "en": "heating program 1, Sunday slot 1",
-    "fr": "programme de chauffe 1, dimanche, plage horaire 1"
+    "en": "heating program 1, Sunday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, dimanche, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sun1",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -30275,17 +34731,19 @@
     "fr": "Programme de chauffe 1, dimanche, plage horaire 2"
    },
    "description": {
-    "en": "heating program 1, Sunday slot 2",
-    "fr": "programme de chauffe 1, dimanche, plage horaire 2"
+    "en": "heating program 1, Sunday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, dimanche, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sun2",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -30372,17 +34830,19 @@
     "fr": "Programme de chauffe 1, dimanche, plage horaire 3"
    },
    "description": {
-    "en": "heating program 1, Sunday slot 3",
-    "fr": "programme de chauffe 1, dimanche, plage horaire 3"
+    "en": "heating program 1, Sunday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 1, dimanche, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram1Sun3",
    "family": "program",
    "group": "heating1",
    "position": {
@@ -38563,6 +43023,106 @@
     }
    ]
   },
+  "fs3/PowerDemand": {
+   "circuit": "fs3",
+   "name": "PowerDemand",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Heat demand to the cascade manager",
+    "fr": "Demande de chaleur au manager de cascade"
+   },
+   "description": {
+    "en": "heat demand of the room unit to the cascade manager",
+    "fr": "demande de chaleur de la commande à distance au manager de cascade"
+   },
+   "read": false,
+   "passive": true,
+   "poll": "passive",
+   "poll_basis": "passive",
+   "evidence": [
+    "heat-demand"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "status",
+     "type": "UCH",
+     "description": {
+      "en": "request state: power requested (0x66, 0xee) or not (0x55, 0x00) from the cascade manager; 0xbb or 0x55 from a room unit",
+      "fr": "état de la demande : puissance demandée (0x66, 0xee) ou non (0x55, 0x00) par le manager de cascade ; 0xbb ou 0x55 d'une commande à distance"
+     },
+     "label": {
+      "en": "Request state",
+      "fr": "État de la demande"
+     },
+     "kind": "diagnostic"
+    },
+    {
+     "name": "ukn2",
+     "type": "UCH",
+     "description": {
+      "en": "second byte, meaning not established",
+      "fr": "deuxième octet, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "heatdemandtemp",
+     "type": "D2C",
+     "unit": "°C",
+     "description": {
+      "en": "requested flow temperature",
+      "fr": "température de départ demandée"
+     },
+     "label": {
+      "en": "Requested flow temperature (sent)",
+      "fr": "Température de départ demandée (envoyée)"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "ukn5",
+     "type": "HEX:2",
+     "description": {
+      "en": "fifth and sixth byte, meaning not established",
+      "fr": "cinquième et sixième octets, signification non établie"
+     },
+     "skip": true
+    },
+    {
+     "name": "modulation",
+     "type": "D1C",
+     "unit": "%",
+     "description": {
+      "en": "modulation demand",
+      "fr": "demande de modulation"
+     },
+     "skip": true
+    },
+    {
+     "name": "dhwsettemp",
+     "type": "D1C",
+     "unit": "°C",
+     "description": {
+      "en": "domestic hot water setpoint",
+      "fr": "consigne de température ECS"
+     },
+     "skip": true
+    },
+    {
+     "name": "ukn9",
+     "type": "UCH",
+     "description": {
+      "en": "ninth byte, meaning not established",
+      "fr": "neuvième octet, signification non établie"
+     },
+     "skip": true
+    }
+   ]
+  },
   "fs3/HeatDemandTemp": {
    "circuit": "fs3",
    "name": "HeatDemandTemp",
@@ -38735,6 +43295,1051 @@
       "en": "temperature",
       "fr": "température"
      }
+    }
+   ]
+  },
+  "fs3/RoomSetpointTemp": {
+   "circuit": "fs3",
+   "name": "RoomSetpointTemp",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Room setpoint in effect",
+    "fr": "Consigne d'ambiance en vigueur"
+   },
+   "description": {
+    "en": "room setpoint in effect",
+    "fr": "consigne d'ambiance en vigueur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/OutsideMixedTemp": {
+   "circuit": "fs3",
+   "name": "OutsideMixedTemp",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Outside temperature, mixed",
+    "fr": "Température extérieure mélangée"
+   },
+   "description": {
+    "en": "outside temperature, mixed",
+    "fr": "température extérieure mélangée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     },
+     "absent": -100.0
+    }
+   ]
+  },
+  "fs3/HeatingCircuitType": {
+   "circuit": "fs3",
+   "name": "HeatingCircuitType",
+   "address": "f5",
+   "device": "room3",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Heating circuit type",
+    "fr": "Type de circuit de chauffage"
+   },
+   "description": {
+    "en": "heating circuit type, read only",
+    "fr": "type de circuit de chauffage, en lecture seule"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "FloorBaseHeating",
+      "1": "FloorHeating",
+      "2": "Radiator60",
+      "3": "Radiator70",
+      "4": "Convector",
+      "5": "Universal"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Floor base heating",
+       "fr": "Réchauffage de base plancher"
+      },
+      "1": {
+       "en": "Underfloor heating",
+       "fr": "Plancher chauffant"
+      },
+      "2": {
+       "en": "Radiators 60 °C",
+       "fr": "Radiateurs 60"
+      },
+      "3": {
+       "en": "Radiators 70 °C",
+       "fr": "Radiateurs 70"
+      },
+      "4": {
+       "en": "Convectors",
+       "fr": "Convecteurs"
+      },
+      "5": {
+       "en": "Universal",
+       "fr": "Universel"
+      }
+     },
+     "description": {
+      "en": "heating circuit type",
+      "fr": "type de circuit de chauffage"
+     }
+    }
+   ]
+  },
+  "fs3/VersionMajor": {
+   "circuit": "fs3",
+   "name": "VersionMajor",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, major part",
+    "fr": "Version du logiciel, partie majeure"
+   },
+   "description": {
+    "en": "software version, major part",
+    "fr": "version du logiciel, partie principale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/VersionMinor": {
+   "circuit": "fs3",
+   "name": "VersionMinor",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Software version, minor part",
+    "fr": "Version du logiciel, partie mineure"
+   },
+   "description": {
+    "en": "software version, minor part",
+    "fr": "version du logiciel, partie secondaire"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/DHWLoadingPriority": {
+   "circuit": "fs3",
+   "name": "DHWLoadingPriority",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Hot water priority (stored)",
+    "fr": "Priorité ECS (mémorisée)"
+   },
+   "description": {
+    "en": "priority of the hot water loading over the heating circuit",
+    "fr": "priorité de la charge ECS sur le circuit de chauffage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "Priority",
+      "1": "Sliding",
+      "2": "Parallel"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Priority",
+       "fr": "Priorité"
+      },
+      "1": {
+       "en": "Sliding",
+       "fr": "Mobile"
+      },
+      "2": {
+       "en": "Parallel",
+       "fr": "Parallèle"
+      }
+     },
+     "description": {
+      "en": "hot water loading with priority over the heating circuit, in parallel with it, or sliding",
+      "fr": "charge ECS prioritaire sur le circuit de chauffage, en parallèle, ou mobile"
+     }
+    }
+   ]
+  },
+  "fs3/DHWSetbackTemp": {
+   "circuit": "fs3",
+   "name": "DHWSetbackTemp",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Reduced hot water setpoint (stored)",
+    "fr": "Consigne ECS réduite (mémorisée)"
+   },
+   "description": {
+    "en": "reduced hot-water setpoint",
+    "fr": "consigne ECS réduite"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/DHWMaxTemp": {
+   "circuit": "fs3",
+   "name": "DHWMaxTemp",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Maximum hot water temperature (stored)",
+    "fr": "Température ECS maximale (mémorisée)"
+   },
+   "description": {
+    "en": "maximum hot-water temperature",
+    "fr": "température ECS maximale"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/DHWLegionellaDay": {
+   "circuit": "fs3",
+   "name": "DHWLegionellaDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella day (stored)",
+    "fr": "Jour anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "day of the legionella protection",
+    "fr": "jour de la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "Monday",
+       "fr": "Lundi"
+      },
+      "2": {
+       "en": "Tuesday",
+       "fr": "Mardi"
+      },
+      "3": {
+       "en": "Wednesday",
+       "fr": "Mercredi"
+      },
+      "4": {
+       "en": "Thursday",
+       "fr": "Jeudi"
+      },
+      "5": {
+       "en": "Friday",
+       "fr": "Vendredi"
+      },
+      "6": {
+       "en": "Saturday",
+       "fr": "Samedi"
+      },
+      "7": {
+       "en": "Sunday",
+       "fr": "Dimanche"
+      }
+     },
+     "description": {
+      "en": "day of the week, or off",
+      "fr": "jour de la semaine, ou arrêt"
+     }
+    }
+   ]
+  },
+  "fs3/LegionellaCirculationTime": {
+   "circuit": "fs3",
+   "name": "LegionellaCirculationTime",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Circulation time with legionella (stored)",
+    "fr": "Temps de circulation anti-légionelle (mémorisé)"
+   },
+   "description": {
+    "en": "running time of the circulation pump during the legionella protection",
+    "fr": "temps de fonctionnement de la pompe de circulation ECS pendant la fonction anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "unit": "s",
+     "description": {
+      "en": "seconds",
+      "fr": "secondes"
+     }
+    }
+   ]
+  },
+  "fs3/LegionellaSetpoint": {
+   "circuit": "fs3",
+   "name": "LegionellaSetpoint",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Legionella setpoint (stored)",
+    "fr": "Consigne anti-légionelle (mémorisée)"
+   },
+   "description": {
+    "en": "hot water setpoint of the legionella protection",
+    "fr": "consigne de température anti-légionelle"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs3/SummerTimeStartDay": {
+   "circuit": "fs3",
+   "name": "SummerTimeStartDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, day",
+    "fr": "Début heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the start of summer time",
+    "fr": "jour du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/SummerTimeStartMonth": {
+   "circuit": "fs3",
+   "name": "SummerTimeStartMonth",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time start, month",
+    "fr": "Début heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the start of summer time",
+    "fr": "mois du début de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs3/SummerTimeEndDay": {
+   "circuit": "fs3",
+   "name": "SummerTimeEndDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, day",
+    "fr": "Fin heure d'été, jour"
+   },
+   "description": {
+    "en": "day of the end of summer time",
+    "fr": "jour de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/SummerTimeEndMonth": {
+   "circuit": "fs3",
+   "name": "SummerTimeEndMonth",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Summer time end, month",
+    "fr": "Fin heure d'été, mois"
+   },
+   "description": {
+    "en": "month of the end of summer time",
+    "fr": "mois de la fin de l'heure d'été"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs3/ErrorId": {
+   "circuit": "fs3",
+   "name": "ErrorId",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Selected fault-log entry",
+    "fr": "Entrée sélectionnée de l'historique des défauts"
+   },
+   "description": {
+    "en": "selected fault-log entry (0 = most recent)",
+    "fr": "entrée sélectionnée de l'historique des défauts (0 = la plus récente)"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorCode": {
+   "circuit": "fs3",
+   "name": "ErrorCode",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault code of the entry",
+    "fr": "Code défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault code of the selected entry",
+    "fr": "code défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorType": {
+   "circuit": "fs3",
+   "name": "ErrorType",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault type of the entry",
+    "fr": "Type de défaut de l'entrée"
+   },
+   "description": {
+    "en": "fault type of the selected entry",
+    "fr": "type de défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorDevice": {
+   "circuit": "fs3",
+   "name": "ErrorDevice",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Origin of the entry",
+    "fr": "Origine du défaut de l'entrée"
+   },
+   "description": {
+    "en": "device that raised the selected entry",
+    "fr": "origine du défaut de l'entrée sélectionnée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorMinute": {
+   "circuit": "fs3",
+   "name": "ErrorMinute",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault minute",
+    "fr": "Minute du défaut"
+   },
+   "description": {
+    "en": "fault minute",
+    "fr": "minute du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorHour": {
+   "circuit": "fs3",
+   "name": "ErrorHour",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault hour",
+    "fr": "Heure du défaut"
+   },
+   "description": {
+    "en": "fault hour",
+    "fr": "heure du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorDay": {
+   "circuit": "fs3",
+   "name": "ErrorDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault day of the month",
+    "fr": "Jour du mois du défaut"
+   },
+   "description": {
+    "en": "fault day of the month",
+    "fr": "jour du mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/ErrorMonth": {
+   "circuit": "fs3",
+   "name": "ErrorMonth",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault month",
+    "fr": "Mois du défaut"
+   },
+   "description": {
+    "en": "fault month",
+    "fr": "mois du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+     },
+     "value_labels": {
+      "1": {
+       "en": "January",
+       "fr": "Janvier"
+      },
+      "2": {
+       "en": "February",
+       "fr": "Février"
+      },
+      "3": {
+       "en": "March",
+       "fr": "Mars"
+      },
+      "4": {
+       "en": "April",
+       "fr": "Avril"
+      },
+      "5": {
+       "en": "May",
+       "fr": "Mai"
+      },
+      "6": {
+       "en": "June",
+       "fr": "Juin"
+      },
+      "7": {
+       "en": "July",
+       "fr": "Juillet"
+      },
+      "8": {
+       "en": "August",
+       "fr": "Août"
+      },
+      "9": {
+       "en": "September",
+       "fr": "Septembre"
+      },
+      "10": {
+       "en": "October",
+       "fr": "Octobre"
+      },
+      "11": {
+       "en": "November",
+       "fr": "Novembre"
+      },
+      "12": {
+       "en": "December",
+       "fr": "Décembre"
+      }
+     },
+     "description": {
+      "en": "month of the year",
+      "fr": "mois de l'année"
+     }
+    }
+   ]
+  },
+  "fs3/ErrorYear": {
+   "circuit": "fs3",
+   "name": "ErrorYear",
+   "address": "f5",
+   "device": "room3",
+   "menu": "info",
+   "kind": "diagnostic",
+   "label": {
+    "en": "Fault year",
+    "fr": "Année du défaut"
+   },
+   "description": {
+    "en": "fault year",
+    "fr": "année du défaut"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
     }
    ]
   },
@@ -39216,6 +44821,272 @@
       "en": "temperature level during a holiday period",
       "fr": "niveau de température pendant les vacances"
      }
+    }
+   ]
+  },
+  "fs3/ControlVariation": {
+   "circuit": "fs3",
+   "name": "ControlVariation",
+   "address": "f5",
+   "device": "room3",
+   "menu": "control",
+   "kind": "setting",
+   "label": {
+    "en": "Control variation",
+    "fr": "Variante de régulation"
+   },
+   "description": {
+    "en": "control variation of the heating circuit (parameter 315): 0 constant flow temperature, 1 outside temperature",
+    "fr": "variante de régulation du circuit de chauffage (paramètre 315) : 0 température de départ constante, 1 en fonction de la température extérieure"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "room-units-control-variation"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/HolidayStartDay": {
+   "circuit": "fs3",
+   "name": "HolidayStartDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start day",
+    "fr": "Jour de début des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period starts",
+    "fr": "jour du mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs3/HolidayStartMonth": {
+   "circuit": "fs3",
+   "name": "HolidayStartMonth",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start month",
+    "fr": "Mois de début des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period starts",
+    "fr": "mois du début des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs3/HolidayStartThird": {
+   "circuit": "fs3",
+   "name": "HolidayStartThird",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday start, third register",
+    "fr": "Début des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the start date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de début des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
+    }
+   ]
+  },
+  "fs3/HolidayEndDay": {
+   "circuit": "fs3",
+   "name": "HolidayEndDay",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end day",
+    "fr": "Jour de fin des vacances"
+   },
+   "description": {
+    "en": "day of the month on which the holiday period ends",
+    "fr": "jour du mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 31
+    }
+   ]
+  },
+  "fs3/HolidayEndMonth": {
+   "circuit": "fs3",
+   "name": "HolidayEndMonth",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end month",
+    "fr": "Mois de fin des vacances"
+   },
+   "description": {
+    "en": "month in which the holiday period ends",
+    "fr": "mois de la fin des vacances"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": []
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "min": 1,
+     "max": 12
+    }
+   ]
+  },
+  "fs3/HolidayEndThird": {
+   "circuit": "fs3",
+   "name": "HolidayEndThird",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Holiday end, third register",
+    "fr": "Fin des vacances, troisième registre"
+   },
+   "description": {
+    "en": "third register of the end date of the holiday period, meaning not established",
+    "fr": "troisième registre de la date de fin des vacances, signification non établie"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "holiday-dates"
+   ],
+   "write": {
+    "source": "ff",
+    "runtime_checksum": true,
+    "risk": "regulation",
+    "proof": "change-observed",
+    "open": [
+     "meaning"
+    ]
+   },
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN"
     }
    ]
   },
@@ -51601,14 +57472,25 @@
  "open": {
   "poll": [
    "bc1/BurnerServiceHours",
-   "bc2/BurnerServiceHours"
+   "bc2/BurnerServiceHours",
+   "em2/MixerPump",
+   "em3/MixerPump"
   ],
   "range": [
    "ka/DHWLegionellaDay",
    "ka/CircWithLegionella",
    "fs1/HolidayTempLevel",
+   "fs1/ControlVariation",
+   "fs1/HolidayStartThird",
+   "fs1/HolidayEndThird",
    "fs2/HolidayTempLevel",
-   "fs3/HolidayTempLevel"
+   "fs2/ControlVariation",
+   "fs2/HolidayStartThird",
+   "fs2/HolidayEndThird",
+   "fs3/HolidayTempLevel",
+   "fs3/ControlVariation",
+   "fs3/HolidayStartThird",
+   "fs3/HolidayEndThird"
   ],
   "step": [
    "ka/BlockingTime",
@@ -51617,11 +57499,34 @@
    "ka/CircWithLegionella",
    "ka/RegulationP",
    "ka/RegulationI",
+   "ka/ModulationMax",
+   "ka/ModulationMin",
    "fs1/HolidayTempLevel",
+   "fs1/ControlVariation",
+   "fs1/HolidayStartDay",
+   "fs1/HolidayStartMonth",
+   "fs1/HolidayStartThird",
+   "fs1/HolidayEndDay",
+   "fs1/HolidayEndMonth",
+   "fs1/HolidayEndThird",
    "fs1/SwitchOnRuntime",
    "fs2/HolidayTempLevel",
+   "fs2/ControlVariation",
+   "fs2/HolidayStartDay",
+   "fs2/HolidayStartMonth",
+   "fs2/HolidayStartThird",
+   "fs2/HolidayEndDay",
+   "fs2/HolidayEndMonth",
+   "fs2/HolidayEndThird",
    "fs2/SwitchOnRuntime",
    "fs3/HolidayTempLevel",
+   "fs3/ControlVariation",
+   "fs3/HolidayStartDay",
+   "fs3/HolidayStartMonth",
+   "fs3/HolidayStartThird",
+   "fs3/HolidayEndDay",
+   "fs3/HolidayEndMonth",
+   "fs3/HolidayEndThird",
    "fs3/SwitchOnRuntime"
   ],
   "value_labels": [

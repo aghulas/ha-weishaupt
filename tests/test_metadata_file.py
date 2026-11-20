@@ -35,34 +35,34 @@ def test_without_a_folder_the_bundled_copy(tmp_path):
 
 def test_a_newer_verified_file_is_used(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9")
+    release(folder, "0.6.1")
     choice = choose(folder)
-    assert (choice.source, choice.model.version, choice.refused) == ("weishaupt-metadata-0.5.9.json", "0.5.9", {})
+    assert (choice.source, choice.model.version, choice.refused) == ("weishaupt-metadata-0.6.1.json", "0.6.1", {})
 
 
 def test_a_bad_checksum_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9", sums="0" * 64)
+    release(folder, "0.6.1", sums="0" * 64)
     choice = choose(folder)
-    assert choice.source == "bundled" and "sha256" in choice.refused["weishaupt-metadata-0.5.9.json"]
+    assert choice.source == "bundled" and "sha256" in choice.refused["weishaupt-metadata-0.6.1.json"]
 
 
 def test_no_sums_file_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9")
-    (folder / "sha256sums-0.5.9.txt").unlink()
-    assert "sha256sums-0.5.9.txt" in choose(folder).refused["weishaupt-metadata-0.5.9.json"]
+    release(folder, "0.6.1")
+    (folder / "sha256sums-0.6.1.txt").unlink()
+    assert "sha256sums-0.6.1.txt" in choose(folder).refused["weishaupt-metadata-0.6.1.json"]
 
 
 def test_a_newer_schema_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9", schema=2)
+    release(folder, "0.6.1", schema=2)
     choice = choose(folder)
-    assert choice.source == "bundled" and "schema 2" in choice.refused["weishaupt-metadata-0.5.9.json"]
+    assert choice.source == "bundled" and "schema 2" in choice.refused["weishaupt-metadata-0.6.1.json"]
 
 
-@pytest.mark.parametrize("version,why", [("0.6.0", "outside the range"), ("0.5.2", "outside the range"),
-                                         ("0.5.8", "not newer"), ("0.5.7", "not newer")])
+@pytest.mark.parametrize("version,why", [("0.7.0", "outside the range"), ("0.5.15", "outside the range"),
+                                         ("0.6.0", "not newer")])
 def test_a_version_out_of_range_or_not_newer_is_refused(tmp_path, version, why):
     folder = tmp_path / "weishaupt"
     release(folder, version)
@@ -72,25 +72,25 @@ def test_a_version_out_of_range_or_not_newer_is_refused(tmp_path, version, why):
 
 def test_a_file_whose_name_and_content_disagree_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9", change=lambda d: d["definitions"].update(version="0.5.10"))
-    assert "it says definitions 0.5.10" in choose(folder).refused["weishaupt-metadata-0.5.9.json"]
+    release(folder, "0.6.1", change=lambda d: d["definitions"].update(version="0.5.10"))
+    assert "it says definitions 0.5.10" in choose(folder).refused["weishaupt-metadata-0.6.1.json"]
 
 
 def test_a_content_that_builds_no_model_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9", change=lambda d: d.pop("devices"))
-    assert "does not build a model" in choose(folder).refused["weishaupt-metadata-0.5.9.json"]
+    release(folder, "0.6.1", change=lambda d: d.pop("devices"))
+    assert "does not build a model" in choose(folder).refused["weishaupt-metadata-0.6.1.json"]
 
 
 def test_the_newest_valid_file_wins(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "0.5.9")
-    release(folder, "0.5.10", sums="1" * 64)
-    release(folder, "0.5.11", schema=3)
+    release(folder, "0.6.1")
+    release(folder, "0.6.2", sums="1" * 64)
+    release(folder, "0.6.3", schema=3)
     choice = choose(folder)
-    assert choice.model.version == "0.5.9"
-    assert set(choice.refused) == {"weishaupt-metadata-0.5.10.json", "weishaupt-metadata-0.5.11.json"}
+    assert choice.model.version == "0.6.1"
+    assert set(choice.refused) == {"weishaupt-metadata-0.6.2.json", "weishaupt-metadata-0.6.3.json"}
 
 
 def test_accepted():
-    assert accepted("0.5.3") and accepted("0.5.12") and not accepted("0.5.2") and not accepted("0.6.0")
+    assert accepted("0.6.0") and accepted("0.6.12") and not accepted("0.5.15") and not accepted("0.7.0")

@@ -440,6 +440,9 @@
       "module_hcmode_valveopening": {
         "name": "Mixer opening"
       },
+      "module_mixerpump": {
+        "name": "Mixer circuit pump"
+      },
       "system_kastatus_burnerstatus": {
         "name": "Burner"
       },
@@ -505,6 +508,12 @@
       "manager_legionellasetpoint": {
         "name": "Legionella protection setpoint (setting)"
       },
+      "manager_modulationmax": {
+        "name": "Maximum modulation (optimal range) (setting)"
+      },
+      "manager_modulationmin": {
+        "name": "Minimum modulation (optimal range) (setting)"
+      },
       "manager_regulationi": {
         "name": "Power controller, factor I (setting)"
       },
@@ -553,6 +562,9 @@
       "room_boilermcboosttemp": {
         "name": "Boiler boost offset (setting)"
       },
+      "room_controlvariation": {
+        "name": "Control variation (setting)"
+      },
       "room_dhwsetpoint": {
         "name": "Hot water setpoint (setting)"
       },
@@ -561,6 +573,24 @@
       },
       "room_gradientcurve": {
         "name": "Heating curve gradient (setting)"
+      },
+      "room_holidayendday": {
+        "name": "Holiday end day (setting)"
+      },
+      "room_holidayendmonth": {
+        "name": "Holiday end month (setting)"
+      },
+      "room_holidayendthird": {
+        "name": "Holiday end, third register (setting)"
+      },
+      "room_holidaystartday": {
+        "name": "Holiday start day (setting)"
+      },
+      "room_holidaystartmonth": {
+        "name": "Holiday start month (setting)"
+      },
+      "room_holidaystartthird": {
+        "name": "Holiday start, third register (setting)"
       },
       "room_roomfrostprotectiontemp": {
         "name": "Frost protection room temperature (setting)"
@@ -628,6 +658,21 @@
       },
       "boiler_dhwtemp": {
         "name": "Hot water temperature (i34)"
+      },
+      "boiler_eventcounters_burnerhourstoday": {
+        "name": "Burner hours today (by the symbol)"
+      },
+      "boiler_eventcounters_ignitionstoday": {
+        "name": "Ignitions today (by the symbol)"
+      },
+      "boiler_eventcounters_poweroncount": {
+        "name": "Mains switch-ons"
+      },
+      "boiler_eventcounters_resetcount": {
+        "name": "Resets"
+      },
+      "boiler_eventcounters_shutoffcount": {
+        "name": "Shut-offs"
       },
       "boiler_fault_history": {
         "name": "Fault history",
@@ -760,6 +805,18 @@
       "boiler_outsidetemp": {
         "name": "Outside temperature (i33)"
       },
+      "boiler_powerdemand_dhwsettemp": {
+        "name": "Hot water setpoint"
+      },
+      "boiler_powerdemand_heatdemandtemp": {
+        "name": "Requested flow temperature"
+      },
+      "boiler_powerdemand_modulation": {
+        "name": "Modulation demand"
+      },
+      "boiler_powerdemand_status": {
+        "name": "Request state"
+      },
       "boiler_returntemp": {
         "name": "Return temperature (i37)"
       },
@@ -889,6 +946,37 @@
       "manager_boilermcboosttemp": {
         "name": "Boiler boost offset"
       },
+      "manager_boilersequence1first": {
+        "name": "Boiler sequence 1, first",
+        "state": {
+          "a": "Boiler A",
+          "b": "Boiler B"
+        }
+      },
+      "manager_boilersequence1second": {
+        "name": "Boiler sequence 1, second",
+        "state": {
+          "a": "Boiler A",
+          "b": "Boiler B"
+        }
+      },
+      "manager_boilersequence2first": {
+        "name": "Boiler sequence 2, first",
+        "state": {
+          "a": "Boiler A",
+          "b": "Boiler B"
+        }
+      },
+      "manager_boilersequence2second": {
+        "name": "Boiler sequence 2, second",
+        "state": {
+          "a": "Boiler A",
+          "b": "Boiler B"
+        }
+      },
+      "manager_calorifierexcesstemp": {
+        "name": "Buffer excess"
+      },
       "manager_calorifierswitchdiff": {
         "name": "Calorifier switching differential"
       },
@@ -898,14 +986,20 @@
       "manager_configstatus": {
         "name": "Configuration status"
       },
+      "manager_decoupleexcesstemp": {
+        "name": "De-couple excess"
+      },
+      "manager_decouplemaxtemp": {
+        "name": "De-couple maximum"
+      },
       "manager_decouplemintemp": {
         "name": "De-couple minimum temperature"
       },
       "manager_decoupletemp": {
         "name": "De-couple sensor B22"
       },
-      "manager_dhwexceeded": {
-        "name": "Hot water exceed temperature"
+      "manager_dhwexcesstemp": {
+        "name": "Hot water excess"
       },
       "manager_dhwlegionelladay": {
         "name": "Legionella protection day",
@@ -930,6 +1024,9 @@
       },
       "manager_dhwloadtime": {
         "name": "Maximum hot water loading time"
+      },
+      "manager_dhwsetbacktemp": {
+        "name": "Reduced hot water setpoint"
       },
       "manager_dhwsetpoint": {
         "name": "Hot water setpoint"
@@ -1023,6 +1120,18 @@
       "manager_legionellasetpoint": {
         "name": "Legionella protection setpoint"
       },
+      "manager_legionellastarttime": {
+        "name": "Legionella start time"
+      },
+      "manager_modulationdifftemp": {
+        "name": "Modulation differential"
+      },
+      "manager_modulationmax": {
+        "name": "Maximum modulation (optimal range)"
+      },
+      "manager_modulationmin": {
+        "name": "Minimum modulation (optimal range)"
+      },
       "manager_modulationstatus": {
         "name": "Burner modulation"
       },
@@ -1031,6 +1140,9 @@
       },
       "manager_outsideweightedtemp": {
         "name": "Weighted outside temperature"
+      },
+      "manager_plateexchangerprimarytemp": {
+        "name": "Plate exchanger primary B24"
       },
       "manager_regulationi": {
         "name": "Power controller, factor I"
@@ -1046,6 +1158,46 @@
       },
       "manager_roomsetbacktemp": {
         "name": "Setback room temperature"
+      },
+      "manager_summertimeendday": {
+        "name": "Summer time end, day"
+      },
+      "manager_summertimeendmonth": {
+        "name": "Summer time end, month",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
+      },
+      "manager_summertimestartday": {
+        "name": "Summer time start, day"
+      },
+      "manager_summertimestartmonth": {
+        "name": "Summer time start, month",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
       },
       "manager_summerwinterchangeovertemp": {
         "name": "Summer / winter changeover"
@@ -1109,6 +1261,9 @@
       "module_boilermcboosttemp": {
         "name": "Boiler boost offset"
       },
+      "module_circulationreturnsettemp": {
+        "name": "Circulation return setpoint"
+      },
       "module_gradientcurve": {
         "name": "Heating curve gradient"
       },
@@ -1136,6 +1291,9 @@
       "module_hcmode_supplyhctemp": {
         "name": "Room unit / module exchange – Flow temperature"
       },
+      "module_mixerparameter": {
+        "name": "Mixer parameter"
+      },
       "module_roomfrostprotectiontemp": {
         "name": "Frost protection room temperature"
       },
@@ -1159,6 +1317,12 @@
       },
       "module_supplymintemp": {
         "name": "Minimum flow temperature"
+      },
+      "module_versionmajor": {
+        "name": "Software version, major part"
+      },
+      "module_versionminor": {
+        "name": "Software version, minor part"
       },
       "program_circulation": {
         "name": "Circulation program",
@@ -1366,8 +1530,79 @@
       "room_boilermcboosttemp": {
         "name": "Boiler boost offset"
       },
+      "room_controlvariation": {
+        "name": "Control variation"
+      },
+      "room_dhwlegionelladay": {
+        "name": "Legionella day (stored)",
+        "state": {
+          "off": "Off",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
+      },
+      "room_dhwloadingpriority": {
+        "name": "Hot water priority (stored)",
+        "state": {
+          "priority": "Priority",
+          "sliding": "Sliding",
+          "parallel": "Parallel"
+        }
+      },
+      "room_dhwmaxtemp": {
+        "name": "Maximum hot water temperature (stored)"
+      },
+      "room_dhwsetbacktemp": {
+        "name": "Reduced hot water setpoint (stored)"
+      },
       "room_dhwsetpoint": {
         "name": "Hot water setpoint"
+      },
+      "room_errorcode": {
+        "name": "Fault code of the entry"
+      },
+      "room_errorday": {
+        "name": "Fault day of the month"
+      },
+      "room_errordevice": {
+        "name": "Origin of the entry"
+      },
+      "room_errorhour": {
+        "name": "Fault hour"
+      },
+      "room_errorid": {
+        "name": "Selected fault-log entry"
+      },
+      "room_errorminute": {
+        "name": "Fault minute"
+      },
+      "room_errormonth": {
+        "name": "Fault month",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
+      },
+      "room_errortype": {
+        "name": "Fault type of the entry"
+      },
+      "room_erroryear": {
+        "name": "Fault year"
       },
       "room_frostprotectionlimittemp": {
         "name": "Frost protection limit"
@@ -1378,6 +1613,35 @@
       "room_heatdemandtemp": {
         "name": "Requested flow temperature"
       },
+      "room_heatingcircuittype": {
+        "name": "Heating circuit type",
+        "state": {
+          "floor_base_heating": "Floor base heating",
+          "floor_heating": "Underfloor heating",
+          "radiator60": "Radiators 60 °C",
+          "radiator70": "Radiators 70 °C",
+          "convector": "Convectors",
+          "universal": "Universal"
+        }
+      },
+      "room_holidayendday": {
+        "name": "Holiday end day"
+      },
+      "room_holidayendmonth": {
+        "name": "Holiday end month"
+      },
+      "room_holidayendthird": {
+        "name": "Holiday end, third register"
+      },
+      "room_holidaystartday": {
+        "name": "Holiday start day"
+      },
+      "room_holidaystartmonth": {
+        "name": "Holiday start month"
+      },
+      "room_holidaystartthird": {
+        "name": "Holiday start, third register"
+      },
       "room_holidaytemplevel": {
         "name": "Holiday temperature level",
         "state": {
@@ -1385,11 +1649,26 @@
           "setback": "Setback"
         }
       },
+      "room_legionellacirculationtime": {
+        "name": "Circulation time with legionella (stored)"
+      },
+      "room_legionellasetpoint": {
+        "name": "Legionella setpoint (stored)"
+      },
+      "room_outsidemixedtemp": {
+        "name": "Outside temperature, mixed"
+      },
       "room_outsidetemp": {
         "name": "Outside temperature"
       },
       "room_outsideweightedtemp": {
         "name": "Weighted outside temperature"
+      },
+      "room_powerdemand_heatdemandtemp": {
+        "name": "Requested flow temperature (sent)"
+      },
+      "room_powerdemand_status": {
+        "name": "Request state"
       },
       "room_roomfrostprotectiontemp": {
         "name": "Frost protection room temperature"
@@ -1400,8 +1679,51 @@
       "room_roomsetbacktemp": {
         "name": "Setback room temperature"
       },
+      "room_roomsetpointtemp": {
+        "name": "Room setpoint in effect"
+      },
       "room_roomtemp": {
         "name": "Room temperature"
+      },
+      "room_summertimeendday": {
+        "name": "Summer time end, day"
+      },
+      "room_summertimeendmonth": {
+        "name": "Summer time end, month",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
+      },
+      "room_summertimestartday": {
+        "name": "Summer time start, day"
+      },
+      "room_summertimestartmonth": {
+        "name": "Summer time start, month",
+        "state": {
+          "january": "January",
+          "february": "February",
+          "march": "March",
+          "april": "April",
+          "may": "May",
+          "june": "June",
+          "july": "July",
+          "august": "August",
+          "september": "September",
+          "october": "October",
+          "november": "November",
+          "december": "December"
+        }
       },
       "room_summerwinterchangeovertemp": {
         "name": "Summer / winter changeover"
@@ -1417,6 +1739,12 @@
       },
       "room_switchonruntime": {
         "name": "Optimised switch-on lead time"
+      },
+      "room_versionmajor": {
+        "name": "Software version, major part"
+      },
+      "room_versionminor": {
+        "name": "Software version, minor part"
       },
       "system_kastatus_dhwtemp": {
         "name": "Hot water temperature"

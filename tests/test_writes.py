@@ -26,9 +26,12 @@ def loaded(golden):
 @pytest.fixture(scope="module")
 def specs(model, loaded):
     specs, refused, placeholders = write_specs(model, loaded)
-    assert [r for r in refused if r.exposed] == []
-    # program slots (105) and the date and time broadcast: writable in the definitions, not offered here
-    assert len(refused) == 253
+    # settings whose meaning is not established carry no range (since definitions 0.5.11): read only
+    assert sorted((r.key, r.reason) for r in refused if r.exposed) == sorted(
+        (f"{room}/{name}", "no range") for room in ("fs1", "fs2", "fs3")
+        for name in ("ControlVariation", "HolidayStartThird", "HolidayEndThird"))
+    # program slots and the date and time broadcast: writable in the definitions, not offered here
+    assert len([r for r in refused if not r.exposed]) == 253
     return specs
 
 
@@ -39,25 +42,29 @@ def captured():
 
 
 def test_exactly_the_settings_the_metadata_marks_writable(model, specs):
-    """71 settings of one value: 66 numbers and 5 choices (legionella day and circulation of ka, holiday
-    temperature level of the three room units). The program slots and the date and time broadcast are writable in
-    the definitions and not offered by this version."""
+    """83 settings of one value: 78 numbers and 5 choices (legionella day and circulation of ka, holiday
+    temperature level of the three room units). Nine more are marked writable but carry no range, their meaning not
+    established: read only. From definitions 0.6.0 the setback and frost protection temperatures of room unit 2
+    have no write line (the room unit shares the store of em1). The program slots and the date and time broadcast
+    are writable in the definitions and not offered by this version."""
     marked = {key for key, message in model.messages.items() if single_setting(message) is not None}
-    assert set(specs) == marked and len(specs) == 71
+    assert set(specs) == {key for key in marked if not key.endswith(("ControlVariation", "Third"))}
+    assert len(specs) == 83 and "fs2/RoomSetbackTemp" not in specs and "fs2/RoomFrostProtectionTemp" not in specs
     assert {key for key, spec in specs.items() if spec.values} == {
         "ka/DHWLegionellaDay", "ka/CircWithLegionella", "fs1/HolidayTempLevel", "fs2/HolidayTempLevel",
         "fs3/HolidayTempLevel"}
     # the classes of the metadata, as they are: normal and setback room temperature and hot-water setpoint are
-    # comfort on every device (16), the rest regulation
-    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 55, "comfort": 16}
+    # comfort on every device that has a write (15), the rest regulation
+    assert Counter(spec.risk for spec in specs.values()) == {"regulation": 68, "comfort": 15}
     assert {key.split("/")[1] for key, spec in specs.items() if spec.risk == "comfort"} == {
         "RoomNormalTemp", "RoomSetbackTemp", "DHWSetpoint"}
     for key, spec in specs.items():
         assert spec.risk == model.messages[key].write.risk, key
-    # twelve settings have no range in the CSV (fractional bounds): the range of their write conditions in the
-    # metadata, with its source; the integration holds no range of its own
+    # eleven settings have no range in the CSV (fractional bounds): the range of their write conditions in the
+    # metadata, with its source; the integration holds no range of its own (the twelfth, the setback temperature
+    # of room unit 2, is no longer written from definitions 0.6.0)
     from_metadata = {key: (s.minimum, s.maximum, s.step) for key, s in specs.items() if s.bounds_from == "metadata"}
-    assert len(from_metadata) == 12
+    assert len(from_metadata) == 11
     for key, bounds in from_metadata.items():
         conditions = model.messages[key].write
         assert bounds == (conditions.minimum, conditions.maximum, conditions.step) and specs[key].range_source
@@ -111,7 +118,7 @@ def test_every_captured_write_telegram_is_built_byte_for_byte(specs, captured):
         assert spec.on_step(value)
         covered.add(key)
     assert covered == set(specs)
-    assert sum(1 for r in captured if f"{r['circuit']}/{r['message']}" in specs) == 122
+    assert sum(1 for r in captured if f"{r['circuit']}/{r['message']}" in specs) == 146
 
 
 def test_the_changes_of_the_telegram_log(specs):
@@ -183,14 +190,14 @@ def test_structural_settings_are_never_writable(model):
 
 @pytest.mark.parametrize("build", ["fork", "stock"])
 def test_the_simulation_answers_writes_as_the_real_ebusd(golden, build):
-    """594 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
+    """762 write commands asked of the real ebusd without a bus (scripts/capture_ebusd.py): the simulated ebusd
     gives the same answer to each, for the fork's build and for a stock one. Without a bus a matched telegram ends
     in `no signal`: it would have been sent."""
     fake = FakeEbusd(golden)
     fake.runtime_checksum = build == "fork"
     fake.signal = False
     recorded = golden["writes"][build]
-    assert len(recorded) == 594
+    assert len(recorded) == 762
     for command, answer in recorded.items():
         assert fake.answer(command) == answer, command
     assert fake.writes == []
@@ -219,7 +226,7 @@ def test_a_setting_without_any_range_stays_read_only(model, loaded):
     specs, refused, _ = write_specs(dataclasses.replace(model, messages=model.messages | {message.key: changed}),
                                     loaded)
     assert "em2/RoomSetbackTemp" not in specs
-    assert [(r.key, r.reason) for r in refused if r.exposed] == [("em2/RoomSetbackTemp", "no range")]
+    assert ("em2/RoomSetbackTemp", "no range") in [(r.key, r.reason) for r in refused if r.exposed]
 
 
 def test_a_range_of_the_field_comes_before_the_write_conditions(model, loaded):

@@ -24,8 +24,8 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.5.8"
-    assert len(model.messages) == 542
+    assert model.version == "0.6.0"
+    assert len(model.messages) == 669
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
@@ -54,7 +54,7 @@ def test_missing_and_different_definitions_are_found(model, fake):
 
 def test_a_circuit_ebusd_did_not_load_is_all_missing(model):
     found = model.compare({"bc2"}, {})
-    assert len(found) == 26 and {m.reason for m in found} == {"missing"}
+    assert len(found) == 28 and {m.reason for m in found} == {"missing"}
 
 
 def test_present_devices(model, golden):
@@ -88,27 +88,27 @@ def test_entities(model):
     assert not groups["fs1/group/heating1"].enabled_default and groups["bc1/group/fault_history"].enabled_default
     assert not by_key["ka/BlockingTime/value"].enabled_default and by_key["bc1/Counters/burnerstarts"].enabled_default
     enabled = [e for e in list(model.value_entities) + list(model.group_entities) if e.enabled_default]
-    assert len(enabled) == 156  # of 346: live values, states, operating counters, fault histories
+    assert len(enabled) == 184  # of 495: live values, states, operating counters, fault histories
 
 
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):
     """The value of a writable setting stays a sensor; the number entity comes on top, with writes enabled."""
     writable = [e for e in model.value_entities if e.message.writable]
-    assert len(writable) == 68 and {e.platform for e in writable} == {"sensor", "binary_sensor"}
+    assert len(writable) == 89 and {e.platform for e in writable} == {"sensor", "binary_sensor"}
     assert {e.message.key for e in writable if e.platform == "binary_sensor"} == {"ka/CircWithLegionella"}
     # the date and time broadcast has no read: no sensor
     assert not [e for e in model.value_entities if e.message.key == "broadcast/Datetime"]
 
 
 def test_one_number_per_writable_register(model):
-    """66 writable settings, 65 numbers: the system manager's own circuit (em1, address 50) reads three registers
+    """86 numbers and 5 selects for 92 writable settings: the system manager's own circuit (em1, address 50) reads three registers
     of the system manager (ka, 15). Where both are writable (maximum flow temperature) the number of ka is the
     one; where only em1 is (normal and setback room temperature) the number writes through em1 and has the name
     of the sensor of ka."""
     writable = {k for k, m in model.messages.items() if m.writable and single_setting(m) is not None}
     numbers = {n.message.key: n for n in model.number_entities}
     selects = {n.message.key: n for n in model.select_entities}
-    assert len(writable) == 71 and len(numbers) == 65 and len(selects) == 5
+    assert len(writable) == 92 and len(numbers) == 86 and len(selects) == 5
     assert writable - set(numbers) - set(selects) == {"em1/SupplyMaxTemp"}
     day = selects["ka/DHWLegionellaDay"]
     assert day.options["monday"] == "1" and day.option_labels("fr")["off"] == "Arrêt"
@@ -159,19 +159,22 @@ def test_value_list_labels_come_from_the_metadata(model):
 def test_renamed_message(model):
     renamed = [e for e in model.value_entities if e.former_key]
     assert [(e.key, e.former_key) for e in renamed] == [
-        ("ka/DHWLoadingPriority/value", "ka/DHWOperationMode/value")]
-    assert "ka/DHWOperationMode" not in model.messages
+        ("ka/DHWLoadingPriority/value", "ka/DHWOperationMode/value"),
+        ("ka/DHWExcessTemp/value", "ka/DHWExceeded/value")]
+    assert "ka/DHWOperationMode" not in model.messages and "ka/DHWExceeded" not in model.messages
 
 
 def test_fixtures_of_the_release(model, golden):
-    """The fixtures file (schema 2): telegrams captured on a bus, for all 536 messages. Each has as many values
+    """The fixtures file (schema 2): telegrams captured on a bus, for 617 of the 668 messages read (0.6.0 has none
+    for 51 messages of room units 2 and 3 and of the modules, which the installation does not answer). Each has as many values
     as the metadata has fields, the values the evidence states, and the answer the simulated ebusd replays for a
     message is the text of one of its captured telegrams, as the real ebusd gave it again when recorded."""
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
-    assert len(readings) == 801 and {f"{r['circuit']}/{r['message']}" for r in readings} == {
-        k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
+    read = {k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
+    captured = {f"{r['circuit']}/{r['message']}" for r in readings}
+    assert len(readings) == 949 and captured <= read and len(captured) == 617
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"
@@ -189,7 +192,7 @@ def test_fixtures_of_the_release(model, golden):
                 assert text == expected, key
         if reading.get("case") == "first-byte-not-zero":
             assert values[message.guard.index] != "0"
-    assert set(golden["reads"]) == {k for k, m in model.messages.items() if m.read or m.passive}
+    assert set(golden["reads"]) == captured  # the others are answered by the simulation (tests/fake_ebusd.py)
     for key, text in golden["reads"].items():
         assert text in texts[key], key
     assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp", "ka/RegulationP"]

@@ -9,13 +9,13 @@ Not affiliated with Weishaupt or with the ebusd project.
 
 **Read-only unless you enable writes.** Out of the box it sends nothing to the heating system but
 read requests. With writes enabled in its options, it can change **the settings a release of the
-definitions proves writable** — 71 settings, 12 weekly programs and the clock with
-definitions 0.5.8 — and nothing else, through a write
+definitions proves writable** — 83 settings, 12 weekly programs and the clock with
+definitions 0.6.0 — and nothing else, through a write
 guard, with a confirmation for the settings that change the regulation
 ([Writing settings](#writing-settings)). Its ebusd client refuses every command other than `info`,
 `find`, `read` and one form of register write.
 
-Version 0.9 is tested against a simulated ebusd in the test suite and on one heating system (see
+Version 0.10 is tested against a simulated ebusd in the test suite and on one heating system (see
 [Supported devices and limits](#supported-devices-and-limits)): reads, writes of settings, choices,
 program days and the clock, each read back, since 0.3.
 
@@ -35,7 +35,7 @@ To **write** settings, in addition:
 - an ebusd build that computes the **run-time checksum** of the Weishaupt register writes
   (john30/ebusd#1825, not merged yet): the build of `aghulas/ebusd`. The integration checks it
   itself, without sending anything to the bus, and refuses every write on another build;
-- for the settings written from the address of the vendor service tool (`ff`, 62 of the 66), the
+- for the settings written from the address of the vendor service tool (`ff`, 79 of the 83), the
   **telegram log** the ebusd add-on keeps (an SQLite file), readable by Home Assistant: a write
   from `ff` is refused while the service tool may be connected, and whenever the log cannot be read
   or is not fed.
@@ -44,13 +44,14 @@ To **write** settings, in addition:
 
 | Integration | Built for definitions | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
+| 0.10 | 0.6.0 shipped; a newer 0.6.x metadata file can be placed beside the configuration | 0.6.0 and later 0.6.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 shipped; a newer 0.5.x metadata file can be placed beside the configuration | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.3 | 0.5.8 | 0.5.3 and later 0.5.x | 26.1; writes need the build of `aghulas/ebusd` | 2026.10 and later |
 | 0.2 | 0.5.2 | 0.5.2 and later 0.5.x | 26.1 (official, or the build of `aghulas/ebusd`) | 2026.10 and later |
 | 0.1 | none: its own register table, raw telegrams | — | with `--enablehex` | 2026.1 and later |
 
 The integration ships the metadata file of the definitions release it was built for
-(`weishaupt-metadata-0.5.8.json`) and builds everything from it. ebusd cannot tell which release
+(`weishaupt-metadata-0.6.0.json`) and builds everything from it. ebusd cannot tell which release
 it loaded, so at start-up the integration compares, message by message, what ebusd loaded with
 that file:
 
@@ -59,8 +60,26 @@ that file:
   entity**, and one repair issue names the messages and the release expected. Load a release of
   the accepted range in ebusd, then reload the integration.
 
-Why 0.5.3 and later 0.5.x: the second number of a definitions version changes when a message is
-renamed, removed or retyped, the third when messages are only added. 0.5.0 renamed one message of
+Why 0.6.0 and later 0.6.x: the second number of a definitions version changes when a message is
+renamed, removed or retyped, the third when messages are only added. 0.6.0 renamed one message of the
+system manager (`DHWExceeded` became `DHWExcessTemp`, a temperature difference in K), made the mixer
+pump of the heating modules a value list (off, on) and the legionella start time of the system
+manager a time of day (`08:30`), and renamed the unnamed bits of `HcMode`. With 0.5.x still in ebusd,
+those four messages (the two mixer pumps, the start time, the excess temperature) have no entity and
+one repair issue names them; every other entity works, `HcMode` included (ebusd's former field names
+are known). Load 0.6.0 or later in ebusd, then reload the integration. A metadata file 0.5.x beside
+the configuration is not used (outside the accepted range) and a repair issue says so: remove it.
+
+An entity keeps its entity id and history when a message or a field is renamed: the metadata says
+which name it had (`renamed_from`). The excess temperature keeps its entity; the start time keeps its
+entity and shows a time instead of a number. The mixer pump becomes a binary sensor like the other
+pumps: Home Assistant cannot move an entity from one domain to another, so the former
+`sensor.…_mixer_circuit_pump` is removed at the first load (kept, with a repair issue, if you changed
+it) and `binary_sensor.…_mixer_circuit_pump` replaces it; the history of the former stays under its
+entity id until the recorder purges it. An automation or a card that uses the former entity id must
+be changed.
+
+For 0.4 – 0.9, why 0.5.3 and later 0.5.x: 0.5.0 renamed one message of
 the system manager (`DHWOperationMode` became `DHWLoadingPriority`) and made a message of the
 heating modules decodable, so definitions 0.4.x are not accepted. 0.5.1 and 0.5.2 added messages
 (settings of the system manager and of a room unit), 0.5.3 five more reads; with an older 0.5.x in
@@ -70,9 +89,7 @@ system manager's own circuit: with 0.5.3 in ebusd everything is read, and those 
 read-only (64 writable instead of 66). 0.5.5 changes only the metadata (write ranges, risk
 classes), which the integration ships itself: an ebusd with 0.5.3 or 0.5.4 behaves the same. 0.5.6
 adds five choices, the program writes of room unit 1 and the clock, 0.5.7 and 0.5.8 the
-programs of room unit 3 and of the system manager: with an older release in ebusd these stay read-only, the rest is the same. An entity
-created under a former message name keeps its entity id and history when the name changes: the
-metadata says which name it had.
+programs of room unit 3 and of the system manager: with an older release in ebusd these stay read-only, the rest is the same.
 
 Checked on one installation only (see the definitions): two WTC boilers in cascade, a system
 manager, three heating circuits. Other models and software versions may differ.
@@ -98,8 +115,9 @@ register they do not describe is not shown. Limits a second installation should 
   telegram log for the settings written from the service tool's address. Without them everything is read only.
 - **Room unit 2 reads its weekly programs from room unit 1's store** (when two units share one store, as on the
   tested installation): a program write sent to room unit 2 is acknowledged and not kept. Its programs are read
-  only and are changed on room unit 1. The definitions give them no write conditions; from definitions 0.5.15 the
-  metadata marks such programs and settings (`shared_with`) and the integration says where to change them.
+  only and are changed on room unit 1. The definitions give them no write conditions (nor, from 0.6.0, to its setback
+  and frost protection room temperatures); from definitions 0.5.15 the metadata marks such programs and settings
+  (`shared_with`) and the integration says where to change them.
 - **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
   and the others the metadata marks comfort); the others are shown, read only.
 - **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module). With definitions 0.5.12
@@ -320,23 +338,25 @@ adds:
 What is writable is decided by the definitions, not by the integration: a setting gets a number
 entity (a select for a choice) only when the metadata of the release gives it **write conditions** (a lot of the
 definitions proves the write on a bus and an evidence record names it) and ebusd loaded its write
-definition as the release has it. Structural settings (circuit type, control variant, boiler
-sequence…) never have write conditions. With definitions 0.5.8, 71 settings of one value, 16 of them
-comfort:
+definition as the release has it. Structural settings (circuit type, boiler sequence…) never have
+write conditions. The control variation and the third holiday registers of the room units have some,
+without a range, their meaning not established: they stay read only. With definitions 0.6.0, 83
+settings of one value, 15 of them comfort:
 
 | Device | Comfort | Regulation | Source |
 |---|---|---|---|
-| System manager (`ka`, 12) | hot-water setpoint | blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier and hot-water switching differentials, maximum hot-water loading time, legionella setpoint and circulation time, maximum flow temperature | `ff` |
+| System manager (`ka`, 14) | hot-water setpoint | blocking time, boiler changeover time, power controller 1/P and I, de-couple minimum, calorifier and hot-water switching differentials, maximum hot-water loading time, legionella setpoint and circulation time, maximum flow temperature, maximum and minimum modulation (optimal range) | `ff` |
 | System manager, own circuit (`em1`, 7) | normal and setback room temperature | frost protection room temperature, heating curve gradient, summer / winter changeover, minimum and maximum flow temperature | `ff` |
 | Heating modules 2 and 3 (`em2`, `em3`, 7 each) | normal and setback room temperature | frost protection room temperature, heating curve gradient, summer / winter changeover | `ff` |
 | Heating modules 2 and 3 | | maximum and minimum flow temperature | `31` |
-| Room units 1, 2, 3 (`fs1`–`fs3`, 11 each) | normal and setback room temperature, hot-water setpoint | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, optimised switch-on lead time, frost protection limit, boiler boost offset | `ff` |
+| Room units 1 and 3 (`fs1`, `fs3`, 15 each) | normal and setback room temperature, hot-water setpoint | frost protection room temperature, heating curve gradient, summer / winter changeover, maximum and minimum flow temperature, optimised switch-on lead time, frost protection limit, boiler boost offset, holiday start and end (day, month) | `ff` |
+| Room unit 2 (`fs2`, 13) | normal room temperature, hot-water setpoint | as room units 1 and 3, without the frost protection room temperature; its setback and frost protection room temperatures are kept by room unit 1 and changed there (definitions 0.6.0) | `ff` |
 | System manager, choices (2) | | legionella protection day (off, Monday … Sunday), circulation during legionella protection (off, on): **selects** | `ff` |
 | Room units 1, 2, 3, choice (1 each) | | holiday temperature level (antifreeze, setback): **select** | `ff` |
 
 ### Weekly programs
 
-Where the definitions prove the slots writable — with definitions 0.5.8 the five programs of room
+Where the definitions prove the slots writable — with definitions 0.6.0 the five programs of room
 units 1 and 3, and the hot-water and circulation programs of the system manager (its own circuit,
 `50`; the hot-water program the installation applies); never room unit 2, which acknowledges slot
 writes and keeps none — each program has **one text entity per day** (*Heating program 1 – Monday
@@ -523,10 +543,12 @@ integration under the same name:
 - **Only the proven settings can be written**: with definitions 0.5.8, the 66 numeric settings of
   0.1 that 0.1 can write (its other five, modulation limits and room factor, fail in 0.1 too), and
   five of its choices (legionella day, circulation with legionella, holiday level of the three room
-  units). The weekly programs come back for room units 1 and 3 (all five) and the system
+  units). From definitions 0.5.11 the modulation limits of the system manager and the holiday start
+  and end dates of the room units (day and month) are writable too; from 0.6.0 the setback and frost
+  protection room temperatures of room unit 2 are no longer written (room unit 1 keeps them). The weekly programs come back for room units 1 and 3 (all five) and the system
   manager (hot water, circulation), as text entities per day and the action `weishaupt.set_program`, and the clock as a
   confirmed button. Not offered: the other choices (boiler sequence, adaption, control variation,
-  circuit type), the holiday dates, the programs of room unit 2; the `date` entities and the actions
+  circuit type), the programs of room unit 2; the `date` entities and the actions
   `weishaupt.set_time_program` and `weishaupt.set_clock` are gone, and automations that call them
   stop working. If you rely on
   them, stay on 0.1 until the definitions prove them.
@@ -631,6 +653,13 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.10.0: definitions 0.6.0 shipped and accepted (0.6.0 and later 0.6.x; 0.5.x no longer). A field renamed in the
+  definitions (`renamed_from` on a field) keeps its entity, as a renamed message does; an ebusd that still has the
+  former field names is no mismatch. The legionella start time is shown as a time (`08:30`), the hot-water excess
+  temperature follows its new name with its unit K, the mixer pumps of the heating modules are binary sensors.
+  From the 0.5.8 shipped before: the messages of 0.5.9 to 0.5.15 come with it (fault logs of the room units, holiday
+  dates and modulation limits writable, absent sensors marked); the setback and frost protection temperatures of
+  room unit 2 are no longer written.
 - 0.9.1: a program or a setting a device reads from another device's store (room unit 2 from room unit 1) is never
   written to it, whatever its write conditions, and the panel, the card, the program sensor and the action say on
   which device it is changed (metadata `shared_with`, definitions 0.5.15 and later).

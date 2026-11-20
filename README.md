@@ -41,9 +41,10 @@ Do the steps in this order. Nothing here writes to the heating system.
   documentation, *App config folder*).
 
 **Check that ebusd loaded them**, before installing the integration, with `ebusctl` where ebusd runs. With the
-add-on: open a shell with the SSH add-on, its protection mode off (on the SSH add-on's own Info page); `docker ps`
-shows the ebusd add-on's container (its name ends in `_ebusd`), and each command below becomes
-`docker exec <container> ebusctl …`. `ebusctl info` gives one line per device found, with the file it loaded:
+add-on, the way used on the test installation: the add-on *Advanced SSH & Web Terminal*, its protection mode off
+(on its own Info page); in its terminal, `sudo docker ps` shows the ebusd add-on's container
+(`app_<prefix>_ebusd`), and each command below becomes `sudo docker exec app_<prefix>_ebusd ebusctl …`. The ebusd
+add-on's documentation also offers a shell under its **Open Web UI**; that was not tried on the test installation. `ebusctl info` gives one line per device found, with the file it loaded:
 
 ```text
 address 08: slave #11, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kromschroeder/08.w.bc1.csv"

@@ -484,6 +484,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "listened": any(key in listened for key in group.members),
             "slots": len(group.members),
             "to_read": len(hub.to_read_once(group.members)),
+            "edited_on": _edited_on(hub, model.shared_group(group)),
             "entity_id": links.get(f"{group.circuit}/group/{group.id}", {}).get("sensor"),
         } for group in model.groups.values() if group.family == "program" and group.device == device.id]
         used = {row["menu"] for row in rows} | ({"programs"} if programs else set())
@@ -546,6 +547,13 @@ def _not_usable(hub: Hub) -> list[dict[str, str]]:
             reason = "other"
         out.append({"key": key, "reason": reason})
     return out
+
+
+def _edited_on(hub: Hub, group) -> dict[str, Any] | None:
+    """Where a value read from another device's store is changed: that device and its program (or message)."""
+    if group is None:
+        return None
+    return {"device": hub.model.devices[group.device].label, "key": group.key, "label": group.label}
 
 
 def _has_child(menu_id: str, menus: list[dict[str, Any]], used: set[str]) -> bool:
@@ -619,6 +627,9 @@ def _row(hub: Hub, message: Message, fld: Field, links: dict[str, dict[str, str]
         "writable": None if write is None else _writable(hub, writable, write, through, fld),
         "messages": [message.key, *(m.key for m in twins)],  # read by any: the first with a reading is shown
         "read": any(m in hub.usable for m in [message.key, *(t.key for t in twins)]), "passive": message.passive,
+        "edited_on": None if not message.shared_with or message.shared_with not in hub.model.messages else {
+            "device": hub.model.devices[hub.model.messages[message.shared_with].device].label,
+            "key": message.shared_with},
         "absent": fld.absent if fld.absent is not None else (ABSENT.get(device_type) if fld.unit == "°C" else None),
         "entity_id": next((entities[p] for p in LINK_ORDER if p in entities), None),
     }

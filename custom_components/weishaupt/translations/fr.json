@@ -162,6 +162,9 @@
     "cannot_connect": {
       "message": "ebusd ne peut pas être interrogé : {error}"
     },
+    "program_shared": {
+      "message": "Ce programme est lu dans la mémoire de {device} : une modification envoyée à cet appareil serait acquittée puis perdue. Modifiez {program} de {device}."
+    },
     "switch_off": {
       "message": "L'interrupteur d'écriture est éteint : allumez-le pour écrire (il est éteint après chaque redémarrage de Home Assistant ou rechargement de l'intégration)."
     },
@@ -1180,6 +1183,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1206,6 +1212,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1232,6 +1241,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1258,6 +1270,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1284,6 +1299,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1310,6 +1328,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },
@@ -1336,6 +1357,9 @@
           },
           "sunday": {
             "name": "Dimanche"
+          },
+          "edited_on": {
+            "name": "Modifié sur"
           }
         }
       },

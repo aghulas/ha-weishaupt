@@ -554,6 +554,9 @@ export class WeishauptPanel extends LitElement {
   private _writeCell(row: Row): TemplateResult {
     const lang = this._lang;
     const writable = row.writable;
+    if (row.edited_on) {
+      return html`<span class="secondary">${t(lang, "edited_on_setting", { device: label(row.edited_on.device, lang) })}</span>`;
+    }
     if (!writable) return html`<span class="secondary">${t(lang, "read_only")}</span>`;
     const result = this._rowResult[row.key];
     const badge = html`<span class="badge ${writable.risk}">${t(lang, writable.risk)}</span>${writable.through
@@ -897,7 +900,11 @@ export class WeishauptPanel extends LitElement {
           }))
         : {};
       const invalid = Object.values(errors).some(Boolean);
-      const note = !program.read
+      const note = program.edited_on
+        ? t(lang, "edited_on_program", {
+            program: label(program.edited_on.label, lang), device: label(program.edited_on.device, lang),
+          })
+        : !program.read
         ? t(lang, "not_read_program")
         : !program.listened
           ? t(lang, "program_not_listened")

@@ -163,6 +163,9 @@ export const STRINGS: Record<string, Record<string, string>> = {
     card_editor_today: "Mark today",
     card_editor_hint: "Program sensors are created disabled: a program not listed here is enabled in Settings → Entities.",
     card_edit: "Edit",
+    card_edited_on: "Read from the store of {device}: change this program there.",
+    edited_on_program: "Read from the store of {device}: change {program} of {device}; a change sent here would be acknowledged and lost.",
+    edited_on_setting: "kept by {device}: changed there",
     card_type_hint: "Type up to three ranges a day, HH:MM-HH:MM, or - for none; only changed days are written.",
     card_edit_admin: "Days are changed by administrators, here or in the Weishaupt panel.",
     card_not_writable: "This program is not proven writable on its device: read only.",
@@ -334,6 +337,9 @@ export const STRINGS: Record<string, Record<string, string>> = {
     card_editor_today: "Marquer aujourd'hui",
     card_editor_hint: "Les capteurs de programme sont créés désactivés : un programme absent de la liste s'active dans Paramètres → Entités.",
     card_edit: "Modifier",
+    card_edited_on: "Lu dans la mémoire de {device} : modifiez ce programme là-bas.",
+    edited_on_program: "Lu dans la mémoire de {device} : modifiez {program} de {device} ; une modification envoyée ici serait acquittée puis perdue.",
+    edited_on_setting: "tenu par {device} : à modifier là-bas",
     card_type_hint: "Saisissez jusqu'à trois plages par jour, HH:MM-HH:MM, ou - pour aucune ; seuls les jours modifiés sont écrits.",
     card_edit_admin: "Les jours sont modifiés par les administrateurs, ici ou dans le panneau Weishaupt.",
     card_not_writable: "Ce programme n'est pas prouvé inscriptible sur son appareil : lecture seule.",
@@ -700,7 +706,7 @@ export function weekFromAttributes(attributes: Record<string, unknown>): Days {
 export function isProgramSensor(entityId: string, attributes: Record<string, unknown>): boolean {
   if (!entityId.startsWith("sensor.")) return false;
   const days = DAY_KEYS.filter((k) => typeof attributes[k] === "string").length;
-  const others = Object.keys(attributes).filter((k) => !DAY_KEYS.includes(k) && !["friendly_name", "icon"].includes(k));
+  const others = Object.keys(attributes).filter((k) => !DAY_KEYS.includes(k) && !["friendly_name", "icon", "edited_on"].includes(k));
   return (days > 0 && others.length === 0) || (days === 0 && /program/.test(entityId));
 }
 

@@ -182,6 +182,7 @@ test("the card: which states are program sensors, and today", () => {
   assert.ok(!isProgramSensor("text.room_unit_1_heating_program_1_monday_setting", all));
   assert.ok(isProgramSensor("sensor.room_unit_1_heating_program_1", { monday: "-", friendly_name: "x" })); // partly read
   assert.ok(!isProgramSensor("sensor.boiler_1_x", { monday: "-", unit_of_measurement: "°C" }));
+  assert.ok(isProgramSensor("sensor.room_unit_2_heating_program_1", { ...all, edited_on: "Room unit 1" }));
   assert.equal(isoWeekday(new Date(2026, 10, 16)), 1); // a Monday
   assert.equal(isoWeekday(new Date(2026, 10, 22)), 7); // a Sunday
 });

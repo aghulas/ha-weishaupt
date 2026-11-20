@@ -155,7 +155,13 @@ class ProgramSensor(GroupSensor):
 
     @property
     def extra_state_attributes(self) -> dict[str, str]:
-        return {name: text for day, name in enumerate(WEEKDAYS, 1) if (text := self._day(day)) is not None}
+        days = {name: text for day, name in enumerate(WEEKDAYS, 1) if (text := self._day(day)) is not None}
+        other = self.hub.model.shared_group(self._group)
+        if other is not None:
+            # read from another device's store: changed there (the dashboard card and the panel say so)
+            label = self.hub.model.devices[other.device].label
+            days["edited_on"] = self.hub.label(label)
+        return days
 
 
 class FaultHistorySensor(GroupSensor):

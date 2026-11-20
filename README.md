@@ -96,6 +96,10 @@ register they do not describe is not shown. Limits a second installation should 
   names what ebusd did not load as described, and a diagnostics download shows what was read.
 - **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), and the
   telegram log for the settings written from the service tool's address. Without them everything is read only.
+- **Room unit 2 reads its weekly programs from room unit 1's store** (when two units share one store, as on the
+  tested installation): a program write sent to room unit 2 is acknowledged and not kept. Its programs are read
+  only and are changed on room unit 1. The definitions give them no write conditions; from definitions 0.5.15 the
+  metadata marks such programs and settings (`shared_with`) and the integration says where to change them.
 - **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
   and the others the metadata marks comfort); the others are shown, read only.
 - **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module). With definitions 0.5.12
@@ -627,6 +631,9 @@ the boilers are only sent then), and the values of an installation other than th
 
 ## History
 
+- 0.9.1: a program or a setting a device reads from another device's store (room unit 2 from room unit 1) is never
+  written to it, whatever its write conditions, and the panel, the card, the program sensor and the action say on
+  which device it is changed (metadata `shared_with`, definitions 0.5.15 and later).
 - 0.9.0: the code of 0.9.0b1, checked on a heating system with definitions 0.5.14: the card registered by the
   integration, its grid equal to the entities and the panel, one program day written from it as administrator and
   restored; sensors not fitted read unknown. The view of a user who is not an administrator was checked in a

@@ -163,6 +163,12 @@ def program_specs(model: Model, loaded: dict[str, list[Definition]]) -> tuple[di
         if group.family != "program":
             continue
         members = [model.messages[key] for key in group.members]
+        if any(m.shared_with for m in members):
+            # read from another device's store (room unit 2 from room unit 1): a write here is acknowledged and not
+            # kept, so never offered, even with write conditions
+            other = model.shared_group(group)
+            refused.append(f"{group.key}: kept by {other.key if other else members[0].shared_with}, changed there")
+            continue
         if not all(m.write is not None for m in members):
             continue  # not proven on this device (room unit 2): never offered
         if any(m.write.risk != "comfort" for m in members):

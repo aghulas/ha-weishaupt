@@ -51,6 +51,7 @@ export interface Row {
   read: boolean;
   passive: boolean;
   absent: number | null; // the value the device sends when the sensor is not fitted
+  edited_on: { device: Labels; key: string } | null; // read from another device's store: changed there
   entity_id: string | null;
 }
 
@@ -109,6 +110,7 @@ export interface Program {
   listened: boolean; // an enabled entity reads its slots
   slots: number;
   to_read: number; // slots a "Read now" would really request
+  edited_on: { device: Labels; key: string; label: Labels } | null; // read from another device's store
   entity_id: string | null;
 }
 

@@ -162,6 +162,9 @@
     "cannot_connect": {
       "message": "ebusd cannot be asked: {error}"
     },
+    "program_shared": {
+      "message": "This program is read from the store of {device}: a change sent to this device would be acknowledged and lost. Change {program} of {device}."
+    },
     "switch_off": {
       "message": "The write switch is off: turn it on to write (it is off after every restart of Home Assistant or reload of the integration)."
     },
@@ -1180,6 +1183,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1206,6 +1212,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1232,6 +1241,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1258,6 +1270,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1284,6 +1299,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1310,6 +1328,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },
@@ -1336,6 +1357,9 @@
           },
           "sunday": {
             "name": "Sunday"
+          },
+          "edited_on": {
+            "name": "Edited on"
           }
         }
       },

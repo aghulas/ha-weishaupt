@@ -148,6 +148,10 @@ def write_specs(model: Model, loaded: dict[str, list[Definition]]) -> tuple[dict
     for message in model.messages.values():
         if message.write is None:
             continue
+        if message.shared_with:
+            # this device reads the value from another one's store: a write here is acknowledged and not kept
+            refused.append(NotWritable(message.key, f"kept by {message.shared_with}: changed there"))
+            continue
         if single_setting(message) is None:
             refused.append(NotWritable(message.key, "not offered by this version (several fields)", False))
             continue

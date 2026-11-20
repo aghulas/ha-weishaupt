@@ -48,6 +48,15 @@ async def _async_set_program(call: ServiceCall) -> ServiceResponse:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="writes_disabled")
         circuit = next((p.circuit for p in hub.writer.programs.values()
                         if any(f"{entry.entry_id}_{p.device}" == ident for _, ident in device.identifiers)), None)
+        shared = next((hub.model.shared_group(g) for g in hub.model.groups.values()
+                       if g.family == "program" and g.id == call.data["program"]
+                       and any(f"{entry.entry_id}_{g.device}" == ident for _, ident in device.identifiers)), None)
+        if shared is not None:
+            # this device reads the program from another one's store: a write here would be acknowledged and lost
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="program_shared",
+                                         translation_placeholders={
+                                             "program": hub.label(shared.label),
+                                             "device": hub.label(hub.model.devices[shared.device].label)})
         if circuit is None:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="not_writable",
                                          translation_placeholders={"setting": call.data["program"],

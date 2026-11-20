@@ -102,6 +102,9 @@ class Message:
     renamed_from: str | None = None  # key of the message in the releases before the rename
     read: bool = True  # False: a write-only message (the date and time broadcast), which no read compares
     description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
+    # key of the message on another device whose store this one reads (definitions 0.5.15 and later): a write here
+    # is acknowledged and not kept; the value is changed there
+    shared_with: str | None = None
 
     @property
     def writable(self) -> bool:
@@ -284,9 +287,19 @@ class Model:
 
     @property
     def writable_programs(self) -> tuple[Group, ...]:
-        """Programs whose 21 slots all have write conditions (proven on that device)."""
+        """Programs whose 21 slots all have write conditions (proven on that device) and are kept by that device
+        (not read from another device's store, `shared_with`)."""
         return tuple(g for g in self.groups.values() if g.family == "program"
-                     and all(self.messages[k].write is not None for k in g.members))
+                     and all(self.messages[k].write is not None and not self.messages[k].shared_with
+                             for k in g.members))
+
+    def shared_group(self, group: Group) -> Group | None:
+        """The program of another device whose store this program reads (`shared_with` on its slots), if any."""
+        other = self.messages[group.members[0]].shared_with
+        if not other or other not in self.messages:
+            return None
+        key = f"{self.messages[other].circuit}/{self.messages[other].group}"
+        return self.groups.get(key)
     _by_circuit: dict[str, Device] = field(default_factory=dict)
     menus: dict[str, tuple[Menu, ...]] = field(default_factory=dict)  # device type -> its menus, in order
 
@@ -360,7 +373,8 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
-                   conditions, data.get("renamed_from"), bool(data.get("read", True)), data.get("description"))
+                   conditions, data.get("renamed_from"), bool(data.get("read", True)), data.get("description"),
+                   data.get("shared_with"))
 
 
 def _base_type(name: str) -> str:

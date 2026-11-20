@@ -91,6 +91,7 @@ def translations(model_module, language: str) -> dict:
         item = {"name": description.name[language]}
         if description.group.family == "program":
             item["state_attributes"] = {day: {"name": weekdays[day]} for day in model_module.WEEKDAYS}
+            item["state_attributes"]["edited_on"] = {"name": {"en": "Edited on", "fr": "Modifié sur"}[language]}
         else:
             item["state_attributes"] = {key: {"name": text} for key, text in attributes.items()}
         entity["sensor"][description.translation_key] = item

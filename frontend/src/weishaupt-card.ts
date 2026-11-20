@@ -89,6 +89,9 @@ export class WeishauptProgramCard extends LitElement {
               caption=${title}
               today=${config.today === false ? 0 : isoWeekday(new Date())}
             ></weishaupt-week-grid>
+            ${typeof state.attributes.edited_on === "string"
+              ? html`<p class="secondary">${t(lang, "card_edited_on", { device: state.attributes.edited_on })}</p>`
+              : null}
             ${texts
               ? html`<div class="actions">
                   <button class="link" @click=${() => this._start(week)}>${t(lang, "card_edit")}</button>

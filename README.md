@@ -29,7 +29,7 @@ Do the steps in this order. Nothing here writes to the heating system.
   ebusd (the add-on of [LukasGrebe/ha-addons](https://github.com/LukasGrebe/ha-addons)) is enough for reading.
   **If you mean to write settings later, install the add-on *eBUSd (Weishaupt CRC)* from the start** (see
   [What writing needs](#what-writing-needs)): it reads the same way, and changing add-on later means copying the
-  definitions again, setting its options again and changing the host of the entry.
+  definitions again, setting its options again and adding it to the entry ([Which ebusd](#which-ebusd)).
 - **Definitions 0.6.0 or a later 0.6.x** loaded by that ebusd, started with `--scanconfig`: take a release tagged
   `weishaupt-…` from <https://github.com/aghulas/ebusd-configuration/releases>, the latest 0.6.x, and follow its
   notice. 0.6.0 is flagged *pre-release* on GitHub; from 0.6.1 the releases are normal ones. The figures of this
@@ -68,11 +68,12 @@ definitions expect: do not go on with it, the integration will name its messages
 
 The integration talks to ebusd's TCP command port, **8888** unless ebusd was started with another `--port`.
 
-- **ebusd as an add-on of the same Home Assistant**: enter the add-on's host name, shown on its Info page
-  (`<prefix>-ebusd`, the prefix of the add-on's folder `<prefix>_ebusd` with a hyphen), and port 8888. The
-  integration then connects through Home Assistant's internal network: it was checked on the test installation with
-  port 8888 not published, reading as usual. Publishing the port on the host is only for clients outside Home
-  Assistant.
+- **ebusd as an add-on of the same Home Assistant**: nothing to type. On Home Assistant OS the integration lists the
+  ebusd add-ons installed (from the Supervisor) with their state; tick those it may use (see
+  [Which ebusd](#which-ebusd)). Each add-on's host name is `<prefix>-ebusd` (the prefix of the add-on's folder
+  `<prefix>_ebusd` with a hyphen, shown on its Info page) and its port 8888. The integration connects through Home
+  Assistant's internal network: it was checked on the test installation with port 8888 not published, reading as
+  usual. Publishing the port on the host is only for clients outside Home Assistant.
 - **ebusd on another machine**: its address and port.
 
 Anyone who can open this port can send ebusd any command, writes to the boilers and controllers included. Publish
@@ -91,8 +92,10 @@ configuration and restart.
 
 ### 4. Add the entry
 
-*Settings → Devices & services → Add integration → Weishaupt*: host and port from step 2. The connection is tested
-(`info` only) before the entry is created; *No ebusd answers at this address* means it could not connect.
+*Settings → Devices & services → Add integration → Weishaupt*. On Home Assistant OS: tick the ebusd add-ons (the
+running ones are ticked), and, if ebusd also runs elsewhere, its host and port. Otherwise: host and port from
+step 2. The connection is tested (`info` only) before the entry is created; *No ebusd answers at this address*
+means none of them could be reached. A stopped add-on is kept without being tested.
 
 ### 5. What you then see
 
@@ -108,11 +111,64 @@ configuration and restart.
   (those messages get no entity; the others work).
 - An entry **Weishaupt** in the sidebar for administrators ([the panel](#the-weishaupt-panel)).
 
-**If ebusd moves** (another add-on, so another host name, or another machine): *Settings → Devices & services →
-Weishaupt → ⋮ → Reconfigure*, enter the new host and port. The connection is tested again; the entry, its devices,
-entities, history and options are kept, and the integration reloads.
+**If ebusd moves** (another add-on, so another host name, or another machine): see [Which ebusd](#which-ebusd).
+An add-on already in the entry's list is followed with no step; a new one is added with *Settings → Devices &
+services → Weishaupt → ⋮ → Reconfigure*. The entry, its devices, entities, history and options are kept.
 
 To remove it: delete the integration entry in *Devices & services*, then uninstall it in HACS.
+
+## Which ebusd
+
+There is one eBUS adapter, so one ebusd uses it at a time. On Home Assistant OS an installation may have several
+ebusd add-ons, started one at a time: the stock *eBUSd*, *eBUSd (Weishaupt CRC)* with the run-time checksum, a test
+build. Each has its own host name, its own definitions folder and its own telegram log. The entry keeps a list of
+the ebusd it may use and picks one:
+
+- **Follow the running ebusd** (the default for a new entry): the one that answers with a signal on the bus. You
+  switch by starting the other add-on and stopping the one in use, in *Settings → Add-ons*; after about three
+  failed connections (about a minute) the integration asks the others and moves to the one that answers. A lost
+  signal alone (adapter, bus) never moves it while the ebusd in use still answers.
+- **Pinned**: one ebusd only, never another. An entry created before 0.12.0 is pinned to its address, so it behaves
+  as before until you change it.
+
+Where: *Settings → Devices & services → Weishaupt → Configure → Which ebusd*. The list itself (which add-ons,
+another ebusd by address): *⋮ → Reconfigure*. The integration never starts, stops or configures an add-on:
+stopping an ebusd add-on cuts it for every other client too (MQTT included), so that stays your decision.
+
+**What a switch does.** Choosing the ebusd sends `info` to each one and nothing else; the bus is not involved. The
+integration then reloads on the new ebusd, as after a restart:
+
+- the same devices and entities, with their entity ids and history (a gap of *unavailable* while the add-ons are
+  swapped);
+- the values shown are the last ones read, then every enabled message is read once from the devices (a few
+  minutes); if the new ebusd is still scanning the bus, the integration waits for it, up to 5 minutes;
+- the definitions are compared again: **each add-on has its own definitions folder**, so load the same release in
+  each, or the repair about the definitions names what differs;
+- **writes**: the switch *Writes* is off and every change waiting for a confirmation is dropped; the build of the
+  new ebusd is checked again before anything can be written; the hourly write limit carries over;
+- the panel and the diagnostics show the ebusd in use, by its name, and its build.
+
+**What each ebusd allows.** Reads are the same with every build. Writes need an ebusd that computes the run-time
+checksum, found without sending anything to the bus (*Run-time checksum* on the panel's definitions page):
+
+| ebusd | Run-time checksum | Writes |
+|---|---|---|
+| eBUSd (Weishaupt CRC), build `v26.1-weishaupt.1` | `present` | allowed, through the guard |
+| eBUSd (Weishaupt next, test), pre-release `v26.1-weishaupt.2-rc1` | `present` expected | allowed when `present`; a test build |
+| stock eBUSd 26.1 | `absent` | refused (see below) |
+| any other answer | `unknown` | refused |
+
+A stock ebusd has been seen writing one setting of the system manager, which does not check the checksum; whether
+the integration may write through a stock ebusd on the devices that do not check it is not decided, and this
+version refuses it. The test build's other features (composite reads, longer message IDs) need nothing from the
+integration: with definitions that use them, its messages simply load.
+
+**When the ebusd in use does not answer**, its entities are unavailable and a repair says which ebusd answer and,
+for an add-on, whether it is started. When another ebusd answers, the repair offers to use it (pinned) or to follow
+the running one; that changes the entry only. Two ebusd answering with a signal at once (two add-ons started, one
+adapter) raise a repair as well; the integration keeps the one it uses and does not switch between them.
+
+Each ebusd has its own **telegram log** for the writes from `ff`: *Configure → Telegram log of each ebusd*.
 
 ## Words used here
 
@@ -301,10 +357,12 @@ every write while one is missing.
    <https://github.com/aghulas/ha-addons/tree/weishaupt>. Home Assistant builds the add-on on the device when it
    is installed: the first install takes a few minutes. If a stock ebusd add-on runs already, stop it first (an
    adapter can be used by one add-on at a time), copy the definitions into the new add-on's own folder and set its
-   options again: they do not carry over. The new add-on has another prefix, so another host name: change the
-   entry with *Reconfigure* ([step 5](#5-what-you-then-see)).
+   options again: they do not carry over. The new add-on has another prefix, so another host name: tick it in
+   *Reconfigure* ([Which ebusd](#which-ebusd)); following the running ebusd, the integration then moves to it once
+   it is started.
    Check the build with the first line of `ebusctl info` (step 1). The integration checks it too, without
-   sending anything to the bus: once writes are enabled (item 3), the attribute `run_time_checksum` of the switch
+   sending anything to the bus, at every start: *Run-time checksum* on the panel's definitions page and, once writes
+   are enabled (item 3), the attribute `run_time_checksum` of the switch
    **Writes** reads `present`, `absent` or `unknown`, and only `present` allows writes.
 2. **The telegram log**, for the settings written from the address of the vendor service tool (`ff`, 79 of the
    83): every telegram ebusd sees, kept in an SQLite file Home Assistant can read. A write from `ff` is refused
@@ -312,11 +370,11 @@ every write while one is missing.
    whenever the log cannot be read or has received nothing for 2 minutes. With the ebusd add-on: set its option
    **SQLite telegram log (database file)** (`sqlite_db`) to `/share/ebusd/telegrams.db`, keep
    **SQLite telegram log retention (days)** (10 by default), and restart the add-on; the integration's option
-   *Telegram log of ebusd* has that path by default. The add-on's documentation puts the log at about 50 to
+   *Telegram log of each ebusd* (*Configure*) has that path by default, for each ebusd of the entry. The add-on's documentation puts the log at about 50 to
    170 MB a day depending on bus traffic, so up to some 1.7 GB with 10 days kept, and `/share` is part of Home
    Assistant's backups: check the room on the device and in the backups. A shorter retention works for the
    integration, which looks at the last 10 minutes only.
-3. **Writes enabled** in the options: *Devices & services → Weishaupt → Configure* → *Enable writes of the proven
+3. **Writes enabled** in the options: *Devices & services → Weishaupt → Configure → Bus load and writes* → *Enable writes of the proven
    settings*. The integration reloads and adds a number (or a select) per writable setting, enabled, in the
    configuration section of its device and named like the sensor of the same register with "(setting)" after it
    (*Normal room temperature (setting)*); one text per day of the writable programs; a button to set the clock;
@@ -510,13 +568,15 @@ shows on the entity.
 
 **How the run-time checksum is checked.** The version string tells today's builds apart (`26.1.p20261029` for
 the build with the run-time checksum), but it is a label, not a capability: ebusd does not announce the run-time
-checksum, and another build could carry any string. So the integration tests the capability itself. At start-up (only when writes are
-enabled) the integration hands ebusd one write telegram twice under a circuit name no message has,
+checksum, and another build could carry any string. So the integration tests the capability itself. At every start-up (writes
+enabled or not) the integration hands ebusd one write telegram twice under a circuit name no message has,
 once with the correct checksum and once with the checksum byte of the definition: the fork's build
 matches the first and refuses it for its circuit; a stock ebusd matches only the second. Both are
-refused by ebusd before sending: nothing reaches the bus. The result is the attribute
-`run_time_checksum` of the write switch (`present`, `absent`, `unknown`); anything but `present`
-refuses every write.
+refused by ebusd before sending: nothing reaches the bus. The result (`present`, `absent`, `unknown`) is on the
+panel's definitions page, in the diagnostics and, with writes enabled, the attribute `run_time_checksum` of the
+write switch; anything but `present` refuses every write. It is checked again whenever the integration moves to
+another ebusd, and when the ebusd in use reports another version after a lost connection (an add-on updated in
+place).
 
 ## Load on the bus
 
@@ -607,7 +667,7 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 0.10 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
 The integration ships the metadata file of definitions 0.6.0 (`weishaupt-metadata-0.6.0.json`: 669 messages, of
@@ -674,9 +734,10 @@ its dialog.
 *Devices & services → Weishaupt → ⋮ → Download diagnostics* gives the ebusd version, the scan
 results (address, identification, software and hardware version; the bus carries no serial
 number), the result of the comparison with the definitions, the counters of the reader (requests,
-failed and dropped readings), the last readings and, with writes enabled, the writable settings, the
-result of the checksum probe and the last writes. In the integration's data the address of ebusd, the
-telegram-log path, the entry id and the user ids are redacted, even inside texts. Home Assistant
+failed and dropped readings), the last readings, the ebusd of the entry by name (which one is in use, follow or pinned), the result
+of the checksum probe and, with writes enabled, the writable settings and the last writes. In the integration's
+data the address of every ebusd, the telegram-log paths, the entry id and the user ids are redacted, even inside
+texts; the repairs name each ebusd by its name, never by its address. Home Assistant
 itself adds to every download a `setup_times` object keyed by the entry id and, when the integration has repairs
 open, an `issues` list whose ids contain it: an opaque local id, no address, which an integration cannot remove. It is the file to
 attach to a report about another boiler model or software version.
@@ -700,6 +761,9 @@ under the same name. After the update:
 
 The release notes on GitHub give each version in full; here only what changed what you install or see.
 
+- 0.12.0: several ebusd per entry (the ebusd add-ons listed from the Supervisor), following the running one or
+  pinned to one, with a repair when it does not answer; the build checked at every start, writes enabled or not;
+  the telegram log set per ebusd. Existing entries are pinned to their address.
 - 0.11.0: the panel reads on demand what no entity follows, per menu, per device or everything, with its cost
   first, a progress bar and a stop; and follows or stops following rows and programs, applied in one go.
 - 0.10.2: documentation only: install the add-on with the run-time checksum from the start if you mean to write,

@@ -70,9 +70,9 @@ The integration talks to ebusd's TCP command port, **8888** unless ebusd was sta
 
 - **ebusd as an add-on of the same Home Assistant**: enter the add-on's host name, shown on its Info page
   (`<prefix>-ebusd`, the prefix of the add-on's folder `<prefix>_ebusd` with a hyphen), and port 8888. The
-  integration then connects through Home Assistant's internal network, as on the test installation; publishing the
-  port on the host is for clients outside Home Assistant (the test installation publishes it; the integration was
-  not tried with it closed).
+  integration then connects through Home Assistant's internal network: it was checked on the test installation with
+  port 8888 not published, reading as usual. Publishing the port on the host is only for clients outside Home
+  Assistant.
 - **ebusd on another machine**: its address and port.
 
 Anyone who can open this port can send ebusd any command, writes to the boilers and controllers included. Publish

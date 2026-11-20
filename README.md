@@ -25,11 +25,15 @@ Do the steps in this order. Nothing here writes to the heating system.
 
 ### 1. ebusd, with the Weishaupt definitions loaded
 
-- An eBUS adapter and **ebusd 26.1** connected to the bus. On Home Assistant OS this is usually the ebusd add-on
-  ([LukasGrebe/ha-addons](https://github.com/LukasGrebe/ha-addons)). A stock ebusd is enough for reading.
+- An eBUS adapter and **ebusd 26.1** connected to the bus. On Home Assistant OS this is an ebusd add-on. A stock
+  ebusd (the add-on of [LukasGrebe/ha-addons](https://github.com/LukasGrebe/ha-addons)) is enough for reading.
+  **If you mean to write settings later, install the add-on *eBUSd (Weishaupt CRC)* from the start** (see
+  [What writing needs](#what-writing-needs)): it reads the same way, and changing add-on later means copying the
+  definitions again, setting its options again and changing the host of the entry.
 - **Definitions 0.6.0 or a later 0.6.x** loaded by that ebusd, started with `--scanconfig`: take a release tagged
   `weishaupt-…` from <https://github.com/aghulas/ebusd-configuration/releases>, the latest 0.6.x, and follow its
-  notice. 0.6.0 is flagged *pre-release* on GitHub; from 0.6.1 the releases are normal ones. These definitions are not
+  notice. 0.6.0 is flagged *pre-release* on GitHub; from 0.6.1 the releases are normal ones. The figures of this
+  README are those of the metadata 0.6.0 the integration ships; 0.6.1 has the same messages and the same counts. These definitions are not
   part of the official ebusd configuration yet: with a local `--configpath`, ebusd no longer uses the official
   online files.
 - With the add-on: each option of ebusd is one entry of *Additional ebusd options*, and a folder in the add-on's
@@ -37,9 +41,8 @@ Do the steps in this order. Nothing here writes to the heating system.
   documentation, *App config folder*).
 
 **Check that ebusd loaded them**, before installing the integration, with `ebusctl` where ebusd runs. With the
-add-on, as the definitions notice says: the add-on's documentation offers a shell under **Open Web UI**; where that
-page shows ebusd's web page instead (as on the test installation), use the SSH add-on with its protection mode off:
-`docker ps` shows the add-on's container (its name ends in `_ebusd`), and each command below becomes
+add-on: open a shell with the SSH add-on, its protection mode off (on the SSH add-on's own Info page); `docker ps`
+shows the ebusd add-on's container (its name ends in `_ebusd`), and each command below becomes
 `docker exec <container> ebusctl …`. `ebusctl info` gives one line per device found, with the file it loaded:
 
 ```text
@@ -54,6 +57,8 @@ address 15: slave #2, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kro
 | Heating module 2, heating module 3 | 51, 52 | `51.w.em2`, `52.w.em3` |
 | Room units 1, 2, 3 | 35, 75, f5 | `35.w.fs1`, `75.w.fs2`, `f5.w.fs3` |
 
+The first line of `ebusctl info` names the ebusd build: `version: ebusd 26.1.p20261029` for the build with the
+run-time checksum (`v26.1-weishaupt.1`), another string for a stock 26.1 (`ebusd 26.1.26.1` in the official image).
 Only the devices of your installation appear. Then read one value, for example `ebusctl read -c bc1 SupplyTemp`
 (the flow temperature of boiler 1). A device that loaded another file, or none, does not answer as these
 definitions expect: do not go on with it, the integration will name its messages as missing.
@@ -102,73 +107,20 @@ configuration and restart.
   (those messages get no entity; the others work).
 - An entry **Weishaupt** in the sidebar for administrators ([the panel](#the-weishaupt-panel)).
 
+**If ebusd moves** (another add-on, so another host name, or another machine): *Settings → Devices & services →
+Weishaupt → ⋮ → Reconfigure*, enter the new host and port. The connection is tested again; the entry, its devices,
+entities, history and options are kept, and the integration reloads.
+
 To remove it: delete the integration entry in *Devices & services*, then uninstall it in HACS.
-
-## Writing: what it needs
-
-Reading works without any of this. Writing needs all of it; the integration checks each point itself and refuses
-every write while one is missing.
-
-1. **An ebusd that computes the run-time checksum** of the Weishaupt register writes. A stock ebusd loads the write
-   lines of the definitions but cannot give them a valid checksum; the build of
-   [aghulas/ebusd](https://github.com/aghulas/ebusd/releases) can, until john30/ebusd#1825 is merged. How to run it
-   is in the notice of the definitions release. For Home Assistant OS, the add-on *eBUSd (Weishaupt CRC)* is the
-   ebusd add-on with this build: add the repository `https://github.com/aghulas/ha-addons#weishaupt` (with the
-   branch suffix `#weishaupt`) in the add-on store (⋮ → *Repositories*). It replaces the stock ebusd add-on, which
-   must be stopped first: an adapter can be used by one add-on at a time.
-   The integration finds out which ebusd it talks to without sending anything to the bus: the attribute
-   `run_time_checksum` of the write switch reads `present`, `absent` or `unknown`, and only `present` allows writes.
-2. **The telegram log**, for the settings written from the address of the vendor service tool (`ff`, 79 of the
-   83): every telegram ebusd sees, kept in an SQLite file Home Assistant can read. A write from `ff` is refused
-   while the service tool may be connected (a telegram from `ff` that is not ours in the last 10 minutes), and
-   whenever the log cannot be read or has received nothing for 2 minutes. With the ebusd add-on: set its option
-   **SQLite telegram log (database file)** (`sqlite_db`) to `/share/ebusd/telegrams.db`, keep
-   **SQLite telegram log retention (days)** (10 by default), and restart the add-on; the integration's option
-   *Telegram log of ebusd* has that path by default.
-3. **Writes enabled** in the options: *Devices & services → Weishaupt → Configure* → *Enable writes of the proven
-   settings*. The integration reloads and adds a number or a select per writable setting, one text per day of the
-   writable programs, a button to set the clock, and the switch **Writes** on the ebusd device.
-4. **The switch Writes on.** It is off after every restart of Home Assistant and every reload of the integration:
-   writing is switched on for a session of changes.
-
-This integration does not use MQTT. If the ebusd add-on's MQTT discovery is on (its default), ebusd publishes
-entities of its own; with the file the add-on seeds (`mqtt-hassio.cfg`, `filter-direction = r|u`) they are read
-only, and writable messages become entities only if that filter is changed (definitions notice). Such entities do
-not pass through this guard: do not change the filter with a stock ebusd.
-
-Each setting has a **risk class** from the definitions: **comfort** settings (room and hot-water setpoints, the
-program days) are written as soon as you set them; **regulation** settings (heating curve, limits, cascade and
-hot-water parameters, the clock) wait for a person to confirm under *Settings → Repairs*; **structural** settings
-(circuit type, boiler sequence…) are never written. Details: [Writing settings](#writing-settings).
-
-### Before you change a setting
-
-- **Note the value first.** The integration reads the setting from the device before writing and reads it back
-  after; the logbook of the entity keeps *before → after*. To undo, set the former value the same way.
-- **One installation.** Every write was proven on one installation (two WTC boilers in cascade, a system manager,
-  two heating modules, room units at three addresses); another model or software version may answer differently.
-- **Two copies of a setting.** A room unit and its heating module answer the same setting registers with different
-  values, and which copy the regulation uses is not established (definitions notice): a change may show no effect
-  on the heating, or the other copy may win.
-- **A write acknowledged is not always a value taken.** A device can acknowledge a write and keep its value, for
-  example when it comes from another source address than the one the definitions give: the read-back shows it, and
-  the integration reports *not taken over*.
-- **Not offered, on purpose**: the control variation and the third holiday registers of the room units (meaning not
-  established; on the test installation, while a control variation of 0 was set, the heating modules raised their
-  flow setpoint, definitions notice), and
-  anything a device keeps in another device's store (room unit 2's setback and frost protection temperatures and its
-  heating program 1, on the test installation: changed on room unit 1).
-- **30 writes an hour** by default. It is a precaution, not a measured limit: whether the controllers wear out
-  by writes is not known.
-- If the heating behaves unexpectedly after a change, set the former value again, or change it on the controller
-  itself.
 
 ## Words used here
 
 | Word | Meaning |
 |---|---|
 | definitions, definitions release | The files that tell ebusd how to decode each message of these devices (one CSV per device), published as releases `weishaupt-<version>` with a **metadata** file the integration reads |
-| circuit | In ebusd: the name of a device's file, used in commands (`-c ka`). Not a heating circuit |
+| circuit | In ebusd: the name of a device's file, used in commands (`-c ka`). Where this README means the heating circuit of a boiler installation, it says *heating circuit* |
+| register | one value a controller keeps at a numbered place, read and written by these messages; a setting is one register |
+| scan | at start-up (`--scanconfig`), ebusd asks every device on the bus for its identification and loads the file the definitions give for it |
 | `bc1`, `bc2` | the two boilers, addresses `08`, `18` |
 | `ka` | the system manager (cascade manager), address `15` |
 | `em1` | the system manager's own heating circuit, address `50`: the same device as `ka`, not a module |
@@ -186,82 +138,6 @@ hot-water parameters, the clock) wait for a person to confirm under *Settings �
 | beside the configuration | the folder `weishaupt` next to `configuration.yaml`, where a newer metadata file can be placed |
 | repair | an entry under *Settings → Repairs*: the integration's problems, and the confirmation of a regulation setting |
 | store | where a device keeps a value; room unit 2 on the test installation reads some of its values from room unit 1's |
-
-## Compatibility
-
-| Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
-|---|---|---|---|---|
-| 0.10 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
-| 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
-
-The integration ships the metadata file of definitions 0.6.0 (`weishaupt-metadata-0.6.0.json`: 669 messages, of
-which 668 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
-integration compares, message by message, what ebusd loaded with that file:
-
-- a device of the definitions that does not answer on the bus gets no device in Home Assistant;
-- a message that ebusd did not load, or loaded with other fields, types or units, gets **no entity**, and one repair
-  names the messages and the release expected. Load a release of the accepted range in ebusd, then reload the
-  integration.
-
-The counts of messages differ by what is counted: ebusd counts 1073 messages in release 0.6.0 (`--checkconfig`, every
-device's file, write definitions included); the metadata describes 669 (one per message
-name and device); the fixtures of the release hold 949 telegrams captured on a bus for 617 of them.
-
-**Why 0.6.x.** The definitions notice says that from 0.6.0 on, message and field names change only with a new first
-number. This version accepts 0.6.x and a later release of the integration accepts a newer one once it has been
-checked against it. 0.6.0 itself renamed or retyped four messages against 0.5.x: with 0.5.x still in ebusd, the
-two mixer pumps of the heating modules, the legionella start time and the hot-water excess temperature have no
-entity and one repair names them; everything else works. A metadata file 0.5.x beside the configuration is not
-used (outside the accepted range) and a repair says so: remove it.
-
-When a message or a field is renamed, its entity keeps its entity id and history: the metadata says which name it
-had. The mixer pump became a binary sensor in 0.10.0; Home Assistant cannot move an entity from one domain to
-another, so the former `sensor.…_mixer_circuit_pump` is removed at the first load (kept, with a repair, if you
-changed it) and `binary_sensor.…_mixer_circuit_pump` replaces it; automations or cards using the former id must be
-changed.
-
-## Supported devices and limits
-
-Weishaupt heating systems whose controllers speak eBUS, as the definitions describe them:
-
-| Device | Bus address(es) | Read | Written (with the run-time checksum build) |
-|---|---|---|---|
-| WTC gas condensing boiler (automat W-FM, one per boiler) | 08, 18 | live values, statistics and counters, fault memory and fault counters | — |
-| WCM system manager (cascade manager), and its own heating circuit | 15, 50 | live values, cascade and hot-water settings, its fault-log entry, weekly programs | settings, choices, programs proven writable, the clock |
-| WCM-EM heating module (up to two) | 51, 52 | live values, settings | settings |
-| WCM-FS room unit (up to three addresses) | 35, 75, f5 | room values, settings, weekly programs, its fault-log entry | settings, programs proven writable |
-
-What is read or written is decided by the definitions release, message by message, with evidence; a device or a
-register they do not describe is not shown. Limits a second installation should know:
-
-- **Tested on one installation**: two WTC boilers in cascade, one system manager, two heating modules, room units
-  answering at three addresses (on that installation one unit serves circuits 1 and 2 and answers at `35` and `75`,
-  definitions notice), one software version each. Another model or version may answer differently: the comparison at start-up
-  names what ebusd did not load as described, and a diagnostics download shows what was read.
-- **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), and the
-  telegram log for the settings written from the service tool's address. Without them everything is read only.
-- **Room unit 2 reads some values from room unit 1's store** (as on the tested installation): its weekly programs
-  and its setback and frost protection room temperatures. A write sent to room unit 2 is acknowledged and not kept:
-  they are read only there, and the panel, the program sensor and the card say they are changed on room unit 1
-  (metadata `shared_with`). A room unit at `75` addressed for circuit 2 alone may keep its own: the definitions
-  would have to say so.
-- **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
-  and the others the metadata marks comfort); the others are shown, read only.
-- **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module, room unit). The
-  definitions mark these values on each field concerned: the entity reads *unknown* with the attribute
-  `no_sensor: true` while the device sends exactly that value; any other value, even close, is shown. The panel
-  shows "no sensor".
-- **No time** is stored with a boiler's fault entry; the system manager's fault log shows the entry its operating
-  unit has selected.
-- **One request at a time** on the bus, at the gap set in the options (2 s by default): see
-  [Load on the bus](#load-on-the-bus).
-- **Not a climate entity**: settings are numbers, selects and texts; no `climate` or `water_heater` entity yet.
-
-**Reporting a problem**: open an issue with the diagnostics download (Settings → Devices & services → Weishaupt →
-⋮ → Download diagnostics). The integration's own data (`data`) holds no address of ebusd, no file path, no entry
-id and no user id; it does hold the values read. Home Assistant
-itself adds to every download a `setup_times` object keyed by the entry id and, when the integration has repairs
-open, an `issues` list whose ids contain it: an opaque local id, no address, which an integration cannot remove.
 
 ## What you get
 
@@ -350,7 +226,7 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   label), when it was read, range and step, whether it is writable and its class (comfort,
   regulation), and a button to the entity. A value kept across a reload of the integration is
   shown with its age and marked as kept until it is read again. A register read by two messages
-  (the system manager's direct circuit `em1` and its circuit 1) is shown once, with the value of
+  (the system manager's direct circuit `em1` and its heating circuit 1) is shown once, with the value of
   whichever is read and where it is changed ("through em1"). A temperature equal to the value the definitions
   mark as "sensor not fitted" (−40.0 °C on a boiler, −100.0 °C elsewhere) is shown as *no sensor*; a °C field
   they do not mark gets the same rule by device (−40.0 on a boiler, −100.0 on the system manager or a module). A value that is not read says
@@ -389,60 +265,82 @@ writes left this hour, then write. The card writes through the program-day entit
 write switch, the hourly limit and the read-back apply as everywhere else; a refusal shows the same message.
 
 
-## Load on the bus
-
-**After a restart of ebusd, the integration waits for its scan.** ebusd answers before it has scanned the
-bus and loaded the definitions of every device. When a device seen before is not on the bus yet, or a device
-on the bus has no definitions loaded yet, the integration does not compare with that partial view: it waits
-and tries again (Home Assistant's retry, 5 s growing to 80 s), for up to 5 minutes, its entities kept and
-unavailable meanwhile. After 5 minutes it goes on with what ebusd has and names what is missing; stale
-entities are never looked for on such a partial view.
-
-No measurement says how often these devices may be asked, so the integration is cautious and says
-what it does:
-
-- one request at a time, and **never two requests closer than 2 s** (option, 1 to 30 s);
-- live values every 5 minutes (option, 1 minute to 1 hour);
-- after a start, a **first pass** asks every enabled message once **from the device** (`read -m 0`):
-  ebusd, which may have stayed up, would otherwise answer from its own cache, with a value up to a
-  day old. Order: passive messages, live values, then what the entities that set a value show
-  (numbers and selects, then the slots of enabled program days), then the rest. During the pass a
-  message already read is asked again only when its value is older than 15 minutes, so that live
-  values do not hold the pass up;
-- counters and fault memory at start and then every hour, settings every 6 hours, weekly programs
-  once a day;
-- states the devices send by themselves (boiler status, room unit exchanges) are read from the
-  cache of ebusd every 30 s and cost the bus nothing;
-- a message is requested only while an **enabled** entity shows it: disabling entities lowers the
-  load, enabling diagnostics raises it;
-- ebusd answers from its cache when it already holds a recent enough value, for example after a
-  restart of Home Assistant;
-- no request while ebusd reports that it has no signal.
-
-With definitions 0.6.0 and the entities enabled when created (all nine devices present): 85 messages, 13 of them
-passive, so 72 requests in the first pass (about two and a half minutes at 2 s), then about 50 requests every
-5 minutes for the live values, 20 an hour for counters and fault memories and 2 every 6 hours. With everything enabled
-(668 readable messages, 655 of them asked from the devices), the first pass takes about 22 minutes at 2 s, then
-the settings are asked every 6 hours and the programs once a day. These figures are counted from the metadata and
-the reader's intervals, not measured on a bus; the vendor's service tool was seen sending about two requests per
-second while logging.
-
-If ebusd itself is configured to poll (`--pollinterval`, poll priorities in the CSV), both loads
-add up; the definitions release sets no poll priority.
-
 ## Writing settings
 
-Off by default. To turn it on: *Devices & services → Weishaupt → Configure*, tick **Enable writes
-of the proven settings**, check the path of the telegram log, save. The integration reloads and
-adds:
+### What writing needs
 
-- a **number entity** (configuration section of its device) for each setting the definitions
-  prove writable, with the range, step and unit of the definitions, enabled, named like the sensor
-  of the same register with "(setting)" after it (*Normal room temperature (setting)*);
-- a **write switch** on the ebusd device, **off**. Writes are refused while it is off; turning it
-  off also withdraws every change waiting for a confirmation. It is **off again after every
-  restart of Home Assistant and every reload of the integration**, whatever it was before: writing
-  is switched on for a session of changes, never left on by a restart.
+Reading works without any of this. Writing needs all of it; the integration checks each point itself and refuses
+every write while one is missing.
+
+1. **An ebusd that computes the run-time checksum** of the Weishaupt register writes. A stock ebusd loads the write
+   lines of the definitions but cannot give them a valid checksum; the build of
+   [aghulas/ebusd](https://github.com/aghulas/ebusd/releases) can, until john30/ebusd#1825 is merged. How to run it
+   is in the notice of the definitions release. For Home Assistant OS, the add-on *eBUSd (Weishaupt CRC)* is the
+   ebusd add-on with this build: in the add-on store (⋮ → *Repositories*) add
+   `https://github.com/aghulas/ha-addons#weishaupt`. That form, with `#weishaupt`, is for the store only; in a
+   browser it opens another page. To read about the add-on, open
+   <https://github.com/aghulas/ha-addons/tree/weishaupt>. Home Assistant builds the add-on on the device when it
+   is installed: the first install takes a few minutes. If a stock ebusd add-on runs already, stop it first (an
+   adapter can be used by one add-on at a time), copy the definitions into the new add-on's own folder and set its
+   options again: they do not carry over. The new add-on has another prefix, so another host name: change the
+   entry with *Reconfigure* ([step 5](#5-what-you-then-see)).
+   Check the build with the first line of `ebusctl info` (step 1). The integration checks it too, without
+   sending anything to the bus: once writes are enabled (item 3), the attribute `run_time_checksum` of the switch
+   **Writes** reads `present`, `absent` or `unknown`, and only `present` allows writes.
+2. **The telegram log**, for the settings written from the address of the vendor service tool (`ff`, 79 of the
+   83): every telegram ebusd sees, kept in an SQLite file Home Assistant can read. A write from `ff` is refused
+   while the service tool may be connected (a telegram from `ff` that is not ours in the last 10 minutes), and
+   whenever the log cannot be read or has received nothing for 2 minutes. With the ebusd add-on: set its option
+   **SQLite telegram log (database file)** (`sqlite_db`) to `/share/ebusd/telegrams.db`, keep
+   **SQLite telegram log retention (days)** (10 by default), and restart the add-on; the integration's option
+   *Telegram log of ebusd* has that path by default. The add-on's documentation puts the log at about 50 to
+   170 MB a day depending on bus traffic, so up to some 1.7 GB with 10 days kept, and `/share` is part of Home
+   Assistant's backups: check the room on the device and in the backups. A shorter retention works for the
+   integration, which looks at the last 10 minutes only.
+3. **Writes enabled** in the options: *Devices & services → Weishaupt → Configure* → *Enable writes of the proven
+   settings*. The integration reloads and adds a number (or a select) per writable setting, enabled, in the
+   configuration section of its device and named like the sensor of the same register with "(setting)" after it
+   (*Normal room temperature (setting)*); one text per day of the writable programs; a button to set the clock;
+   and the switch **Writes** on the ebusd device, off.
+4. **The switch Writes on**, for a session of changes. While it is on, a comfort setting or a program day is
+   written as soon as anyone sets it, from a dashboard, a phone or an automation. **Switch it off when you are
+   done**; turning it off also withdraws every change waiting for a confirmation. It is off again after every
+   restart of Home Assistant and every reload of the integration, whatever it was before, so it is never left on by
+   a restart.
+
+This integration does not use MQTT. If the ebusd add-on's MQTT discovery is on (its default), ebusd publishes
+entities of its own; with the file the add-on seeds (`mqtt-hassio.cfg`, `filter-direction = r|u`) they are read
+only, and writable messages become entities only if that filter is changed (definitions notice). Such entities do
+not pass through this guard: do not change the filter with a stock ebusd.
+
+Each setting has a **risk class** from the definitions: **comfort** settings (room and hot-water setpoints, the
+program days) are written as soon as you set them; **regulation** settings (heating curve, limits, cascade and
+hot-water parameters, the clock) wait for a person to confirm under *Settings → Repairs*; **structural** settings
+(circuit type, boiler sequence…) are never written. Details: [Writing settings](#writing-settings).
+
+### Before you change a setting
+
+- **Note the value first.** The integration reads the setting from the device before writing and reads it back
+  after; the logbook of the entity keeps *before → after*. To undo, set the former value the same way.
+- **One installation.** Every write was proven on one installation (two WTC boilers in cascade, a system manager,
+  two heating modules, room units at three addresses); another model or software version may answer differently.
+- **Two copies of a setting.** A room unit and its heating module answer the same setting registers with different
+  values, and which copy the regulation uses is not established (definitions notice): a change may show no effect
+  on the heating, or the other copy may win.
+- **A write acknowledged is not always a value taken.** A device can acknowledge a write and keep its value, for
+  example when it comes from another source address than the one the definitions give: the read-back shows it, and
+  the integration reports *not taken over*.
+- **Not offered, on purpose**: the control variation and the third holiday registers of the room units (meaning not
+  established; on the test installation, while a control variation of 0 was set, the heating modules raised their
+  flow setpoint, definitions notice), and
+  anything a device keeps in another device's store (room unit 2's setback and frost protection temperatures and its
+  heating program 1, on the test installation: changed on room unit 1).
+- **30 writes an hour** by default. It is a precaution, not a measured limit: whether the controllers wear out
+  by writes is not known.
+- If the heating behaves unexpectedly after a change, set the former value again, or change it on the controller
+  itself.
+
+### What is writable
 
 What is writable is decided by the definitions, not by the integration: a setting gets a number
 entity (a select for a choice) only when the metadata of the release gives it **write conditions** (the
@@ -469,8 +367,8 @@ on the bus of the test installation (fixtures of the release):
 
 Where the definitions prove the slots writable — with definitions 0.6.0 the five programs of room
 units 1 and 3, and the hot-water and circulation programs of the system manager (its own circuit,
-`50`; the hot-water program the installation applies); never room unit 2, which acknowledges slot
-writes and keeps none — each program has **one text entity per day** (*Heating program 1 – Monday
+`50`; the hot-water program the installation applies); none of room unit 2 (its heating program 1
+acknowledged slot writes and kept none; its other programs have no write conditions) — each program has **one text entity per day** (*Heating program 1 – Monday
 (setting)*), in the configuration section of its device: 84 in all. Only a program whose slots the
 metadata classes *comfort* is offered (all twelve are): a day is written without a confirmation, so
 a program of another class would stay read-only. Its value is the day as the program sensors show it:
@@ -524,8 +422,9 @@ controller 12 s late until the next correct one.
 
 The source is the one the metadata gives each setting: the address the device takes the value from
 (`ff`, the address of the vendor service tool; `31`, ebusd's own address). Written from another
-source, a device acknowledges and keeps its value — the flow limits of the system manager's own
-circuit are taken from `ff` only, those of the heating modules from `31`.
+source, a device may acknowledge and keep its value: the flow limits of the system manager's own
+circuit are taken from `ff` only; those of the heating modules are written from `31`, as the metadata gives (the
+definitions notice reports them taken from `ff` as well).
 
 The system manager's own circuit reads three registers of the system manager: the integration
 shows each register once. The maximum flow temperature, writable on both, has one number (through
@@ -590,14 +489,133 @@ telegram, user) and an entry in the diagnostics download (the last 50). Each cha
 (a setting, a program day, the clock) also gives an event `weishaupt_change`, which the logbook
 shows on the entity.
 
-**How the run-time checksum is checked.** Today's builds do not announce it, and the version
-string of the fork's build is the same as a stock one's. At start-up (only when writes are
+**How the run-time checksum is checked.** The version string tells today's builds apart (`26.1.p20261029` for
+the build with the run-time checksum), but it is a label, not a capability: ebusd does not announce the run-time
+checksum, and another build could carry any string. So the integration tests the capability itself. At start-up (only when writes are
 enabled) the integration hands ebusd one write telegram twice under a circuit name no message has,
 once with the correct checksum and once with the checksum byte of the definition: the fork's build
 matches the first and refuses it for its circuit; a stock ebusd matches only the second. Both are
 refused by ebusd before sending: nothing reaches the bus. The result is the attribute
 `run_time_checksum` of the write switch (`present`, `absent`, `unknown`); anything but `present`
 refuses every write.
+
+## Load on the bus
+
+**After a restart of ebusd, the integration waits for its scan.** ebusd answers before it has scanned the
+bus and loaded the definitions of every device. When a device seen before is not on the bus yet, or a device
+on the bus has no definitions loaded yet, the integration does not compare with that partial view: it waits
+and tries again (Home Assistant's retry, 5 s growing to 80 s), for up to 5 minutes, its entities kept and
+unavailable meanwhile. After 5 minutes it goes on with what ebusd has and names what is missing; stale
+entities are never looked for on such a partial view.
+
+No measurement says how often these devices may be asked, so the integration is cautious and says
+what it does:
+
+- one request at a time, and **never two requests closer than 2 s** (option, 1 to 30 s);
+- live values every 5 minutes (option, 1 minute to 1 hour);
+- after a start, a **first pass** asks every enabled message once **from the device** (`read -m 0`):
+  ebusd, which may have stayed up, would otherwise answer from its own cache, with a value up to a
+  day old. Order: passive messages, live values, then what the entities that set a value show
+  (numbers and selects, then the slots of enabled program days), then the rest. During the pass a
+  message already read is asked again only when its value is older than 15 minutes, so that live
+  values do not hold the pass up;
+- counters and fault memory at start and then every hour, settings every 6 hours, weekly programs
+  once a day;
+- states the devices send by themselves (boiler status, room unit exchanges) are read from the
+  cache of ebusd every 30 s and cost the bus nothing;
+- a message is requested only while an **enabled** entity shows it: disabling entities lowers the
+  load, enabling diagnostics raises it;
+- ebusd answers from its cache when it already holds a recent enough value, for example after a
+  restart of Home Assistant;
+- no request while ebusd reports that it has no signal.
+
+With definitions 0.6.0 and the entities enabled when created (all nine devices present): 85 messages, 13 of them
+passive, so 72 requests in the first pass (about two and a half minutes at 2 s), then about 50 requests every
+5 minutes for the live values, 20 an hour for counters and fault memories and 2 every 6 hours. With everything enabled
+(668 readable messages, 655 of them asked from the devices), the first pass takes about 22 minutes at 2 s, then
+the settings are asked every 6 hours and the programs once a day. These figures are counted from the metadata and
+the reader's intervals, not measured on a bus; the vendor's service tool was seen sending about two requests per
+second while logging.
+
+If ebusd itself is configured to poll (`--pollinterval`, poll priorities in the CSV), both loads
+add up; the definitions release sets no poll priority.
+
+## Supported devices and limits
+
+Weishaupt heating systems whose controllers speak eBUS, as the definitions describe them:
+
+| Device | Bus address(es) | Read | Written (with the run-time checksum build) |
+|---|---|---|---|
+| WTC gas condensing boiler (automat W-FM, one per boiler) | 08, 18 | live values, statistics and counters, fault memory and fault counters | — |
+| WCM system manager (cascade manager), and its own heating circuit | 15, 50 | live values, cascade and hot-water settings, its fault-log entry, weekly programs | settings, choices, programs proven writable, the clock |
+| WCM-EM heating module (up to two) | 51, 52 | live values, settings | settings |
+| WCM-FS room unit (up to three addresses) | 35, 75, f5 | room values, settings, weekly programs, its fault-log entry | settings, programs proven writable |
+
+What is read or written is decided by the definitions release, message by message, with evidence; a device or a
+register they do not describe is not shown. Limits a second installation should know:
+
+- **Tested on one installation**: two WTC boilers in cascade, one system manager, two heating modules, room units
+  answering at three addresses (on that installation one unit serves heating circuits 1 and 2 and answers at `35` and `75`,
+  definitions notice), one software version each. Another model or version may answer differently: the comparison at start-up
+  names what ebusd did not load as described, and a diagnostics download shows what was read.
+- **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), and the
+  telegram log for the settings written from the service tool's address. Without them everything is read only.
+- **Room unit 2 reads some values from room unit 1's store** (as on the tested installation): its heating
+  program 1 and its setback and frost protection room temperatures. A write sent to room unit 2 is acknowledged and
+  not kept: they are read only there, and the panel, the program sensor and the card say they are changed on room
+  unit 1 (metadata `shared_with`). Its other programs have no write conditions; whether they are shared the same
+  way is not established (definitions notice), so they are read only too, with no pointer. A room unit at `75` addressed for heating circuit 2 alone may keep its own: the definitions
+  would have to say so.
+- **Programs**: only those proven writable on their device can be changed (heating program 1 of room units 1 and 3,
+  and the others the metadata marks comfort); the others are shown, read only.
+- **Absent sensors** read −40.0 °C (boiler) or −100.0 °C (system manager, heating module, room unit). The
+  definitions mark these values on each field concerned: the entity reads *unknown* with the attribute
+  `no_sensor: true` while the device sends exactly that value; any other value, even close, is shown. The panel
+  shows "no sensor".
+- **No time** is stored with a boiler's fault entry; the system manager's fault log shows the entry its operating
+  unit has selected.
+- **One request at a time** on the bus, at the gap set in the options (2 s by default): see
+  [Load on the bus](#load-on-the-bus).
+- **Not a climate entity**: settings are numbers, selects and texts; no `climate` or `water_heater` entity yet.
+
+**Reporting a problem**: open an issue with the diagnostics download (Settings → Devices & services → Weishaupt →
+⋮ → Download diagnostics). The integration's own data (`data`) holds no address of ebusd, no file path, no entry
+id and no user id; it does hold the values read. Home Assistant
+itself adds to every download a `setup_times` object keyed by the entry id and, when the integration has repairs
+open, an `issues` list whose ids contain it: an opaque local id, no address, which an integration cannot remove.
+
+## Compatibility
+
+| Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
+|---|---|---|---|---|
+| 0.10 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
+
+The integration ships the metadata file of definitions 0.6.0 (`weishaupt-metadata-0.6.0.json`: 669 messages, of
+which 668 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
+integration compares, message by message, what ebusd loaded with that file:
+
+- a device of the definitions that does not answer on the bus gets no device in Home Assistant;
+- a message that ebusd did not load, or loaded with other fields, types or units, gets **no entity**, and one repair
+  names the messages and the release expected. Load a release of the accepted range in ebusd, then reload the
+  integration.
+
+The counts of messages differ by what is counted: ebusd counts 1073 messages in release 0.6.0 (`--checkconfig`, every
+device's file, write definitions included); the metadata describes 669 (one per message
+name and device); the fixtures of the release hold 949 telegrams captured on a bus for 617 of them.
+
+**Why 0.6.x.** The definitions notice says that from 0.6.0 on, message and field names change only with a new first
+number. This version accepts 0.6.x and a later release of the integration accepts a newer one once it has been
+checked against it. 0.6.0 itself renamed or retyped four messages against 0.5.x: with 0.5.x still in ebusd, the
+two mixer pumps of the heating modules, the legionella start time and the hot-water excess temperature have no
+entity and one repair names them; everything else works. A metadata file 0.5.x beside the configuration is not
+used (outside the accepted range) and a repair says so: remove it.
+
+When a message or a field is renamed, its entity keeps its entity id and history: the metadata says which name it
+had. The mixer pump became a binary sensor in 0.10.0; Home Assistant cannot move an entity from one domain to
+another, so the former `sensor.…_mixer_circuit_pump` is removed at the first load (kept, with a repair, if you
+changed it) and `binary_sensor.…_mixer_circuit_pump` replaces it; automations or cards using the former id must be
+changed.
 
 ## Newer definitions without a new release of the integration
 
@@ -658,6 +676,30 @@ under the same name. After the update:
   `date` entities are gone: programs are written per day (text entities, `weishaupt.set_program`), the clock by a
   confirmed button. Only what the definitions prove is offered.
 - The config entry is kept (same host and port); its former options are dropped.
+
+## History
+
+The release notes on GitHub give each version in full; here only what changed what you install or see.
+
+- 0.10.2: documentation only: install the add-on with the run-time checksum from the start if you mean to write,
+  *Reconfigure* when ebusd moves, one way to a shell, switch Writes off after use, the size of the telegram log;
+  writing in one section, developer sections at the end.
+- 0.10.1: documentation only: a first-installation path, what writing needs, a glossary, figures for
+  definitions 0.6.0.
+- 0.10.0: definitions 0.6.0 shipped and accepted (0.6.x; 0.5.x no longer). Renamed fields keep their entity; the
+  legionella start time is a time, the hot-water excess temperature a difference in K, the mixer pumps binary
+  sensors.
+- 0.9: a dashboard card for one weekly program; nothing is written to a device that reads the value from another
+  device's store.
+- 0.8: devices that appear later are added, a device absent for 7 days can be removed from a repair; diagnostics
+  without addresses or ids.
+- 0.7: fault tables, a printable report and a CSV export in the panel; the entry waits for ebusd's scan.
+- 0.6: the panel writes, through the same guard as the entities; the write switch is off after every restart.
+- 0.5: the Weishaupt panel, read only.
+- 0.4: a newer metadata file beside the configuration.
+- 0.3: writes of the proven settings, programs and clock, with risk classes and the run-time checksum check.
+- 0.2: read only, built from the metadata of the definitions.
+- 0.1: raw telegrams from the integration's own register table.
 
 ## Development
 
@@ -746,27 +788,6 @@ published to its other clients at the same time.
 
 What this does not prove: behaviour over days, while a boiler fires (the passive load messages of
 the boilers are only sent then), and the values of an installation other than that one.
-
-## History
-
-The release notes on GitHub give each version in full; here only what changed what you install or see.
-
-- 0.10.1: documentation only: a first-installation path, what writing needs, a glossary, figures for
-  definitions 0.6.0.
-- 0.10.0: definitions 0.6.0 shipped and accepted (0.6.x; 0.5.x no longer). Renamed fields keep their entity; the
-  legionella start time is a time, the hot-water excess temperature a difference in K, the mixer pumps binary
-  sensors.
-- 0.9: a dashboard card for one weekly program; nothing is written to a device that reads the value from another
-  device's store.
-- 0.8: devices that appear later are added, a device absent for 7 days can be removed from a repair; diagnostics
-  without addresses or ids.
-- 0.7: fault tables, a printable report and a CSV export in the panel; the entry waits for ebusd's scan.
-- 0.6: the panel writes, through the same guard as the entities; the write switch is off after every restart.
-- 0.5: the Weishaupt panel, read only.
-- 0.4: a newer metadata file beside the configuration.
-- 0.3: writes of the proven settings, programs and clock, with risk classes and the run-time checksum check.
-- 0.2: read only, built from the metadata of the definitions.
-- 0.1: raw telegrams from the integration's own register table.
 
 ## Licence
 

@@ -141,6 +141,44 @@ NOTIFICATION = {
 }
 
 
+def _write_circuits(hub) -> list[str]:
+    """Circuits whose write definitions matter: those of the writable messages ebusd loaded as described."""
+    return sorted({m.circuit for m in hub.model.messages.values()
+                   if m.writable and (m.key in hub.usable or not (m.read or m.passive))})
+
+
+async def probe_checksum(client, specs: dict[str, WriteSpec], placeholders: dict[str, str]) -> tuple[str, list[str]]:
+    """Whether ebusd computes the run-time checksum: "present", "absent" or "unknown", and its answers to the two
+    probes (`EbusdClient.probe_write`). Neither probe is sent to the bus: ebusd refuses both before sending."""
+    if not specs:
+        return "unknown", []
+    # the setting of the first write test on a bus (evidence/register-write-crc.md), else the first one
+    spec = specs.get(PROBE_SETTING) or specs[sorted(specs)[0]]
+    placeholder = placeholders[spec.key]
+    value = spec.minimum
+    while spec.telegram(value)[8:10] == placeholder and value + spec.step <= spec.maximum:
+        value += spec.step  # a value whose checksum differs from the placeholder: the probes must differ
+    try:
+        correct = await client.probe_write(spec.telegram(value))
+        other = await client.probe_write(spec.placeholder_telegram(value, placeholder))
+    except EbusdError as err:
+        found, answers = "unknown", [str(err)]
+    else:
+        found, answers = capability(correct, other), [correct, other]
+    log = _LOGGER.info if found == "present" else _LOGGER.warning
+    log("run-time checksum of ebusd: %s (probe of %s: %s)", found, spec.key, ", ".join(answers))
+    return found, answers
+
+
+async def async_probe_build(hub) -> tuple[str, list[str]]:
+    """The run-time checksum probe without the writer (writes not enabled): the write definitions ebusd loaded
+    (`find -f -w`) and the two probes. Nothing is sent to the bus."""
+    loaded = {circuit: await hub.client.definitions(circuit, write=True) for circuit in _write_circuits(hub)}
+    specs, _, placeholders = write_specs(hub.model, loaded)
+    specs = {key: spec for key, spec in specs.items() if key in hub.usable}
+    return await probe_checksum(hub.client, specs, placeholders)
+
+
 class Writer:
     def __init__(self, hass: HomeAssistant, hub, options: dict[str, Any]) -> None:
         self.hass, self.hub = hass, hub
@@ -179,9 +217,8 @@ class Writer:
         """Load the write definitions ebusd has, build the specs, probe the run-time checksum. Nothing is sent to
         the bus: `find` and two probes that ebusd refuses before sending."""
         self.guard.restore(await self._store.async_load())
-        circuits = sorted({m.circuit for m in self.hub.model.messages.values()
-                           if m.writable and (m.key in self.hub.usable or not (m.read or m.passive))})
-        loaded = {circuit: await self.hub.client.definitions(circuit, write=True) for circuit in circuits}
+        loaded = {circuit: await self.hub.client.definitions(circuit, write=True)
+                  for circuit in _write_circuits(self.hub)}
         specs, refused, self.placeholders = write_specs(self.hub.model, loaded)
         self.specs = {key: spec for key, spec in specs.items() if key in self.hub.usable}
         self.not_writable = {r.key: r.reason for r in refused}
@@ -216,27 +253,7 @@ class Writer:
         await self.async_probe()
 
     async def async_probe(self) -> str:
-        if not self.specs:
-            self.capability = "unknown"
-            return self.capability
-        # the setting of the first write test on a bus (evidence/register-write-crc.md), else the first one
-        spec = self.specs.get(PROBE_SETTING) or self.specs[sorted(self.specs)[0]]
-        placeholder = self.placeholders[spec.key]
-        value = spec.minimum
-        while spec.telegram(value)[8:10] == placeholder and value + spec.step <= spec.maximum:
-            value += spec.step  # a value whose checksum differs from the placeholder: the probes must differ
-        try:
-            correct = await self.hub.client.probe_write(spec.telegram(value))
-            other = await self.hub.client.probe_write(spec.placeholder_telegram(value, placeholder))
-        except EbusdError as err:
-            self.probe_answers = [str(err)]
-            self.capability = "unknown"
-        else:
-            self.probe_answers = [correct, other]
-            self.capability = capability(correct, other)
-        log = _LOGGER.info if self.capability == "present" else _LOGGER.warning
-        log("run-time checksum of ebusd: %s (probe of %s: %s)", self.capability, spec.key,
-            ", ".join(self.probe_answers))
+        self.capability, self.probe_answers = await probe_checksum(self.hub.client, self.specs, self.placeholders)
         return self.capability
 
     # ---- state ----------------------------------------------------------------------------------------------

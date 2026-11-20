@@ -288,7 +288,8 @@ async def test_diagnostics_hold_nothing_of_the_site(hass, fake):
     assert data["entry"]["data"]["host"] == "**REDACTED**"
     assert data["definitions"]["metadata_version"] == "0.6.0" and data["definitions"]["mismatches"] == []
     assert not [key for key in data["readings"] if "Program" in key or key == "ka/BlockingTime"]  # disabled, not read
-    assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 11  # ten circuits and the clock
+    assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 19
+    # ten circuits, the clock, and the write definitions of eight circuits for the probe of the build
     assert data["reader"]["invalid_first_byte"] == 0 and data["reader"]["failed"] == 0
     assert data["readings"]["bc1/Temperatures"] == "0;60;52;63;15"
     assert len(data["ebusd"]["addresses"]) == 17

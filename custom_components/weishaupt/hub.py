@@ -137,6 +137,11 @@ class Hub:
         # messages of entities the migration of the entry has just enabled: read first at the first set-up
         self.urgent_at_start: set[str] = set()
         self.writer = None  # writer.Writer, when writes are enabled in the options
+        # whether ebusd computes the run-time checksum, probed at every set-up whether writes are enabled or not
+        # (the writer's probe when there is a writer): which ebusd build answers, found without sending anything to
+        # the bus
+        self.build_capability = "not checked"
+        self.build_probe_answers: list[str] = []
         # where the metadata comes from (metadata_file.py), and the names the bundled translations hold when it is
         # not the bundled copy: an entity whose name they do not hold is not created (see `named`)
         self.metadata_source = "bundled"
@@ -203,6 +208,11 @@ class Hub:
     def label(self, text: dict[str, str]) -> str:
         """A label of the metadata in the language of Home Assistant, English when it has none in that language."""
         return text.get(self.hass.config.language.split("-")[0]) or text["en"]
+
+    @property
+    def capability(self) -> str:
+        """"present", "absent", "unknown" or "not checked": the run-time checksum of the ebusd in use."""
+        return self.writer.capability if self.writer is not None else self.build_capability
 
     @property
     def own_address(self) -> str | None:

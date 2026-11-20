@@ -69,6 +69,8 @@ def _collect(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]
                  "ident": a.ident, "software": a.software, "hardware": a.hardware, "files": list(a.files)}
                 for a in (info.addresses.values() if info else ())],
             "commands_sent": dict(hub.client.requests),
+            "run_time_checksum": hub.capability,
+            "probe_answers": hub.writer.probe_answers if hub.writer is not None else hub.build_probe_answers,
         },
         "devices": sorted(hub.devices),
         "scan_incomplete": hub.scan_incomplete,

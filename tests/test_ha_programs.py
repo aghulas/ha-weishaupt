@@ -242,7 +242,7 @@ async def test_clock_offset_sensor(hass, fake, log):
     state = hass.states.get(sensor)
     assert state.state == "-7.0" and state.attributes["master"] == "f1"
     # from ebusd's cache: one `find`, no read request of the broadcast
-    assert fake.reads_of("write") == [] and not [c for _, c in fake.reads_of() if "Datetime" in c]
+    assert [c for _, c in fake.reads_of("write") if "weishaupt-probe" not in c] == [] and not [c for _, c in fake.reads_of() if "Datetime" in c]
     assert any(c == "find -p -h -vvv -c broadcast Datetime" for _, c in fake.commands)
 
 

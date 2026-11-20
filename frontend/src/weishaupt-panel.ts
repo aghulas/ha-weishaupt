@@ -1266,7 +1266,10 @@ export class WeishauptPanel extends LitElement {
         <dt>${t(lang, "not_named")}</dt>
         <dd>${list(d.not_named)}</dd>
         <dt>${t(lang, "ebusd")}</dt>
-        <dd>${tree.ebusd.version ?? "?"}${tree.ebusd.own_address ? ` (${tree.ebusd.own_address})` : ""}</dd>
+        <dd>
+          ${tree.ebusd.version ?? "?"}${tree.ebusd.own_address ? ` (${tree.ebusd.own_address})` : ""} ·
+          ${t(lang, "capability", { value: tree.ebusd.capability })}
+        </dd>
         <dt>${t(lang, "unknown_addresses")}</dt>
         <dd>${list(tree.unknown_addresses)}</dd>
         <dt>${t(lang, "writes")}</dt>

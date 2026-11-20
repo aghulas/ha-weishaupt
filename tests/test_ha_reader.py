@@ -21,12 +21,18 @@ async def test_only_reading_commands_reach_ebusd(hass, fake):
     await settled(hass, entry)
     hub = entry.runtime_data
     verbs = {command.split()[0] for _, command in fake.commands}
-    assert verbs == {"info", "find", "read"}
-    assert all(re.fullmatch(r"info|find -f -c \w+|read -m \d+ -c \w+ \w+|find -p -h -vvv -c broadcast Datetime", c)
+    assert verbs == {"info", "find", "read", "write"}
+    # the writes are the two checksum probes of the build, under a circuit no message has: refused by ebusd
+    # before sending (since 0.12.0 they run whether writes are enabled or not)
+    assert all(re.fullmatch(r"info|find -f (-w )?-c \w+|read -m \d+ -c \w+ \w+|find -p -h -vvv -c broadcast Datetime"
+                            r"|write -c weishaupt-probe -h [0-9a-f]+", c)
                for _, c in fake.commands)
+    assert len(fake.reads_of("write")) == 2 and fake.writes == []
     assert fake.max_active == 1  # one command at a time
-    # ten circuits, and the last date and time broadcast for the clock offset (from ebusd's cache)
-    assert len(fake.reads_of("info")) == 1 and len(fake.reads_of("find")) == 11
+    # ten circuits, the last date and time broadcast for the clock offset (from ebusd's cache), and the write
+    # definitions of the eight circuits with writable settings (for the probe)
+    finds = [c for _, c in fake.reads_of("find") if "-w" not in c]
+    assert len(fake.reads_of("info")) == 1 and len(finds) == 11
     # each message that an enabled entity shows was asked once, no other
     asked = [_message(c) for _, c in fake.reads_of()]
     assert len(asked) == len(set(asked))
@@ -166,8 +172,9 @@ async def test_a_failing_message_does_not_stop_the_others(hass, fake, monkeypatc
 
 
 async def test_read_only_unless_writes_are_enabled(hass, fake):
-    """Without the write option: no entity that sets a value, no action, and no write command of any form sent to
-    ebusd, not even the probe or the write definitions. Writing goes through the writer only."""
+    """Without the write option: no entity that sets a value, no action, and no write command sent to ebusd but the
+    two checksum probes of the build (under a circuit no message has, refused by ebusd before sending). Writing goes
+    through the writer only."""
     import ast
     from pathlib import Path
 
@@ -179,7 +186,9 @@ async def test_read_only_unless_writes_are_enabled(hass, fake):
     # the one action exists, and writes nothing without the option
     assert list(hass.services.async_services().get(DOMAIN)) == ["set_program"]
     assert hass.states.async_entity_ids("number") == [] and hass.states.async_entity_ids("switch") == []
-    assert [c for _, c in fake.commands if c.split()[0] not in ("info", "find", "read") or "-w" in c] == []
+    assert [c for _, c in fake.commands if c.split()[0] not in ("info", "find", "read")
+            and not c.startswith("write -c weishaupt-probe -h ")] == []
+    assert fake.writes == []
     package = Path(weishaupt.__file__).parent
     for path in package.glob("*.py"):
         tree = ast.parse(path.read_text())

@@ -30,7 +30,7 @@ from .metadata_file import FOLDER as METADATA_FOLDER, choose
 from .model import ACCEPTED_DEFINITIONS, WEEKDAYS
 from .panel import async_setup_panel
 from .services import async_register_services
-from .writer import Writer
+from .writer import Writer, async_probe_build
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SENSOR,
              Platform.SWITCH, Platform.TEXT]
@@ -87,6 +87,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
         hub.writer = Writer(hass, hub, dict(entry.options))
         try:
             await hub.writer.async_setup()
+        except EbusdError as err:
+            raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
+                                      translation_placeholders={"error": str(err)}) from err
+    else:
+        # which build answers, writes enabled or not: `find -f -w` and two probes ebusd refuses before sending
+        try:
+            hub.build_capability, hub.build_probe_answers = await async_probe_build(hub)
         except EbusdError as err:
             raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="cannot_connect",
                                       translation_placeholders={"error": str(err)}) from err

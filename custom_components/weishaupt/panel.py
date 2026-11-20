@@ -524,7 +524,8 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
     return {
         "entry_id": entry.entry_id, "title": entry.title,
         "ebusd": {"version": hub.info.version if hub.info else None, "available": hub.available,
-                  "own_address": hub.own_address},
+                  "own_address": hub.own_address,
+                  "capability": hub.capability},
         "definitions": {
             "version": model.version, "commit": model.commit, "source": hub.metadata_source,
             "refused": hub.metadata_refused, "named_from_metadata": _named(hass, hub),

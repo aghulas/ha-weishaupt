@@ -159,7 +159,7 @@ export interface Device {
 export interface Tree {
   entry_id: string;
   title: string;
-  ebusd: { version: string | null; available: boolean; own_address: string | null };
+  ebusd: { version: string | null; available: boolean; own_address: string | null; capability: string };
   definitions: {
     version: string;
     commit: string;

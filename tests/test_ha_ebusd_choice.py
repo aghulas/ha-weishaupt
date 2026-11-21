@@ -139,6 +139,7 @@ async def test_switch_while_running(hass, fake, other, fast_retry):
     assert hub.endpoint.label == "B" and hub.capability == "absent"
     assert entity_ids(hass, entry) == before  # same registry entries: entity ids and history kept
     assert hass.states.get(switch).state == "off"
+    await wait_until(lambda: any(text.startswith("read") for _, text in other.commands))  # the first pass has begun
     first_read = next(i for i, (_, text) in enumerate(other.commands) if text.startswith("read"))
     assert sent_to_bus(other.commands[:first_read]) == [] and other.writes == []
     assert issue(hass, "ebusd_not_running", entry) is None

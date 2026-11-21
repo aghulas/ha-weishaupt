@@ -14,6 +14,15 @@
         }
       },
       "reconfigure": {
+        "title": "Weishaupt",
+        "description": "Change what the Configure button (which opens the panel) does not: the ebusd this entry uses, the load it puts on the bus and its writes, and the telegram log of each ebusd.",
+        "menu_options": {
+          "endpoints": "ebusd (the list, and which one to use)",
+          "settings": "Bus load and writes",
+          "telegram_log": "Telegram log of each ebusd"
+        }
+      },
+      "endpoints": {
         "title": "ebusd",
         "description": "New address of the ebusd in use. The entry, its devices, entities, history and options are kept.",
         "data": {
@@ -58,6 +67,36 @@
         "description": "Follow the running ebusd: the integration uses the one that answers with a signal on the bus, and moves to another known one when the one in use stops answering. Pinned: it uses that one only. The entry reloads: entities and history are kept, the write switch is off, the build is checked again.",
         "data": {
           "use": "ebusd to use"
+        }
+      },
+      "settings": {
+        "title": "Bus load and writes",
+        "data": {
+          "request_gap": "Time between two requests",
+          "cyclic_interval": "Interval of the live values",
+          "writes_enabled": "Enable writes of the proven settings",
+          "max_writes_per_hour": "Maximum writes per hour"
+        },
+        "data_description": {
+          "request_gap": "The integration never sends two requests closer together than this.",
+          "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
+          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "max_writes_per_hour": "Writes accepted within any sliding hour (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
+        },
+        "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set. Changing this reloads the integration."
+      },
+      "telegram_log": {
+        "title": "Telegram log",
+        "description": "Each ebusd add-on keeps its own telegram log (its option sqlite_db). Choose the ebusd whose log path you want to set.",
+        "data": {
+          "endpoint": "ebusd"
+        }
+      },
+      "telegram_log_path": {
+        "title": "Telegram log of {label}",
+        "description": "Path of the SQLite telegram log this ebusd keeps. A write from the address of the vendor service tool (ff) is refused while the tool may be connected, and when this log cannot be read or is not fed. Changing this reloads the integration.",
+        "data": {
+          "telegram_db": "Telegram log"
         }
       }
     },

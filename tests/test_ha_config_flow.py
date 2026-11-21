@@ -64,7 +64,9 @@ async def test_reconfigure(hass, fake, golden):
     await other.start()
     try:
         result = await entry.start_reconfigure_flow(hass)
-        assert result["step_id"] == "reconfigure"
+        assert result["type"] is FlowResultType.MENU and result["step_id"] == "reconfigure"
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "endpoints"})
+        assert result["step_id"] == "endpoints"
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: other.port})
         assert result["step_id"] == "reconfigure_use"  # the follow/pin choice, with the new address kept
@@ -77,6 +79,42 @@ async def test_reconfigure(hass, fake, golden):
     finally:
         await hass.config_entries.async_unload(entry.entry_id)
         await other.stop()
+
+
+async def test_reconfigure_menu_sets_bus_load_and_writes(hass, fake):
+    """The reconfigure menu is the UI path to the bus-load options the panel does not expose: setting them there
+    writes the same options as the options flow and reloads the entry."""
+    entry = make_entry(hass, fake)
+    await setup(hass, entry)
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.MENU and result["step_id"] == "reconfigure"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "settings"})
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == "settings"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_REQUEST_GAP: 7, CONF_CYCLIC_INTERVAL: 450})
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    assert entry.options == {CONF_REQUEST_GAP: 7, CONF_CYCLIC_INTERVAL: 450, "writes_enabled": False,
+                             "max_writes_per_hour": 30}
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.runtime_data.request_gap, entry.runtime_data.cyclic_interval) == (7, 450)
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_reconfigure_menu_sets_the_telegram_log(hass, fake):
+    """The reconfigure menu is the UI path to the telegram log: one endpoint, so it goes straight to the path and
+    writes it into the entry's data."""
+    entry = make_entry(hass, fake)
+    await setup(hass, entry)
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "telegram_log"})
+    assert result["step_id"] == "telegram_log_path"  # a single endpoint: the choice of which is skipped
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"telegram_db": "/share/ebusd/t.db"})
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    assert [e["telegram_db"] for e in entry.data["endpoints"]] == ["/share/ebusd/t.db"]
+    assert entry.state is ConfigEntryState.LOADED
+    await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def test_options(hass, fake):
@@ -202,6 +240,8 @@ async def test_reconfigure_with_add_ons_keeps_the_entry(hass, fake, golden):
     try:
         with addons(LocalAddon("abc_ebusd", "eBUSd", "started", other.port)):
             result = await entry.start_reconfigure_flow(hass)
+            assert result["type"] is FlowResultType.MENU and result["step_id"] == "reconfigure"
+            result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "endpoints"})
             assert result["step_id"] == "reconfigure_addons"
             # the address typed before stays as the other ebusd; the add-on is added
             result = await hass.config_entries.flow.async_configure(

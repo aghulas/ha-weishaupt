@@ -14,6 +14,15 @@
         }
       },
       "reconfigure": {
+        "title": "Weishaupt",
+        "description": "Changez ce que le bouton Configurer (qui ouvre le panneau) ne permet pas : l'ebusd utilisé par cette entrée, la charge qu'elle met sur le bus et ses écritures, et le journal des télégrammes de chaque ebusd.",
+        "menu_options": {
+          "endpoints": "ebusd (la liste, et lequel utiliser)",
+          "settings": "Charge sur le bus et écritures",
+          "telegram_log": "Journal des télégrammes de chaque ebusd"
+        }
+      },
+      "endpoints": {
         "title": "ebusd",
         "description": "Nouvelle adresse de l'ebusd utilisé. L'entrée, ses appareils, entités, historique et options sont conservés.",
         "data": {
@@ -58,6 +67,36 @@
         "description": "Suivre l'ebusd en marche : l'intégration utilise celui qui répond avec un signal sur le bus, et passe à un autre ebusd connu quand celui utilisé ne répond plus. Fixé : elle n'utilise que celui-là. L'entrée est rechargée : entités et historique sont conservés, l'interrupteur d'écriture est éteint, le build est vérifié de nouveau.",
         "data": {
           "use": "ebusd à utiliser"
+        }
+      },
+      "settings": {
+        "title": "Charge sur le bus et écritures",
+        "data": {
+          "request_gap": "Délai entre deux requêtes",
+          "cyclic_interval": "Intervalle des valeurs instantanées",
+          "writes_enabled": "Activer l'écriture des réglages prouvés",
+          "max_writes_per_hour": "Écritures par heure au maximum"
+        },
+        "data_description": {
+          "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
+          "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
+          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "max_writes_per_hour": "Écritures acceptées sur toute heure glissante (1 à 200, 30 par défaut). La limite protège la mémoire des régulateurs de l'usure : gardez 30 en service normal. Une valeur plus haute est réservée à une campagne d'essais surveillée ; remettez 30 à la fin de la campagne. La modifier recharge l'intégration, ce qui remet le compte à zéro."
+        },
+        "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés. Changer ce choix recharge l'intégration."
+      },
+      "telegram_log": {
+        "title": "Journal des télégrammes",
+        "description": "Chaque module ebusd tient son propre journal des télégrammes (son option sqlite_db). Choisissez l'ebusd dont vous voulez régler le chemin du journal.",
+        "data": {
+          "endpoint": "ebusd"
+        }
+      },
+      "telegram_log_path": {
+        "title": "Journal des télégrammes de {label}",
+        "description": "Chemin du journal SQLite des télégrammes que tient cet ebusd. Une écriture depuis l'adresse de l'outil de service du fabricant (ff) est refusée tant que l'outil peut être connecté, et quand ce journal ne peut être lu ou n'est plus alimenté. Changer ce choix recharge l'intégration.",
+        "data": {
+          "telegram_db": "Journal des télégrammes"
         }
       }
     },

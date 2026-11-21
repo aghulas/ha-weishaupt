@@ -266,7 +266,8 @@ async def test_reconfigure_switches_a_pinned_entry_to_follow(hass, fake, other):
     entry = entry_of(hass, fake, other, mode="pinned")
     await setup(hass, entry)
     result = await entry.start_reconfigure_flow(hass)
-    assert result["step_id"] == "reconfigure"
+    assert result["step_id"] == "reconfigure"  # the menu
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "endpoints"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})  # keep the same address
     assert result["step_id"] == "reconfigure_use"
@@ -284,6 +285,7 @@ async def test_reconfigure_pins_another_endpoint(hass, fake, other):
     await setup(hass, entry)
     hub = entry.runtime_data
     result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "endpoints"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
     assert result["step_id"] == "reconfigure_use"
@@ -302,6 +304,7 @@ async def test_reconfigure_follow_needs_an_endpoint_that_answers(hass, fake, oth
     entry = entry_of(hass, fake, other, mode="pinned")
     await setup(hass, entry)
     result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "endpoints"})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
     assert result["step_id"] == "reconfigure_use"
@@ -333,6 +336,27 @@ async def test_options_telegram_log_per_endpoint(hass, fake, other):
     assert logs == {fake.port: "/share/ebusd/telegrams.db", other.port: "/share/b.db"}
     await wait_until(lambda: entry.state is ConfigEntryState.LOADED)
     assert entry.runtime_data.writer.telegram_db == "/share/ebusd/telegrams.db"  # the log of the ebusd in use
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_reconfigure_telegram_log_per_endpoint(hass, fake, other):
+    """The same per-endpoint telegram log, reached through the reconfigure menu: several endpoints, so the choice
+    of which ebusd is asked, then the path is written into the entry's data."""
+    entry = entry_of(hass, fake, other, writes_enabled=True)
+    await setup(hass, entry)
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.MENU and result["step_id"] == "reconfigure"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "telegram_log"})
+    assert result["step_id"] == "telegram_log"  # several endpoints: which one is asked first
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"endpoint": f"127.0.0.1:{other.port}"})
+    assert result["step_id"] == "telegram_log_path"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"telegram_db": "/share/b.db"})
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    logs = {e[CONF_PORT]: e["telegram_db"] for e in entry.data["endpoints"]}
+    assert logs == {fake.port: "/share/ebusd/telegrams.db", other.port: "/share/b.db"}
+    await wait_until(lambda: entry.state is ConfigEntryState.LOADED)
     await hass.config_entries.async_unload(entry.entry_id)
 
 

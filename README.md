@@ -131,9 +131,11 @@ the ebusd it may use and picks one:
 - **Pinned**: one ebusd only, never another. An entry created before 0.12.0 is pinned to its address, so it behaves
   as before until you change it.
 
-Where: *Settings → Devices & services → Weishaupt → Configure → Which ebusd*. The list itself (which add-ons,
-another ebusd by address): *⋮ → Reconfigure*. The integration never starts, stops or configures an add-on:
-stopping an ebusd add-on cuts it for every other client too (MQTT included), so that stays your decision.
+Where: *Settings → Devices & services → Weishaupt → ⋮ → Reconfigure → ebusd*. One step edits the list (which
+add-ons, another ebusd by address) and the follow/pin choice. The *Configure* button opens the
+[panel](#the-weishaupt-panel), not these settings, so Reconfigure is their way in. The integration never starts,
+stops or configures an add-on: stopping an ebusd add-on cuts it for every other client too (MQTT included), so that
+stays your decision.
 
 **What a switch does.** Choosing the ebusd sends `info` to each one and nothing else; the bus is not involved. The
 integration then reloads on the new ebusd, as after a restart:
@@ -168,7 +170,7 @@ for an add-on, whether it is started. When another ebusd answers, the repair off
 the running one; that changes the entry only. Two ebusd answering with a signal at once (two add-ons started, one
 adapter) raise a repair as well; the integration keeps the one it uses and does not switch between them.
 
-Each ebusd has its own **telegram log** for the writes from `ff`: *Configure → Telegram log of each ebusd*.
+Each ebusd has its own **telegram log** for the writes from `ff`: *⋮ → Reconfigure → Telegram log of each ebusd*.
 
 ## Words used here
 
@@ -370,11 +372,11 @@ every write while one is missing.
    whenever the log cannot be read or has received nothing for 2 minutes. With the ebusd add-on: set its option
    **SQLite telegram log (database file)** (`sqlite_db`) to `/share/ebusd/telegrams.db`, keep
    **SQLite telegram log retention (days)** (10 by default), and restart the add-on; the integration's option
-   *Telegram log of each ebusd* (*Configure*) has that path by default, for each ebusd of the entry. The add-on's documentation puts the log at about 50 to
+   *Telegram log of each ebusd* (*⋮ → Reconfigure*) has that path by default, for each ebusd of the entry. The add-on's documentation puts the log at about 50 to
    170 MB a day depending on bus traffic, so up to some 1.7 GB with 10 days kept, and `/share` is part of Home
    Assistant's backups: check the room on the device and in the backups. A shorter retention works for the
    integration, which looks at the last 10 minutes only.
-3. **Writes enabled** in the options: *Devices & services → Weishaupt → Configure → Bus load and writes* → *Enable writes of the proven
+3. **Writes enabled**: *Devices & services → Weishaupt → ⋮ → Reconfigure → Bus load and writes* → *Enable writes of the proven
    settings*. The integration reloads and adds a number (or a select) per writable setting, enabled, in the
    configuration section of its device and named like the sensor of the same register with "(setting)" after it
    (*Normal room temperature (setting)*); one text per day of the writable programs; a button to set the clock;

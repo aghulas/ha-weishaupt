@@ -87,6 +87,7 @@ class FakeEbusd:
         self.max_active = 0
         self.port = 0
         self._server: asyncio.Server | None = None
+        self._prev_handler = None
 
     def _synthesize(self) -> None:
         by_name: dict[str, str] = {}
@@ -128,13 +129,34 @@ class FakeEbusd:
     # ---- server ---------------------------------------------------------------------------------------------
 
     async def start(self) -> None:
+        loop = asyncio.get_running_loop()
+        self._prev_handler = loop.get_exception_handler()
+        loop.set_exception_handler(self._drop_accept_race)
         self._server = await asyncio.start_server(self._handle, "127.0.0.1", 0)
         self.port = self._server.sockets[0].getsockname()[1]
 
     async def stop(self) -> None:
         if self._server is not None:
             self._server.close()
-            await self._server.wait_closed()
+            try:
+                await self._server.wait_closed()
+            except (RuntimeError, AttributeError):  # asyncio server internals racing with the close
+                pass
+            self._server = None
+        loop = asyncio.get_running_loop()
+        if loop.get_exception_handler() is self._drop_accept_race:
+            loop.set_exception_handler(self._prev_handler)
+
+    def _drop_accept_race(self, loop: asyncio.AbstractEventLoop, context: dict) -> None:
+        """A client (the hub's reconnect loop under `fast_retry`) can land on the listening socket just as a test
+        closes it; asyncio then reports a benign accept error. Drop that one message, pass everything else on (to
+        Home Assistant's own catcher, which fails the test on a real error)."""
+        if "transport creation for incoming connection" in context.get("message", ""):
+            return
+        if self._prev_handler is not None:
+            self._prev_handler(loop, context)
+        else:
+            loop.default_exception_handler(context)
 
     async def _handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         self.active += 1

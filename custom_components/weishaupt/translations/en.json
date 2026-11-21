@@ -52,6 +52,13 @@
           "host": "Optional: host name or IP address of an ebusd that is not an add-on of this Home Assistant. Empty: none.",
           "port": "TCP command port of that ebusd, 8888 unless it was changed."
         }
+      },
+      "reconfigure_use": {
+        "title": "Which ebusd",
+        "description": "Follow the running ebusd: the integration uses the one that answers with a signal on the bus, and moves to another known one when the one in use stops answering. Pinned: it uses that one only. The entry reloads: entities and history are kept, the write switch is off, the build is checked again.",
+        "data": {
+          "use": "ebusd to use"
+        }
       }
     },
     "error": {

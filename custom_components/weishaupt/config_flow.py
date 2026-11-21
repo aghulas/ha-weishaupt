@@ -1,7 +1,10 @@
 """Configuration: the ebusd endpoints (on Home Assistant OS, the ebusd add-ons from the Supervisor's list, and one
-typed by hand), with a connection test (`info` only); options: the load put on the bus, writes (off unless enabled
-here; the write switch then turns them on and off), which ebusd to use (follow the running one, or pin one), and the
-telegram log of each ebusd."""
+typed by hand), with a connection test (`info` only), and how to pick among them (follow the running one, or pin
+one); options: the load put on the bus, writes (off unless enabled here; the write switch then turns them on and
+off), which ebusd to use, and the telegram log of each ebusd.
+
+Reconfigure (reachable from the entry's menu) is the UI path to the follow/pin choice: after the endpoints it asks
+for the mode. The options "ebusd" step offers the same choice on its own."""
 from __future__ import annotations
 
 from typing import Any
@@ -32,6 +35,7 @@ from .ebusd import DEFAULT_PORT, EbusdClient, EbusdError
 from .endpoints import (
     CONF_ENDPOINTS,
     MODE_FOLLOW,
+    MODE_PINNED,
     Endpoint,
     apply_choice,
     choose,
@@ -126,6 +130,8 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
     # 2.1: 0.3.0b2 and before; 2.2 enables the numbers 0.3.0b2 created disabled; 2.3 (0.12.0): ebusd endpoints
     MINOR_VERSION = 3
 
+    _candidates: list[Endpoint] = []  # the endpoints a reconfigure chose, carried to its mode step
+
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         addons = ebusd_addons(self.hass)
         if not addons:
@@ -177,17 +183,15 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
             if user_input is not None:
                 key = f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
                 await self.async_set_unique_id(key)
-                self._abort_if_unique_id_configured()
-                if _taken(self.hass, {key}, entry.entry_id):
-                    return self.async_abort(reason="already_configured")
+                if _taken(self.hass, {key}, entry.entry_id):  # another entry has it; keeping the own address (to
+                    return self.async_abort(reason="already_configured")  # change only the mode) is allowed
                 if await _answers(user_input):
                     old = current(data)
                     moved = Endpoint(user_input[CONF_HOST], int(user_input[CONF_PORT]), old.label, old.addon,
                                      old.telegram_db)
                     rest = [e for e in previous if e.key not in (old.key, moved.key)]
-                    new = use({**data, CONF_HOST: moved.host, CONF_PORT: moved.port,
-                               CONF_ENDPOINTS: [e.as_dict() for e in [moved, *rest]]}, moved)
-                    return self.async_update_reload_and_abort(entry, unique_id=self.unique_id, data=new)
+                    self._candidates = [moved, *rest]
+                    return await self.async_step_reconfigure_use()
                 errors["base"] = "cannot_connect"
             return self.async_show_form(step_id="reconfigure", data_schema=_schema(user_input or data), errors=errors)
         if user_input is not None:
@@ -197,14 +201,8 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
             elif _taken(self.hass, {e.key for e in candidates}, entry.entry_id):
                 return self.async_abort(reason="already_configured")
             else:
-                stopped = {a.slug for a in addons if not a.started}
-                in_use = next((e for e in candidates if e.key == current(data).key), None)
-                chosen, _ = await _pick(candidates, in_use, stopped)
-                if chosen is not None:
-                    new = use({**data, CONF_HOST: chosen.host, CONF_PORT: chosen.port,
-                               CONF_ENDPOINTS: [e.as_dict() for e in candidates]}, chosen)
-                    return self.async_update_reload_and_abort(entry, unique_id=chosen.key, data=new)
-                errors["base"] = "cannot_connect"
+                self._candidates = candidates
+                return await self.async_step_reconfigure_use()
         chosen = (user_input or {}).get(CONF_ADDONS, [e.addon for e in previous if e.addon])
         manual = next((e for e in previous if not e.addon), None)
         return self.async_show_form(step_id="reconfigure_addons", data_schema=_addon_schema(addons, chosen, manual),
@@ -212,6 +210,36 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_reconfigure_addons(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return await self.async_step_reconfigure(user_input)
+
+    async def async_step_reconfigure_use(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """After the endpoints: follow the running one, or pin one. Changing the mode (or the endpoints) reloads
+        the entry — entities and history kept, writes off, the build probed again. Nothing reaches the bus: `info`
+        only, and pinning asks nothing at all."""
+        entry = self._get_reconfigure_entry()
+        data = dict(entry.data)
+        candidates = self._candidates
+        errors = {}
+        if user_input is not None:
+            base = {**data, CONF_ENDPOINTS: [e.as_dict() for e in candidates]}
+            if user_input[CONF_USE] == MODE_FOLLOW:
+                stopped = {a.slug for a in ebusd_addons(self.hass) if not a.started}
+                in_use = next((e for e in candidates if e.key == current(data).key), None)
+                chosen, _ = await _pick(candidates, in_use, stopped)
+                if chosen is not None:
+                    new = use({**base, CONF_HOST: chosen.host, CONF_PORT: chosen.port}, chosen, MODE_FOLLOW)
+                    return self.async_update_reload_and_abort(entry, unique_id=chosen.key, data=new)
+                errors["base"] = "cannot_connect"
+            else:
+                pinned = next(e for e in candidates if e.key == user_input[CONF_USE])
+                new = use({**base, CONF_HOST: pinned.host, CONF_PORT: pinned.port}, pinned, MODE_PINNED)
+                return self.async_update_reload_and_abort(entry, unique_id=pinned.key, data=new)
+        keys = {e.key for e in candidates}
+        default = MODE_FOLLOW if mode_of(data) == MODE_FOLLOW or current(data).key not in keys else current(data).key
+        options = [selector.SelectOptionDict(value=MODE_FOLLOW, label="follow")] + [
+            selector.SelectOptionDict(value=e.key, label=f"{e.label} ({e.key})") for e in candidates]
+        schema = vol.Schema({vol.Required(CONF_USE, default=default): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=options, translation_key="ebusd_choice"))})
+        return self.async_show_form(step_id="reconfigure_use", data_schema=schema, errors=errors)
 
     @staticmethod
     @callback

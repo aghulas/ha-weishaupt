@@ -259,6 +259,66 @@ async def test_options_pin_and_follow(hass, fake, other):
     await hass.config_entries.async_unload(entry.entry_id)
 
 
+# ---- the follow/pin choice reached through reconfigure (the entry's menu, no options step needed) --------------
+
+async def test_reconfigure_switches_a_pinned_entry_to_follow(hass, fake, other):
+    """Reconfigure is a UI path to the mode: a pinned entry is set to follow through its mode step."""
+    entry = entry_of(hass, fake, other, mode="pinned")
+    await setup(hass, entry)
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["step_id"] == "reconfigure"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})  # keep the same address
+    assert result["step_id"] == "reconfigure_use"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"use": "follow"})
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    assert entry.data["mode"] == "follow" and entry.data[CONF_PORT] == fake.port
+    await wait_until(lambda: entry.state is ConfigEntryState.LOADED)
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_reconfigure_pins_another_endpoint(hass, fake, other):
+    """A following entry is pinned to a named endpoint through the reconfigure mode step."""
+    entry = entry_of(hass, fake, other, mode="follow")
+    await setup(hass, entry)
+    hub = entry.runtime_data
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
+    assert result["step_id"] == "reconfigure_use"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"use": f"127.0.0.1:{other.port}"})
+    await wait_until(lambda: entry.state is ConfigEntryState.LOADED and entry.runtime_data is not hub)
+    await hass.async_block_till_done()
+    assert entry.data["mode"] == "pinned" and entry.data[CONF_PORT] == other.port
+    assert entry.runtime_data.endpoint.label == "B"
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_reconfigure_follow_needs_an_endpoint_that_answers(hass, fake, other, monkeypatch):
+    """Choosing follow while no endpoint answers keeps the mode form with an error, the entry unchanged; the user
+    can then pin one instead."""
+    entry = entry_of(hass, fake, other, mode="pinned")
+    await setup(hass, entry)
+    result = await entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
+    assert result["step_id"] == "reconfigure_use"
+
+    async def answers_none(*args, **kwargs):
+        return None, []
+    monkeypatch.setattr("custom_components.weishaupt.config_flow._pick", answers_none)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"use": "follow"})
+    assert result["step_id"] == "reconfigure_use" and result["errors"]["base"] == "cannot_connect"
+    assert entry.data["mode"] == "pinned"  # unchanged
+    # the form is still open: pinning (which asks nothing) finishes it
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"use": f"127.0.0.1:{fake.port}"})
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    await wait_until(lambda: entry.state is ConfigEntryState.LOADED)
+    await hass.config_entries.async_unload(entry.entry_id)
+
+
 async def test_options_telegram_log_per_endpoint(hass, fake, other):
     entry = entry_of(hass, fake, other, writes_enabled=True)
     await setup(hass, entry)

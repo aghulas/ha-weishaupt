@@ -67,10 +67,13 @@ async def test_reconfigure(hass, fake, golden):
         assert result["step_id"] == "reconfigure"
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: other.port})
+        assert result["step_id"] == "reconfigure_use"  # the follow/pin choice, with the new address kept
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"use": f"127.0.0.1:{other.port}"})
         await hass.async_block_till_done()
         assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
         assert entry.data[CONF_PORT] == other.port and entry.unique_id == f"127.0.0.1:{other.port}"
-        assert entry.state is ConfigEntryState.LOADED and other.commands
+        assert entry.data["mode"] == "pinned" and entry.state is ConfigEntryState.LOADED and other.commands
     finally:
         await hass.config_entries.async_unload(entry.entry_id)
         await other.stop()
@@ -203,11 +206,14 @@ async def test_reconfigure_with_add_ons_keeps_the_entry(hass, fake, golden):
             # the address typed before stays as the other ebusd; the add-on is added
             result = await hass.config_entries.flow.async_configure(
                 result["flow_id"], {"addons": ["abc_ebusd"], CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
+            assert result["step_id"] == "reconfigure_use"  # then the follow/pin choice
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"], {"use": f"127.0.0.1:{fake.port}"})  # keep it pinned to the one in use
             await hass.async_block_till_done()
         assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
-        assert entry.data[CONF_PORT] == fake.port  # the one in use answers: kept
+        assert entry.data[CONF_PORT] == fake.port  # the one pinned
         assert [e["label"] for e in entry.data["endpoints"]] == ["eBUSd", "ebusd"]
-        assert entry.data["mode"] == "pinned"  # migrated as pinned, unchanged by the list
+        assert entry.data["mode"] == "pinned"
         after = {e.unique_id: e.entity_id for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)}
         assert after == before
     finally:

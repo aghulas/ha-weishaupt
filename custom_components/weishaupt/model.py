@@ -29,7 +29,9 @@ METADATA_FILE = Path(__file__).parent / "metadata.json"
 # later 0.5.x only adds messages.
 # 0.6 renamed fields of HcMode, retyped MixerPump and LegionellaStartTime, renamed DHWExceeded: the second number of
 # the definitions changed. With ebusd still on 0.5.x the comparison names the messages that differ (see README).
-ACCEPTED_DEFINITIONS = ">=0.6.0, <0.7"
+# 0.7 and 0.8 keep the same 669 metadata messages, field names and types (adding composite-read carriers and optional
+# metadata keys: write.below/above, stored_only, pointer, and fs2 shared_with programs).
+ACCEPTED_DEFINITIONS = ">=0.6.0, <0.9"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "
@@ -81,6 +83,10 @@ class WriteConditions:
     maximum: float | None = None
     step: float | None = None
     range_source: str | None = None
+    # linked bounds on the same circuit (definitions 0.8.0 and later): this setting must stay at or below `below`,
+    # and at or above `above`
+    below: str | None = None
+    above: str | None = None
 
 
 @dataclass(frozen=True)
@@ -146,6 +152,16 @@ class Device:
 
 
 @dataclass(frozen=True)
+class FaultPointer:
+    """How a fault-history group's pointer message maps to the most recent ring-buffer slot (definitions 0.8.0+)."""
+
+    message: str
+    field: str
+    base: int
+    step: int
+
+
+@dataclass(frozen=True)
 class Group:
     """Messages shown as one object: a weekly program, the fault history of a boiler."""
 
@@ -156,6 +172,8 @@ class Group:
     id: str
     label: dict[str, str]
     members: tuple[str, ...]
+    stored_only: bool = False  # program stored by the device but not followed by the installation (0.8.0+)
+    pointer: FaultPointer | None = None  # fault_history ring-buffer pointer (0.8.0+)
 
 
 @dataclass(frozen=True)
@@ -322,8 +340,11 @@ class Model:
             for key, d in data["devices"].items()}
         messages = {key: _message(key, m) for key, m in data["messages"].items()}
         groups = {
-            f"{g['circuit']}/{g['id']}": Group(f"{g['circuit']}/{g['id']}", g["family"], g["circuit"], g["device"],
-                                               g["id"], g["label"], tuple(g["members"]))
+            f"{g['circuit']}/{g['id']}": Group(
+                f"{g['circuit']}/{g['id']}", g["family"], g["circuit"], g["device"],
+                g["id"], g["label"], tuple(g["members"]),
+                bool(g.get("stored_only")),
+                FaultPointer(**g["pointer"]) if g.get("pointer") else None)
             for g in data["groups"]}
         model = cls(data["definitions"]["version"], data["definitions"].get("commit", ""),
                     tuple(data["languages"]), devices, messages, groups)
@@ -375,7 +396,8 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     write = data.get("write")
     conditions = None if write is None else WriteConditions(
         write["source"], bool(write.get("runtime_checksum")), write["risk"], write.get("proof", ""),
-        tuple(write.get("open", ())), write.get("min"), write.get("max"), write.get("step"), write.get("range_source"))
+        tuple(write.get("open", ())), write.get("min"), write.get("max"), write.get("step"), write.get("range_source"),
+        write.get("below"), write.get("above"))
     return Message(key, data["circuit"], data["name"], data["address"], data["device"], data["menu"], data["kind"],
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),

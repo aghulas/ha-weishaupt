@@ -1,19 +1,19 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "0.6.0",
-  "commit": "f7309e6",
+  "version": "0.8.0",
+  "commit": "34c6649",
   "messages": 669
  },
  "verified": {
   "by": "ebusd",
-  "release": "v26.1-weishaupt.1",
+  "release": "v26.1-weishaupt.2",
   "loaded": "lot files only, no scan"
  },
  "coverage": {
   "messages": 669,
   "covered": 617,
-  "readings": 949,
+  "readings": 957,
   "by_kind": {
    "live": {
     "messages": 56,

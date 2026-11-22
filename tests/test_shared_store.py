@@ -22,15 +22,15 @@ from test_ha_programs import device_id, log  # noqa: F401  (log is a fixture)
 
 
 def _metadata_beside(hass, change) -> None:
-    """The shipped metadata as 0.6.1 beside the configuration, changed by `change`."""
+    """The shipped metadata as 0.8.1 beside the configuration, changed by `change`."""
     data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "0.6.1"
+    data["definitions"]["version"] = "0.8.1"
     change(data["messages"])
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-0.6.1.json").write_bytes(text)
-    (folder / "sha256sums-0.6.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.6.1.json\n")
+    (folder / "weishaupt-metadata-0.8.1.json").write_bytes(text)
+    (folder / "sha256sums-0.8.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.8.1.json\n")
 
 
 def _metadata_with_shared_store(hass) -> None:
@@ -52,7 +52,7 @@ async def test_a_shared_program_is_never_written_and_says_where_to_change_it(has
     await setup(hass, entry)
     hub = entry.runtime_data
     writer = hub.writer
-    assert hub.model.version == "0.6.1"
+    assert hub.model.version == "0.8.1"
     # not offered, whatever its write conditions
     assert "fs2/heating1" not in writer.programs and "fs1/heating1" in writer.programs
     assert not any(key.startswith("fs2/HCProgram1") for key in writer.slot_specs)
@@ -91,16 +91,21 @@ async def test_a_shared_setting_is_not_offered(hass, fake, log):
 
 
 async def test_as_shipped_room_unit_2_points_to_room_unit_1(hass, fake, log):
-    """The shipped definitions mark heating program 1 of room unit 2 as kept by room unit 1: read only, pointing
-    there; its other programs have no write conditions and no pointer."""
+    """The shipped 0.8.0 definitions mark heating programs 1 and 2, plus stored hot-water and circulation
+    programs of room unit 2 as kept by room unit 1: read only, pointing there; heating program 3 has no
+    write conditions and no pointer."""
     entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
     await setup(hass, entry)
     hub = entry.runtime_data
     assert not any(key.startswith("fs2/") for key in hub.writer.programs)
     room2 = {p["key"]: p for d in panel.tree(hass, hub)["devices"] if d["id"] == "room2" for p in d["programs"]}
     assert all(not p["writable"] for p in room2.values())
-    assert room2["fs2/heating1"]["edited_on"]["key"] == "fs1/heating1"
-    assert all(p["edited_on"] is None for key, p in room2.items() if key != "fs2/heating1")
+    shared = {"fs2/heating1", "fs2/heating2", "fs2/dhw_stored", "fs2/circulation_stored"}
+    for key in shared:
+        assert room2[key]["edited_on"]["key"] == key.replace("fs2/", "fs1/")
+    assert room2["fs2/heating3"]["edited_on"] is None
+    assert room2["fs2/dhw_stored"]["stored_only"] is True
+    assert room2["fs2/heating1"]["stored_only"] is False
 
 
 async def test_without_the_marker_room_unit_2_stays_read_only(hass, fake, log):
@@ -113,7 +118,7 @@ async def test_without_the_marker_room_unit_2_stays_read_only(hass, fake, log):
     entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
     await setup(hass, entry)
     hub = entry.runtime_data
-    assert hub.model.version == "0.6.1"
+    assert hub.model.version == "0.8.1"
     assert not any(key.startswith("fs2/") for key in hub.writer.programs)
     assert "fs2/RoomSetbackTemp" not in hub.writer.specs and "fs2/RoomFrostProtectionTemp" not in hub.writer.specs
     assert "fs2/RoomNormalTemp" in hub.writer.specs  # its own register

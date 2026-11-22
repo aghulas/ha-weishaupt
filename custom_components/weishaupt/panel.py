@@ -369,7 +369,8 @@ def fault_tables(hub: Hub) -> list[dict[str, Any]]:
         history = None
         for group in model.groups.values():
             if group.family == "fault_history" and group.device == device.id:
-                pointer = f"{group.circuit}/FaultHistoryPointer"
+                pointer_name = group.pointer.message if group.pointer else "FaultHistoryPointer"
+                pointer = f"{group.circuit}/{pointer_name}"
                 pointer = pointer if pointer in hub.usable else None
                 known = faults.texts(model, group.circuit)
                 entries = faults.history(model, hub.reading, group, pointer)
@@ -501,6 +502,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
         programs = [{
             "key": group.key, "label": group.label,
             "writable": writer is not None and group.key in writer.programs,
+            "stored_only": group.stored_only,
             "read": all(key in hub.usable for key in group.members),
             "listened": any(key in listened for key in group.members),
             "slots": len(group.members),

@@ -57,10 +57,13 @@ def history(model: Model, reading: Reading, group: Group, pointer: str | None) -
                     entry[fld.name] = text if fld.values else number(text)
         slots.append(entry)
     newest = None
+    base = group.pointer.base if group.pointer else FAULT_SLOT_BASE
+    step = group.pointer.step if group.pointer else FAULT_SLOT_SIZE
+    field_name = group.pointer.field if group.pointer else "value"
     if pointer and (found := _fields(model, reading, pointer)) is not None:
-        position = number(found.get("value"))
-        if isinstance(position, int) and (position - FAULT_SLOT_BASE) % FAULT_SLOT_SIZE == 0:
-            newest = (position - FAULT_SLOT_BASE) // FAULT_SLOT_SIZE
+        position = number(found.get(field_name))
+        if isinstance(position, int) and (position - base) % step == 0:
+            newest = (position - base) // step
     if newest is not None and 1 <= newest <= len(slots):
         slots = [slots[(newest - 1 - i) % len(slots)] for i in range(len(slots))]
     return [entry for entry in slots if "code" in entry]

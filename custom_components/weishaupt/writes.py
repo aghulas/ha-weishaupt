@@ -71,6 +71,8 @@ class WriteSpec:
     range_source: str | None = None  # where the metadata took a range of the write conditions from
     values: dict[int, str] | None = None  # value list: raw value -> ebusd name (a select), None for a number
     value_labels: dict[int, dict[str, str]] | None = None  # raw value -> label per language
+    below: str | None = None  # sibling message on the same circuit this setting must stay at or below (0.8.0+)
+    above: str | None = None  # sibling message on the same circuit this setting must stay at or above (0.8.0+)
 
     @property
     def decimals(self) -> int:
@@ -209,12 +211,19 @@ def _spec(message: Message, definitions: list[Definition]) -> tuple[WriteSpec | 
     spec = WriteSpec(message.key, message.circuit, message.name, message.address.lower(), definition.id[2:].lower(),
                      fld.type, divisor, float(minimum), float(maximum), float(step), fld.unit, conditions.source,
                      conditions.risk, conditions.proof, tuple(conditions.open), bounds_from,
-                     conditions.range_source if bounds_from == "metadata" else None)
+                     conditions.range_source if bounds_from == "metadata" else None,
+                     below=conditions.below, above=conditions.above)
     return spec, "", definition.id[:2].lower()
 
 
 def linked(spec: WriteSpec, specs: dict[str, WriteSpec]) -> tuple[WriteSpec | None, WriteSpec | None]:
-    """(setting this one must stay at or above, setting it must stay at or below), on the same circuit."""
+    """(setting this one must stay at or above, setting it must stay at or below), on the same circuit.
+    Uses `above` / `below` from the metadata (0.8.0+) when present, falling back to `LINKED` for older metadata."""
+    if spec.above is not None or spec.below is not None:
+        return (
+            specs.get(f"{spec.circuit}/{spec.above}") if spec.above else None,
+            specs.get(f"{spec.circuit}/{spec.below}") if spec.below else None,
+        )
     below = above = None
     for lower, upper in LINKED:
         if spec.name == upper:

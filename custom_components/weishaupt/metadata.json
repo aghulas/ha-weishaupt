@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.6.0",
-  "commit": "f7309e6",
+  "version": "0.8.0",
+  "commit": "34c6649",
   "messages": 669,
-  "csv_lines": 1013,
-  "loaded_by_ebusd": 1073,
-  "sidecar_sha256": "02fe622efab9c69efcafba0d6defa13eddfe548818d58f475ce4bcfaf176d0f9"
+  "csv_lines": 1021,
+  "loaded_by_ebusd": 1081,
+  "sidecar_sha256": "9549eb5c536b4a2ad8320073ccb85a455c1aa1860024e3c22d8fb7df755203aa"
  },
  "languages": [
   "en",
@@ -5856,7 +5856,8 @@
     "runtime_checksum": true,
     "risk": "regulation",
     "proof": "change-observed",
-    "open": []
+    "open": [],
+    "above": "ModulationMin"
    },
    "fields": [
     {
@@ -5899,7 +5900,8 @@
     "runtime_checksum": true,
     "risk": "regulation",
     "proof": "change-observed",
-    "open": []
+    "open": [],
+    "below": "ModulationMax"
    },
    "fields": [
     {
@@ -11045,7 +11047,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -11097,7 +11100,8 @@
     "min": 10.0,
     "max": 21.5,
     "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
+    "below": "RoomNormalTemp"
    },
    "fields": [
     {
@@ -11282,7 +11286,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -11330,7 +11335,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -23336,7 +23342,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -23389,7 +23396,8 @@
     "min": 10.0,
     "max": 21.5,
     "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
+    "below": "RoomNormalTemp"
    },
    "fields": [
     {
@@ -23575,7 +23583,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -23623,7 +23632,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -29408,7 +29418,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -29460,7 +29471,8 @@
     "min": 10.0,
     "max": 21.5,
     "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
+    "below": "RoomNormalTemp"
    },
    "fields": [
     {
@@ -29645,7 +29657,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -29693,7 +29706,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -30111,7 +30125,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -30163,7 +30178,8 @@
     "min": 10.0,
     "max": 21.5,
     "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
+    "below": "RoomNormalTemp"
    },
    "fields": [
     {
@@ -30348,7 +30364,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -30396,7 +30413,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -32045,7 +32063,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -32264,7 +32283,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -32312,7 +32332,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -34937,9 +34958,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Mon1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35034,9 +35057,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Mon2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35131,9 +35156,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Mon3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35228,9 +35255,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Tue1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35325,9 +35354,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Tue2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35422,9 +35453,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Tue3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35519,9 +35552,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Wed1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35616,9 +35651,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Wed2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35713,9 +35750,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Wed3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35810,9 +35849,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Thu1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -35907,9 +35948,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Thu2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36004,9 +36047,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Thu3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36101,9 +36146,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Fri1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36198,9 +36245,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Fri2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36295,9 +36344,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Fri3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36392,9 +36443,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sat1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36489,9 +36542,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sat2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36586,9 +36641,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sat3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36683,9 +36740,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sun1",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36780,9 +36839,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sun2",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -36877,9 +36938,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram2Sun3",
    "family": "program",
    "group": "heating2",
    "position": {
@@ -39011,9 +39074,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramMon1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39107,9 +39172,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramMon2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39203,9 +39270,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramMon3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39299,9 +39368,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramTue1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39395,9 +39466,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramTue2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39491,9 +39564,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramTue3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39587,9 +39662,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramWed1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39683,9 +39760,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramWed2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39779,9 +39858,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramWed3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39875,9 +39956,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramThu1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -39971,9 +40054,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramThu2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40067,9 +40152,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramThu3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40163,9 +40250,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramFri1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40259,9 +40348,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramFri2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40355,9 +40446,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramFri3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40451,9 +40544,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSat1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40547,9 +40642,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSat2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40643,9 +40740,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSat3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40739,9 +40838,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSun1",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40835,9 +40936,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSun2",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -40931,9 +41034,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/DHWProgramSun3",
    "family": "program",
    "group": "dhw_stored",
    "position": {
@@ -41027,9 +41132,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramMon1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41123,9 +41230,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramMon2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41219,9 +41328,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramMon3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41315,9 +41426,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramTue1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41411,9 +41524,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramTue2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41507,9 +41622,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramTue3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41603,9 +41720,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramWed1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41699,9 +41818,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramWed2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41795,9 +41916,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramWed3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41891,9 +42014,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramThu1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -41987,9 +42112,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramThu2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42083,9 +42210,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramThu3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42179,9 +42308,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramFri1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42275,9 +42406,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramFri2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42371,9 +42504,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramFri3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42467,9 +42602,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSat1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42563,9 +42700,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSat2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42659,9 +42798,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSat3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42755,9 +42896,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSun1",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42851,9 +42994,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSun2",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -42947,9 +43092,11 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/CircProgramSun3",
    "family": "program",
    "group": "circulation_stored",
    "position": {
@@ -44373,7 +44520,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "RoomSetbackTemp"
    },
    "fields": [
     {
@@ -44425,7 +44573,8 @@
     "min": 10.0,
     "max": 21.5,
     "step": 0.5,
-    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes"
+    "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
+    "below": "RoomNormalTemp"
    },
    "fields": [
     {
@@ -44610,7 +44759,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "above": "SupplyMinTemp"
    },
    "fields": [
     {
@@ -44658,7 +44808,8 @@
     "proof": "change-observed",
     "open": [
      "copy-in-use"
-    ]
+    ],
+    "below": "SupplyMaxTemp"
    },
    "fields": [
     {
@@ -56868,7 +57019,13 @@
     "bc1/FaultHistorySlot4",
     "bc1/FaultHistorySlot5",
     "bc1/FaultHistorySlot6"
-   ]
+   ],
+   "pointer": {
+    "message": "FaultHistoryPointer",
+    "field": "value",
+    "base": 513,
+    "step": 8
+   }
   },
   {
    "family": "fault_counter",
@@ -56905,7 +57062,13 @@
     "bc2/FaultHistorySlot4",
     "bc2/FaultHistorySlot5",
     "bc2/FaultHistorySlot6"
-   ]
+   ],
+   "pointer": {
+    "message": "FaultHistoryPointer",
+    "field": "value",
+    "base": 513,
+    "step": 8
+   }
   },
   {
    "family": "program",
@@ -57037,7 +57200,8 @@
     "fs1/DHWProgramSun1",
     "fs1/DHWProgramSun2",
     "fs1/DHWProgramSun3"
-   ]
+   ],
+   "stored_only": true
   },
   {
    "family": "program",
@@ -57070,7 +57234,8 @@
     "fs1/CircProgramSun1",
     "fs1/CircProgramSun2",
     "fs1/CircProgramSun3"
-   ]
+   ],
+   "stored_only": true
   },
   {
    "family": "program",
@@ -57268,7 +57433,8 @@
     "fs2/DHWProgramSun1",
     "fs2/DHWProgramSun2",
     "fs2/DHWProgramSun3"
-   ]
+   ],
+   "stored_only": true
   },
   {
    "family": "program",
@@ -57301,7 +57467,8 @@
     "fs2/CircProgramSun1",
     "fs2/CircProgramSun2",
     "fs2/CircProgramSun3"
-   ]
+   ],
+   "stored_only": true
   },
   {
    "family": "program",
@@ -57433,7 +57600,8 @@
     "fs3/DHWProgramSun1",
     "fs3/DHWProgramSun2",
     "fs3/DHWProgramSun3"
-   ]
+   ],
+   "stored_only": true
   },
   {
    "family": "program",
@@ -57466,7 +57634,8 @@
     "fs3/CircProgramSun1",
     "fs3/CircProgramSun2",
     "fs3/CircProgramSun3"
-   ]
+   ],
+   "stored_only": true
   }
  ],
  "open": {
@@ -57529,8 +57698,6 @@
    "fs3/HolidayEndThird",
    "fs3/SwitchOnRuntime"
   ],
-  "value_labels": [
-   "ForcedVenting"
-  ]
+  "value_labels": []
  }
 }

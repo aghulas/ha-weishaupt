@@ -71,7 +71,12 @@ def test_the_programs_the_definitions_prove(programs):
     assert sorted(found) == [f"{c}/{p}" for c in ("em1",) for p in ("circulation", "dhw")] + [
         f"{c}/{p}" for c in ("fs1", "fs3") for p in ("circulation_stored", "dhw_stored", "heating1", "heating2",
                                                      "heating3")]
-    assert refused == ["fs2/heating1: kept by fs1/heating1, changed there"] and len(specs) == 12 * 21 == 252
+    assert refused == [
+        "fs2/heating1: kept by fs1/heating1, changed there",
+        "fs2/heating2: kept by fs1/heating2, changed there",
+        "fs2/dhw_stored: kept by fs1/dhw_stored, changed there",
+        "fs2/circulation_stored: kept by fs1/circulation_stored, changed there",
+    ] and len(specs) == 12 * 21 == 252
     assert not [key for key in specs if key.startswith("fs2/")]
     assert found["fs1/heating1"].day_keys(7) == ("fs1/HCProgram1Sun1", "fs1/HCProgram1Sun2", "fs1/HCProgram1Sun3")
     sun3 = specs["fs1/HCProgram1Sun3"]

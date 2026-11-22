@@ -169,7 +169,8 @@ class FaultHistorySensor(GroupSensor):
     most recent first, each with the values the automat stored with it."""
 
     def __init__(self, hub: Hub, description: GroupEntity) -> None:
-        pointer = f"{description.group.circuit}/FaultHistoryPointer"
+        pointer_name = description.group.pointer.message if description.group.pointer else "FaultHistoryPointer"
+        pointer = f"{description.group.circuit}/{pointer_name}"
         self._pointer = pointer if pointer in hub.usable else None
         super().__init__(hub, description, (pointer,) if self._pointer else ())
 

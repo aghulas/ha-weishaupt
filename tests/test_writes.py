@@ -161,6 +161,8 @@ def test_linked_settings(specs):
     assert linked(specs["em2/RoomNormalTemp"], specs) == (specs["em2/RoomSetbackTemp"], None)
     assert linked(specs["em2/RoomSetbackTemp"], specs) == (None, specs["em2/RoomNormalTemp"])
     assert linked(specs["em2/SupplyMinTemp"], specs) == (None, specs["em2/SupplyMaxTemp"])
+    assert linked(specs["ka/ModulationMax"], specs) == (specs["ka/ModulationMin"], None)
+    assert linked(specs["ka/ModulationMin"], specs) == (None, specs["ka/ModulationMax"])
     assert linked(specs["ka/BlockingTime"], specs) == (None, None)
 
 

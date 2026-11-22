@@ -158,20 +158,21 @@ async def test_a_failed_program_write_notifies(hass, fake, log, monkeypatch):
 
 async def test_room_unit_2_is_refused(hass, fake, log):
     """Room unit 2 does not keep slot writes: the definitions give its programs no write conditions, and mark its
-    heating program 1 as kept by room unit 1 (the refusal then names where to change it)."""
+    heating programs 1 and 2 (and stored DHW/circulation programs) as kept by room unit 1 (the refusal then names
+    where to change it); heating program 3 has no sharing marker."""
     entry, writer = await writing(hass, fake, log)
-    for program in ("heating1", "heating2"):
+    for program in ("heating1", "heating2", "heating3"):
         with pytest.raises(WriteRefused) as err:
             await writer.async_set_program(f"fs2/{program}", {1: "06:30-18:00"}, None)
         assert err.value.code == "not_writable"
     shown = {}
-    for program in ("heating1", "heating2"):
+    for program in ("heating1", "heating2", "heating3"):
         with pytest.raises(ServiceValidationError) as raised:
             await hass.services.async_call(DOMAIN, "set_program", {
                 "device_id": device_id(hass, entry, "room2"), "program": program, "monday": "06:30-18:00"},
                 blocking=True)
         shown[program] = raised.value.translation_key
-    assert shown == {"heating1": "program_shared", "heating2": "not_writable"} and fake.writes == []
+    assert shown == {"heating1": "program_shared", "heating2": "program_shared", "heating3": "not_writable"} and fake.writes == []
 
 
 async def test_set_program_for_a_week(hass, fake, log):

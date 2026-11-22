@@ -24,11 +24,18 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.6.0"
+    assert model.version == "0.8.0"
     assert len(model.messages) == 669
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
+    # 0.8.0 group metadata: stored_only on room-unit DHW/circulation programs and pointer on boiler fault histories
+    assert model.groups["fs1/dhw_stored"].stored_only is True
+    assert model.groups["fs2/circulation_stored"].stored_only is True
+    assert model.groups["em1/dhw"].stored_only is False
+    assert model.groups["fs1/heating1"].stored_only is False
+    ptr = model.groups["bc1/fault_history"].pointer
+    assert ptr is not None and (ptr.message, ptr.field, ptr.base, ptr.step) == ("FaultHistoryPointer", "value", 513, 8)
 
 
 def test_real_ebusd_loaded_what_the_metadata_describes(model, loaded):

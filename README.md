@@ -669,10 +669,11 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
+| 0.13 | 0.8.0 | 0.6.0 to 0.8.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
-The integration ships the metadata file of definitions 0.6.0 (`weishaupt-metadata-0.6.0.json`: 669 messages, of
+The integration ships the metadata file of definitions 0.8.0 (`weishaupt-metadata-0.8.0.json`: 669 messages, of
 which 668 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
 integration compares, message by message, what ebusd loaded with that file:
 
@@ -763,6 +764,11 @@ under the same name. After the update:
 
 The release notes on GitHub give each version in full; here only what changed what you install or see.
 
+- 0.13.0: definitions 0.8.0 shipped and accepted (`>=0.6.0, <0.9`). Linked bounds (`write.below` / `write.above`,
+  including `ka/ModulationMax` and `ka/ModulationMin`), `stored_only` on room-unit DHW/circulation programs,
+  `pointer` metadata for boiler fault history, and `fs2` shared-store markers extended to `HCProgram2`, `DHWProgram`
+  and `CircProgram`.
+- 0.12.1: *Reconfigure* is a menu giving a UI path to bus load, writes and the telegram log per ebusd.
 - 0.12.0: several ebusd per entry (the ebusd add-ons listed from the Supervisor), following the running one or
   pinned to one, with a repair when it does not answer; the build checked at every start, writes enabled or not;
   the telegram log set per ebusd. Existing entries are pinned to their address.

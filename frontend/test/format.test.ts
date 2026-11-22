@@ -207,7 +207,7 @@ test("the card: the day texts of a program, found by device and translation key"
 test("the card: the write switch and its counters", () => {
   const entities = { "switch.w": { entity_id: "switch.w", platform: "weishaupt", translation_key: "writes" } };
   const states = { "switch.w": { state: "on", attributes: { writes_last_hour: 2, max_writes_per_hour: 30 } } };
-  assert.deepEqual(writeSwitch(entities, states), { on: true, used: 2, max: 30 });
+  assert.deepEqual(writeSwitch(entities, states), { entity_id: "switch.w", on: true, used: 2, max: 30 });
   assert.equal(writeSwitch({}, states), null);
 });
 
@@ -241,4 +241,26 @@ test("following: chosen rows against the registry, defaults that stop, blocked l
   assert.deepEqual(choose(pending, [live], true), { "sensor.blocking": true, "sensor.mine": false });
   // a blocked or unknown entity never gets into the plan
   assert.deepEqual(followPlan({ "sensor.held": true, "sensor.other": true }, [held]), { enable: [], disable: [], defaultsOff: 0 });
+});
+
+test("dragRange and search/filters: accent-insensitive multi-term matching and quick filters", async () => {
+  const { dragRange, matchesRow } = await import("../src/format.ts");
+  assert.deepEqual(dragRange(0.25, 0.5), [360, 720]);
+  assert.deepEqual(dragRange(0.5, 0.25), [360, 720]);
+  assert.deepEqual(dragRange(0.25, 0.25), [360, 420]);
+
+  const writable = {
+    risk: "comfort", source: "ff", proof: "", through: null, key: "em2/RoomNormalTemp", offered: true, why_not: null,
+    register: "05 64", address: "51", minimum: 16, maximum: 35, step: 0.5, options: null,
+  };
+  const r = row({ writable, listened: true });
+  const readings = { "em2/RoomNormalTemp": { values: ["21.0"], when: 0 } };
+  assert.ok(matchesRow(r, "temperature normale", "all", readings, "fr")); // accent-insensitive
+  assert.ok(matchesRow(r, "05 64", "writable", readings, "fr")); // matches register
+  assert.ok(!matchesRow(r, "ecs", "all", readings, "fr"));
+  assert.ok(matchesRow(r, "", "followed", readings, "fr"));
+  assert.ok(!matchesRow(r, "", "unread", readings, "fr"));
+  assert.ok(matchesRow(r, "", "unread", {}, "fr"));
+  assert.ok(!matchesRow(row({ writable: null }), "", "writable", readings, "fr"));
+  assert.ok(!matchesRow(row({ writable, edited_on: { device: { en: "RU1" }, key: "x" } }), "", "writable", readings, "fr"));
 });

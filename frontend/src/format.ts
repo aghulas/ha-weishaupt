@@ -209,6 +209,28 @@ export const STRINGS: Record<string, Record<string, string>> = {
     follow_done: "{enabled} enabled, {disabled} disabled.",
     follow_reload_soon: "Home Assistant reloads the integration in about {s} s.",
     follow_refused: "{n} not changed: disabled by their device or config entry, or not this integration's.",
+    writes_pill_on: "Writes: on ({n}/{max})",
+    writes_pill_off: "Writes: locked",
+    open_switch: "Open writes switch",
+    items_count: "{n} items",
+    items_count_one: "1 item",
+    fault_hide_zero: "Hide zero counters ({n})",
+    fault_all_zero: "All read counters are at 0.",
+    copy_all: "every day",
+    copy_weekdays: "Monday – Friday",
+    copy_weekend: "Saturday, Sunday",
+    search_placeholder: "Search settings, sensors, keys…",
+    search_clear: "Clear",
+    filter_all: "All",
+    filter_writable: "Writable",
+    filter_followed: "Followed",
+    filter_unread: "Unread",
+    search_results: "{n} matching rows",
+    search_results_one: "1 matching row",
+    search_empty: "No row matches this search.",
+    bar_remove_hint: "{range} — click to remove",
+    clear_day: "Clear",
+    follow_details: "Show details ({n})",
   },
   fr: {
     title: "Weishaupt",
@@ -413,6 +435,28 @@ export const STRINGS: Record<string, Record<string, string>> = {
     follow_done: "{enabled} activées, {disabled} désactivées.",
     follow_reload_soon: "Home Assistant recharge l'intégration dans environ {s} s.",
     follow_refused: "{n} non modifiées : désactivées par leur appareil ou leur entrée, ou pas de cette intégration.",
+    writes_pill_on: "Écritures : actives ({n}/{max})",
+    writes_pill_off: "Écritures : verrouillées",
+    open_switch: "Ouvrir l'interrupteur",
+    items_count: "{n} éléments",
+    items_count_one: "1 élément",
+    fault_hide_zero: "Masquer les compteurs à 0 ({n})",
+    fault_all_zero: "Tous les compteurs lus sont à 0.",
+    copy_all: "tous les jours",
+    copy_weekdays: "lundi – vendredi",
+    copy_weekend: "samedi, dimanche",
+    search_placeholder: "Rechercher un réglage, une sonde, une clé…",
+    search_clear: "Effacer",
+    filter_all: "Tout",
+    filter_writable: "Modifiables",
+    filter_followed: "Suivis",
+    filter_unread: "Non lus",
+    search_results: "{n} lignes correspondantes",
+    search_results_one: "1 ligne correspondante",
+    search_empty: "Aucune ligne ne correspond à cette recherche.",
+    bar_remove_hint: "{range} — cliquer pour retirer",
+    clear_day: "Vider",
+    follow_details: "Voir le détail ({n})",
   },
 };
 
@@ -571,13 +615,19 @@ export function formatDay(ranges: [number, number][]): string {
   return ranges.length ? ranges.map(([a, b]) => `${clockText(a)}-${clockText(b)}`).join(", ") : "-";
 }
 
+/** A range dragged on the bar of a day (from and to as fractions of the day, either order), in quarters of an hour. */
+export function dragRange(from: number, to: number): [number, number] {
+  const q = (f: number): number => Math.round((Math.min(1, Math.max(0, f)) * 1440) / QUARTER) * QUARTER;
+  const start = Math.min(q(from), q(to));
+  let end = Math.max(q(from), q(to));
+  if (end === start) end = Math.min(1440, start + 60); // a click: one hour
+  return [start, end];
+}
+
 /** A range dragged on the bar of a day (from and to as fractions of the day, either order), in quarters of an
  * hour, added to the day: ranges it overlaps are merged into it. Null when the day would hold more than three. */
 export function addDragged(ranges: [number, number][], from: number, to: number): [number, number][] | null {
-  const q = (f: number): number => Math.round((Math.min(1, Math.max(0, f)) * 1440) / QUARTER) * QUARTER;
-  let start = Math.min(q(from), q(to));
-  let end = Math.max(q(from), q(to));
-  if (end === start) end = Math.min(1440, start + 60); // a click: one hour
+  let [start, end] = dragRange(from, to);
   const kept: [number, number][] = [];
   for (const [a, b] of ranges) {
     if (a <= end && b >= start) {
@@ -795,12 +845,12 @@ export function dayTextEntities(entities: Record<string, RegistryEntry> | undefi
 /** The write switch of the integration and its counters, from its entity (translation key `writes`). */
 export function writeSwitch(entities: Record<string, RegistryEntry> | undefined,
   states: Record<string, { state: string; attributes: Record<string, unknown> }>):
-  { on: boolean; used: number | null; max: number | null } | null {
+  { entity_id: string; on: boolean; used: number | null; max: number | null } | null {
   const entry = Object.values(entities ?? {}).find((e) => e.platform === "weishaupt" && e.translation_key === "writes");
   const state = entry ? states[entry.entity_id] : undefined;
-  if (!state) return null;
+  if (!entry || !state) return null;
   const n = (v: unknown): number | null => (typeof v === "number" ? v : null);
-  return { on: state.state === "on", used: n(state.attributes.writes_last_hour),
+  return { entity_id: entry.entity_id, on: state.state === "on", used: n(state.attributes.writes_last_hour),
     max: n(state.attributes.max_writes_per_hour) };
 }
 
@@ -866,4 +916,35 @@ export function choose(
     else next[follow.entity_id] = wanted;
   }
   return next;
+}
+
+// ---- search and quick filters -----------------------------------------------------------------------------------
+
+export type RowFilter = "all" | "writable" | "followed" | "unread";
+
+function fold(text: string): string {
+  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+}
+
+/** Whether a row matches a free-text query (accent- and case-insensitive) and a quick filter. */
+export function matchesRow(
+  row: Row,
+  query: string,
+  filter: RowFilter,
+  readings: Record<string, Reading | null>,
+  language: string,
+): boolean {
+  if (filter === "writable" && (!row.writable || row.edited_on)) return false;
+  if (filter === "followed" && !row.listened && !row.follow?.enabled) return false;
+  if (filter === "unread" && readingOf(row, readings) !== null) return false;
+  const terms = fold(query).trim().split(/\s+/).filter(Boolean);
+  if (!terms.length) return true;
+  const haystack = fold([
+    label(row.label, language),
+    label(row.description, language),
+    row.key,
+    row.message,
+    row.writable?.register ?? "",
+  ].join(" "));
+  return terms.every((term) => haystack.includes(term));
 }

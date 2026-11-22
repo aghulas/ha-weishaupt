@@ -5,11 +5,11 @@
 // Uses only Home Assistant's card contract (setConfig, hass, getCardSize, getStubConfig, getConfigElement) and its
 // theme variables, no internal element.
 
-import { LitElement, css, html, type TemplateResult } from "lit";
+import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import "./week-grid.ts";
 import {
-  dayTextEntities, formatDay, isoWeekday, isProgramSensor, languageOf, parseDay, t, weekFromAttributes, WEEKDAYS,
-  writeSwitch,
+  addDragged, clockText, dayTextEntities, dragRange, formatDay, isoWeekday, isProgramSensor, languageOf, parseDay, t,
+  weekFromAttributes, WEEKDAYS, writeSwitch,
 } from "./format.ts";
 import type { Days } from "./types.ts";
 import type { Hass } from "./types.ts";
@@ -35,7 +35,7 @@ function programSensors(hass: Hass): string[] {
 export class WeishauptProgramCard extends LitElement {
   static properties = {
     hass: { attribute: false }, _config: { state: true }, _draft: { state: true }, _results: { state: true },
-    _busy: { state: true },
+    _busy: { state: true }, _dragPreview: { state: true }, _dragError: { state: true },
   };
 
   declare hass: Hass;
@@ -43,11 +43,15 @@ export class WeishauptProgramCard extends LitElement {
   declare _draft: Record<string, string> | undefined; // day "1" … "7" -> text being edited
   declare _results: Record<string, { text: string; error: boolean }>;
   declare _busy: boolean;
+  declare _dragPreview: { day: string; start: number; end: number } | undefined;
+  declare _dragError: Record<string, string>;
+  private _drag?: { day: string; from: number; element: HTMLElement };
 
   constructor() {
     super();
     this._results = {};
     this._busy = false;
+    this._dragError = {};
   }
 
   setConfig(config: CardConfig): void {
@@ -114,6 +118,16 @@ export class WeishauptProgramCard extends LitElement {
     for (let day = 1; day <= 7; day++) draft[String(day)] = this._current(week, String(day)) ?? "";
     this._draft = draft;
     this._results = {};
+    this._dragError = {};
+  }
+
+  private _setDay(day: string, text: string): void {
+    this._draft = { ...this._draft!, [day]: text };
+    if (this._dragError[day]) {
+      const rest = { ...this._dragError };
+      delete rest[day];
+      this._dragError = rest;
+    }
   }
 
   private _changed(week: Days): string[] {
@@ -129,10 +143,54 @@ export class WeishauptProgramCard extends LitElement {
   private _copy(from: string, target: string): void {
     const text = this._draft![from];
     const days = target === "all" ? ["1", "2", "3", "4", "5", "6", "7"]
-      : target === "weekdays" ? ["1", "2", "3", "4", "5"] : ["6", "7"];
+      : target === "weekdays" ? ["1", "2", "3", "4", "5"]
+      : target === "weekend" ? ["6", "7"] : [target];
     const next = { ...this._draft! };
-    for (const day of days) next[day] = text;
+    for (const day of days) if (day !== from) next[day] = text;
     this._draft = next;
+  }
+
+  private _dragStart(e: PointerEvent, day: string): void {
+    const element = e.currentTarget as HTMLElement;
+    if ((e.target as HTMLElement).classList.contains("bar")) return;
+    const box = element.getBoundingClientRect();
+    const from = (e.clientX - box.left) / box.width;
+    this._drag = { day, from, element };
+    const [start, end] = dragRange(from, from);
+    this._dragPreview = { day, start, end };
+    element.setPointerCapture(e.pointerId);
+  }
+
+  private _dragMove(e: PointerEvent): void {
+    const drag = this._drag;
+    if (!drag) return;
+    const box = drag.element.getBoundingClientRect();
+    const [start, end] = dragRange(drag.from, (e.clientX - box.left) / box.width);
+    this._dragPreview = { day: drag.day, start, end };
+  }
+
+  private _dragCancel(): void {
+    this._drag = undefined;
+    this._dragPreview = undefined;
+  }
+
+  private _dragEnd(e: PointerEvent): void {
+    const drag = this._drag;
+    this._drag = undefined;
+    this._dragPreview = undefined;
+    if (!drag) return;
+    const box = drag.element.getBoundingClientRect();
+    const parsed = parseDay(this._draft![drag.day]);
+    if (!("ranges" in parsed)) return;
+    const next = addDragged(parsed.ranges, drag.from, (e.clientX - box.left) / box.width);
+    if (next) this._setDay(drag.day, formatDay(next));
+    else this._dragError = { ...this._dragError, [drag.day]: "day_too_many" };
+  }
+
+  private _removeRange(day: string, index: number): void {
+    const parsed = parseDay(this._draft![day]);
+    if (!("ranges" in parsed)) return;
+    this._setDay(day, formatDay(parsed.ranges.filter((_, i) => i !== index)));
   }
 
   private async _write(week: Days, texts: Record<string, string>): Promise<void> {
@@ -158,9 +216,13 @@ export class WeishauptProgramCard extends LitElement {
 
   private _resultLines(): TemplateResult | null {
     const lines = Object.values(this._results);
+    const lang = languageOf(this.hass?.language);
     return lines.length
       ? html`<div class="results" role="status">
           ${lines.map((r) => html`<div class=${r.error ? "error" : "secondary"}>${r.text}</div>`)}
+          ${!this._busy
+            ? html`<button class="ghost" type="button" @click=${() => (this._results = {})}>${t(lang, "dismiss")}</button>`
+            : nothing}
         </div>`
       : null;
   }
@@ -175,25 +237,70 @@ export class WeishauptProgramCard extends LitElement {
     }));
     const invalid = Object.values(errors).some(Boolean);
     const writes = writeSwitch(this.hass.entities, this.hass.states);
-    return html`<p class="secondary">${t(lang, "card_type_hint")}</p>
+    return html`<p class="secondary">${t(lang, "drag_hint")}</p>
+      <div class="scale" aria-hidden="true">
+        ${[0, 6, 12, 18, 24].map((h) => html`<span style="left:${(h / 24) * 100}%">${h}</span>`)}
+      </div>
       ${names.map((name, i) => {
         const day = String(i + 1);
+        const parsed = parseDay(draft[day]);
+        const ranges = "ranges" in parsed ? parsed.ranges : [];
+        const err = errors[day] ?? this._dragError[day] ?? null;
+        const preview = this._dragPreview?.day === day ? this._dragPreview : undefined;
         return html`<div class=${changed.includes(day) ? "day changed" : "day"}>
           <label for="d${day}">${name}</label>
-          <input id="d${day}" type="text" .value=${draft[day]} aria-invalid=${errors[day] ? "true" : "false"}
-            placeholder=${week[day] == null ? t(lang, "card_unread") : ""}
-            @input=${(e: Event) => (this._draft = { ...draft, [day]: (e.target as HTMLInputElement).value })} />
-          <select aria-label=${t(lang, "copy_to")} @change=${(e: Event) => {
-            const select = e.target as HTMLSelectElement;
-            if (select.value) this._copy(day, select.value);
-            select.value = "";
-          }}>
-            <option value="">${t(lang, "copy_to")}…</option>
-            <option value="all">${lang === "fr" ? "tous les jours" : "every day"}</option>
-            <option value="weekdays">${lang === "fr" ? "lundi – vendredi" : "Monday – Friday"}</option>
-            <option value="weekend">${lang === "fr" ? "samedi, dimanche" : "Saturday, Sunday"}</option>
-          </select>
-          ${errors[day] ? html`<div class="error" role="alert">${t(lang, errors[day]!)}</div>` : null}
+          <div
+            class="bar-track"
+            aria-hidden="true"
+            @pointerdown=${(e: PointerEvent) => this._dragStart(e, day)}
+            @pointermove=${(e: PointerEvent) => this._dragMove(e)}
+            @pointerup=${(e: PointerEvent) => this._dragEnd(e)}
+            @pointercancel=${() => this._dragCancel()}
+          >
+            ${ranges.map(
+              ([a, b], index) => html`<span
+                class="bar"
+                title=${t(lang, "bar_remove_hint", { range: `${clockText(a)}-${clockText(b)}` })}
+                style="left:${(a / 1440) * 100}%;width:${((b - a) / 1440) * 100}%"
+                @click=${() => this._removeRange(day, index)}
+              ></span>`,
+            )}
+            ${preview
+              ? html`<span
+                    class="bar preview"
+                    style="left:${(preview.start / 1440) * 100}%;width:${((preview.end - preview.start) / 1440) * 100}%"
+                  ></span>
+                  <span
+                    class="drag-label"
+                    style="left:${((preview.start + preview.end) / 2880) * 100}%"
+                  >${clockText(preview.start)}–${clockText(preview.end)}</span>`
+              : nothing}
+          </div>
+          <div class="day-controls">
+            <input id="d${day}" type="text" .value=${draft[day]} aria-invalid=${err ? "true" : "false"}
+              placeholder=${week[day] == null ? t(lang, "card_unread") : ""}
+              @input=${(e: Event) => this._setDay(day, (e.target as HTMLInputElement).value)} />
+            <button
+              class="ghost"
+              type="button"
+              ?disabled=${draft[day].trim() === "" || draft[day].trim() === "-"}
+              @click=${() => this._setDay(day, "-")}
+            >
+              ${t(lang, "clear_day")}
+            </button>
+            <select aria-label=${t(lang, "copy_to")} @change=${(e: Event) => {
+              const select = e.target as HTMLSelectElement;
+              if (select.value) this._copy(day, select.value);
+              select.value = "";
+            }}>
+              <option value="">${t(lang, "copy_to")}…</option>
+              <option value="all">${t(lang, "copy_all")}</option>
+              <option value="weekdays">${t(lang, "copy_weekdays")}</option>
+              <option value="weekend">${t(lang, "copy_weekend")}</option>
+              ${names.map((other, k) => (k === i ? nothing : html`<option value=${String(k + 1)}>${other}</option>`))}
+            </select>
+          </div>
+          ${err ? html`<div class="error" role="alert">${t(lang, err)}</div>` : null}
           ${this._results[day]
             ? html`<div class=${this._results[day].error ? "error" : "secondary"}>${this._results[day].text}</div>`
             : null}
@@ -205,13 +312,31 @@ export class WeishauptProgramCard extends LitElement {
                 days: changed.length, writes: changed.length * 3, used: writes.used ?? "?", max: writes.max ?? "?",
               })}
             </p>
-            ${writes.on ? null : html`<p class="error">${t(lang, "switch_off_hint")}</p>`}`
+            ${writes.on
+              ? null
+              : html`<p class="error">
+                  ${t(lang, "switch_off_hint")}
+                  <button
+                    class="link"
+                    type="button"
+                    @click=${() =>
+                      this.dispatchEvent(
+                        new CustomEvent("hass-more-info", {
+                          detail: { entityId: writes.entity_id },
+                          bubbles: true,
+                          composed: true,
+                        }),
+                      )}
+                  >
+                    ${t(lang, "open_switch")}
+                  </button>
+                </p>`}`
         : html`<p class="error">${t(lang, "card_no_switch")}</p>`}
       <div class="actions">
         <button class="link" ?disabled=${this._busy} @click=${() => { this._draft = undefined; this._results = {}; }}>
           ${t(lang, "discard")}
         </button>
-        <button class="primary" ?disabled=${this._busy || invalid || !changed.length}
+        <button class="primary" ?disabled=${this._busy || invalid || !changed.length || !writes?.on}
           @click=${() => this._write(week, texts)}>${t(lang, "write_days")}</button>
       </div>`;
   }
@@ -242,17 +367,103 @@ export class WeishauptProgramCard extends LitElement {
       color: var(--error-color);
       font-size: 0.9em;
     }
+    .scale {
+      position: relative;
+      height: 1.4em;
+      margin: 6px 0 2px 7em;
+    }
+    .scale span {
+      position: absolute;
+      transform: translateX(-50%);
+      color: var(--secondary-text-color);
+      font-size: 0.8em;
+    }
+    .scale span:first-child {
+      transform: none;
+    }
+    .scale span:last-child {
+      transform: translateX(-100%);
+    }
     .day {
       display: grid;
-      grid-template-columns: 6.5em minmax(0, 1fr) auto;
+      grid-template-columns: 6.5em minmax(0, 1fr);
       gap: 4px 8px;
       align-items: center;
       padding: 6px 0;
       border-bottom: 1px solid var(--divider-color);
     }
+    .day .day-controls,
     .day .error,
     .day .secondary {
       grid-column: 2 / -1;
+    }
+    .day-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      align-items: center;
+    }
+    .day-controls input {
+      flex: 1 1 10em;
+    }
+    .bar-track {
+      position: relative;
+      height: 20px;
+      cursor: crosshair;
+      touch-action: none;
+      background-color: var(--secondary-background-color);
+      background-image: linear-gradient(
+        to right,
+        transparent calc(25% - 0.5px),
+        var(--divider-color) 25%,
+        transparent calc(25% + 0.5px),
+        transparent calc(50% - 0.5px),
+        var(--divider-color) 50%,
+        transparent calc(50% + 0.5px),
+        transparent calc(75% - 0.5px),
+        var(--divider-color) 75%,
+        transparent calc(75% + 0.5px)
+      );
+      border-radius: 4px;
+    }
+    .bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: var(--primary-color);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .bar:hover {
+      background: var(--error-color);
+    }
+    .bar.preview {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .drag-label {
+      position: absolute;
+      top: -22px;
+      transform: translateX(-50%);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.78em;
+      white-space: nowrap;
+      background: var(--primary-text-color);
+      color: var(--card-background-color);
+      pointer-events: none;
+      z-index: 3;
+    }
+    button.ghost {
+      border: 0;
+      background: none;
+      border-radius: 6px;
+      padding: 2px 6px;
+      color: var(--secondary-text-color);
+    }
+    button.ghost:hover:not(:disabled) {
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
     }
     .day.changed label {
       color: var(--primary-color);

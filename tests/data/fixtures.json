@@ -1,9 +1,9 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "1.0.0",
-  "commit": "34c6649",
-  "messages": 669
+  "version": "1.3.0",
+  "commit": "7462afb",
+  "messages": 687
  },
  "verified": {
   "by": "ebusd",
@@ -11,13 +11,13 @@
   "loaded": "lot files only, no scan"
  },
  "coverage": {
-  "messages": 669,
-  "covered": 668,
-  "readings": 1008,
+  "messages": 687,
+  "covered": 683,
+  "readings": 1025,
   "by_kind": {
    "live": {
-    "messages": 56,
-    "covered": 56
+    "messages": 62,
+    "covered": 61
    },
    "counter": {
     "messages": 20,
@@ -27,13 +27,13 @@
     "messages": 74,
     "covered": 74
    },
-   "state": {
-    "messages": 9,
-    "covered": 9
-   },
    "setting": {
-    "messages": 153,
-    "covered": 152
+    "messages": 163,
+    "covered": 162
+   },
+   "state": {
+    "messages": 11,
+    "covered": 9
    },
    "program_slot": {
     "messages": 357,
@@ -42,27 +42,27 @@
   },
   "by_device": {
    "boiler1": {
-    "messages": 28,
-    "covered": 28
+    "messages": 34,
+    "covered": 33
    },
    "manager": {
     "messages": 117,
     "covered": 117
    },
    "boiler2": {
-    "messages": 28,
-    "covered": 28
+    "messages": 34,
+    "covered": 34
    },
    "room1": {
-    "messages": 154,
-    "covered": 154
+    "messages": 156,
+    "covered": 156
    },
    "module2": {
-    "messages": 16,
-    "covered": 16
+    "messages": 19,
+    "covered": 18
    },
    "module3": {
-    "messages": 16,
+    "messages": 17,
     "covered": 16
    },
    "room2": {
@@ -79,6 +79,9 @@
    }
   },
   "not_covered": [
+   "bc1/FanOperation",
+   "em2/H1Status",
+   "em3/H1Status",
    "broadcast/Datetime"
   ],
   "refused_by_ebusd": []
@@ -9012,6 +9015,94 @@
    "text": "0.0",
    "evidence": "room-units-reads",
    "date": "2026-11-17"
+  },
+  {
+   "circuit": "fs1",
+   "message": "FloorDryingTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "5e 13 0a",
+   "slave": "00 80",
+   "telegram": "31355022035e130a/020080",
+   "device": "room1",
+   "expect": {
+    "value": null
+   },
+   "decoded": {
+    "value": null
+   },
+   "text": "-",
+   "evidence": "room-thermostat-floor-drying",
+   "date": "2026-11-22",
+   "case": "not-available"
+  },
+  {
+   "circuit": "fs1",
+   "message": "RoomThermostatTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "92 1d 0a",
+   "slave": "00 80",
+   "telegram": "3135502203921d0a/020080",
+   "device": "room1",
+   "expect": {
+    "value": null
+   },
+   "decoded": {
+    "value": null
+   },
+   "text": "-",
+   "evidence": "room-thermostat-floor-drying",
+   "date": "2026-11-22",
+   "case": "not-available"
+  },
+  {
+   "circuit": "em2",
+   "message": "FloorDryingTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "5e 13 0a",
+   "slave": "00 80",
+   "telegram": "31515022035e130a/020080",
+   "device": "module2",
+   "expect": {
+    "value": null
+   },
+   "decoded": {
+    "value": null
+   },
+   "text": "-",
+   "evidence": "room-thermostat-floor-drying",
+   "date": "2026-11-22",
+   "case": "not-available"
+  },
+  {
+   "circuit": "em2",
+   "message": "RoomThermostatTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "92 1d 0a",
+   "slave": "00 80",
+   "telegram": "3151502203921d0a/020080",
+   "device": "module2",
+   "expect": {
+    "value": null
+   },
+   "decoded": {
+    "value": null
+   },
+   "text": "-",
+   "evidence": "room-thermostat-floor-drying",
+   "date": "2026-11-22",
+   "case": "not-available"
   },
   {
    "circuit": "fs2",
@@ -18069,6 +18160,365 @@
    "text": "0;25;9.5;51",
    "evidence": "bc-live-values",
    "date": "2026-11-17"
+  },
+  {
+   "circuit": "bc2",
+   "message": "FanOperation",
+   "type": "read",
+   "qq": "31",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "56 03 de 01 77 01 7e",
+   "slave": "00 00 00 00",
+   "telegram": "31185000075603de0177017e/0400000000",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "fanspeedset": 0,
+    "fanspeedactual": 0,
+    "fanpwm": 0
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fanspeedset": 0,
+    "fanspeedactual": 0,
+    "fanpwm": 0
+   },
+   "text": "0;0;0;0",
+   "evidence": "boiler-firing-values",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "FanOperation",
+   "type": "read",
+   "qq": "31",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "56 03 de 01 77 01 7e",
+   "slave": "00 28 22 35",
+   "telegram": "31185000075603de0177017e/0400282235",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "fanspeedset": 40,
+    "fanspeedactual": 34,
+    "fanpwm": 53
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fanspeedset": 40,
+    "fanspeedactual": 34,
+    "fanpwm": 53
+   },
+   "text": "0;40;34;53",
+   "evidence": "boiler-firing-values",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "FanOperation",
+   "type": "read",
+   "qq": "31",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "56 03 de 01 77 01 7e",
+   "slave": "00 17 17 1b",
+   "telegram": "31185000075603de0177017e/040017171b",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "fanspeedset": 23,
+    "fanspeedactual": 23,
+    "fanpwm": 27
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fanspeedset": 23,
+    "fanspeedactual": 23,
+    "fanpwm": 27
+   },
+   "text": "0;23;23;27",
+   "evidence": "boiler-firing-values",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "InstallerParameters1",
+   "type": "read",
+   "qq": "ff",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "df b2 1b",
+   "slave": "00 50 08 44 00 0c 0a 02 3c 00 28 5c 25",
+   "telegram": "ff08500003dfb21b/0d00500844000c0a023c00285c25",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "supplymaxtemp": 80,
+    "supplymintemp": 8,
+    "specialleveltemp": 60,
+    "serviceinterval": 4000,
+    "ignitionload": 37
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "supplymaxtemp": 80,
+    "supplymintemp": 8,
+    "specialleveltemp": 60,
+    "serviceinterval": 4000,
+    "ignitionload": 37
+   },
+   "text": "0;80;8;60;4000;37",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "InstallerParameters2",
+   "type": "read",
+   "qq": "ff",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "e3 b2 27",
+   "slave": "00 19 e0 78 78 01 21 17 17 64 32 32 64",
+   "telegram": "ff08500003e3b227/0d0019e078780121171764323264",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "fluegassafetytemp": 120,
+    "loadmin": 23,
+    "loadmaxheating": 100,
+    "pumploadmin": 50,
+    "pumploadmax": 100
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fluegassafetytemp": 120,
+    "loadmin": 23,
+    "loadmaxheating": 100,
+    "pumploadmin": 50,
+    "pumploadmax": 100
+   },
+   "text": "0;120;23;100;50;100",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "InstallerParameters3",
+   "type": "read",
+   "qq": "ff",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "f7 b2 33",
+   "slave": "00 62 25 14 28 19 01 3c 1e 50 0a 17 17",
+   "telegram": "ff08500003f7b233/0d006225142819013c1e500a1717",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "flowreturndifftemp": 20,
+    "pumprunonheating": 1,
+    "dhwboosttemp": 10
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "flowreturndifftemp": 20,
+    "pumprunonheating": 1,
+    "dhwboosttemp": 10
+   },
+   "text": "0;20;1;10",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "InstallerParameters4",
+   "type": "read",
+   "qq": "ff",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "fb b2 3f",
+   "slave": "00 64 64 03 09 08 0d 21 a1 41 22 a7 19",
+   "telegram": "ff08500003fbb23f/0d0064640309080d21a14122a719",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "loadmaxdhw": 100,
+    "pumploaddhw": 100,
+    "pumprunondhw": 3
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "loadmaxdhw": 100,
+    "pumploaddhw": 100,
+    "pumprunondhw": 3
+   },
+   "text": "0;100;100;3",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "InstallerParameters5",
+   "type": "read",
+   "qq": "ff",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "ab 62 4b 02 44 02 37",
+   "slave": "00 c2 01 15 55 0c 4b b8 0d 19",
+   "telegram": "ff08500007ab624b02440237/0a00c20115550c4bb80d19",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "boileraddress": 1
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "boileraddress": 1
+   },
+   "text": "0;1",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "InstallerParameters1",
+   "type": "read",
+   "qq": "ff",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "df b2 1b",
+   "slave": "00 50 08 44 00 0c 0a 02 3c 00 28 5c 25",
+   "telegram": "ff18500003dfb21b/0d00500844000c0a023c00285c25",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "supplymaxtemp": 80,
+    "supplymintemp": 8,
+    "specialleveltemp": 60,
+    "serviceinterval": 4000,
+    "ignitionload": 37
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "supplymaxtemp": 80,
+    "supplymintemp": 8,
+    "specialleveltemp": 60,
+    "serviceinterval": 4000,
+    "ignitionload": 37
+   },
+   "text": "0;80;8;60;4000;37",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "InstallerParameters2",
+   "type": "read",
+   "qq": "ff",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "e3 b2 27",
+   "slave": "00 19 e0 78 78 01 21 17 17 64 32 32 64",
+   "telegram": "ff18500003e3b227/0d0019e078780121171764323264",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "fluegassafetytemp": 120,
+    "loadmin": 23,
+    "loadmaxheating": 100,
+    "pumploadmin": 50,
+    "pumploadmax": 100
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fluegassafetytemp": 120,
+    "loadmin": 23,
+    "loadmaxheating": 100,
+    "pumploadmin": 50,
+    "pumploadmax": 100
+   },
+   "text": "0;120;23;100;50;100",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "InstallerParameters3",
+   "type": "read",
+   "qq": "ff",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "f7 b2 33",
+   "slave": "00 62 25 14 28 19 01 3c 1e 50 0a 17 17",
+   "telegram": "ff18500003f7b233/0d006225142819013c1e500a1717",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "flowreturndifftemp": 20,
+    "pumprunonheating": 1,
+    "dhwboosttemp": 10
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "flowreturndifftemp": 20,
+    "pumprunonheating": 1,
+    "dhwboosttemp": 10
+   },
+   "text": "0;20;1;10",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "InstallerParameters4",
+   "type": "read",
+   "qq": "ff",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "fb b2 3f",
+   "slave": "00 64 64 03 09 08 0d 21 a1 41 22 a7 19",
+   "telegram": "ff18500003fbb23f/0d0064640309080d21a14122a719",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "loadmaxdhw": 100,
+    "pumploaddhw": 100,
+    "pumprunondhw": 3
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "loadmaxdhw": 100,
+    "pumploaddhw": 100,
+    "pumprunondhw": 3
+   },
+   "text": "0;100;100;3",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc2",
+   "message": "InstallerParameters5",
+   "type": "read",
+   "qq": "ff",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "ab 62 4b 02 44 02 37",
+   "slave": "00 c2 02 15 45 0c 4b c8 0d 19",
+   "telegram": "ff18500007ab624b02440237/0a00c20215450c4bc80d19",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "boileraddress": 2
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "boileraddress": 2
+   },
+   "text": "0;2",
+   "evidence": "bc-installer-parameters",
+   "date": "2026-11-22"
   },
   {
    "circuit": "bc1",

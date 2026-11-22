@@ -564,6 +564,9 @@
       "manager_hcmode_valveopening": {
         "name": "Mixer opening"
       },
+      "module_h1status": {
+        "name": "H1 input"
+      },
       "module_hcmode_dhw": {
         "name": "Hot water"
       },
@@ -813,6 +816,15 @@
       "boiler_eventcounters_shutoffcount": {
         "name": "Shut-offs"
       },
+      "boiler_fanoperation_fanpwm": {
+        "name": "Fan PWM drive"
+      },
+      "boiler_fanoperation_fanspeedactual": {
+        "name": "Fan actual speed"
+      },
+      "boiler_fanoperation_fanspeedset": {
+        "name": "Fan set speed"
+      },
       "boiler_fault_history": {
         "name": "Fault history",
         "state_attributes": {
@@ -931,6 +943,57 @@
       },
       "boiler_hydraulicseparatortemp": {
         "name": "Hydraulic separator temperature (i39)"
+      },
+      "boiler_installerparameters1_ignitionload": {
+        "name": "Ignition rating (P35)"
+      },
+      "boiler_installerparameters1_serviceinterval": {
+        "name": "Service interval (P70)"
+      },
+      "boiler_installerparameters1_specialleveltemp": {
+        "name": "Special level, heating (P18)"
+      },
+      "boiler_installerparameters1_supplymaxtemp": {
+        "name": "Maximum flow temperature (P31)"
+      },
+      "boiler_installerparameters1_supplymintemp": {
+        "name": "Minimum flow temperature (P30)"
+      },
+      "boiler_installerparameters2_fluegassafetytemp": {
+        "name": "Flue gas switch-off temperature (P33)"
+      },
+      "boiler_installerparameters2_loadmaxheating": {
+        "name": "Maximum rating, heating (P37)"
+      },
+      "boiler_installerparameters2_loadmin": {
+        "name": "Minimum boiler rating (P36)"
+      },
+      "boiler_installerparameters2_pumploadmax": {
+        "name": "Maximum pump rating, heating (P45)"
+      },
+      "boiler_installerparameters2_pumploadmin": {
+        "name": "Minimum pump rating, heating (P44)"
+      },
+      "boiler_installerparameters3_dhwboosttemp": {
+        "name": "Hot-water excess (P50)"
+      },
+      "boiler_installerparameters3_flowreturndifftemp": {
+        "name": "Flow to return difference (P48)"
+      },
+      "boiler_installerparameters3_pumprunonheating": {
+        "name": "Pump run-on, heating (P41)"
+      },
+      "boiler_installerparameters4_loadmaxdhw": {
+        "name": "Maximum rating, hot water (P38)"
+      },
+      "boiler_installerparameters4_pumploaddhw": {
+        "name": "Pump rating, hot water (P46)"
+      },
+      "boiler_installerparameters4_pumprunondhw": {
+        "name": "Pump run-on, hot water (P42)"
+      },
+      "boiler_installerparameters5": {
+        "name": "Boiler address"
       },
       "boiler_operation_ionisation": {
         "name": "Ionisation signal"
@@ -1403,6 +1466,9 @@
       "module_circulationreturnsettemp": {
         "name": "Circulation return setpoint"
       },
+      "module_floordryingtemp": {
+        "name": "Floor-drying temperature"
+      },
       "module_gradientcurve": {
         "name": "Heating curve gradient"
       },
@@ -1441,6 +1507,9 @@
       },
       "module_roomsetbacktemp": {
         "name": "Setback room temperature"
+      },
+      "module_roomthermostattemp": {
+        "name": "Room-thermostat temperature"
       },
       "module_summerwinterchangeovertemp": {
         "name": "Summer / winter changeover"
@@ -1743,6 +1812,9 @@
       "room_erroryear": {
         "name": "Fault year"
       },
+      "room_floordryingtemp": {
+        "name": "Floor-drying temperature"
+      },
       "room_frostprotectionlimittemp": {
         "name": "Frost protection limit"
       },
@@ -1823,6 +1895,9 @@
       },
       "room_roomtemp": {
         "name": "Room temperature"
+      },
+      "room_roomthermostattemp": {
+        "name": "Room-thermostat temperature"
       },
       "room_summertimeendday": {
         "name": "Summer time end, day"

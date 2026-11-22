@@ -15,7 +15,7 @@ async def test_entities_enabled_when_created(hass, fake):
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
     enabled = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in entities if not e.disabled_by}
-    assert (len(entities), len(enabled)) == (496, 185)
+    assert (len(entities), len(enabled)) == (542, 197)
     assert {"bc1/SupplyTemp/value", "ka/Boiler1Status/flame", "bc1/Counters/burnerstarts",
             "bc1/group/fault_history"} <= enabled
     assert not enabled & {"ka/BlockingTime/value", "fs1/group/heating1", "em1/group/dhw",
@@ -29,7 +29,7 @@ async def test_devices_and_entities(hass, fake, entity_registry_enabled_by_defau
     await setup(hass, entry)
     hub = entry.runtime_data
     assert entry.state is ConfigEntryState.LOADED
-    assert hub.mismatches == [] and len(hub.usable) == 668
+    assert hub.mismatches == [] and len(hub.usable) == 686
     assert not ir.async_get(hass).issues
 
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
@@ -44,7 +44,7 @@ async def test_devices_and_entities(hass, fake, entity_registry_enabled_by_defau
 
     registry = er.async_get(hass)
     entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == len(hub.model.value_entities) + len(hub.model.group_entities) + 1 == 496
+    assert len(entities) == len(hub.model.value_entities) + len(hub.model.group_entities) + 1 == 542
     assert {e.domain for e in entities} == {"sensor", "binary_sensor"}  # nothing that can be set
     assert len({e.unique_id for e in entities}) == len(entities)
 
@@ -177,7 +177,7 @@ async def test_definitions_mismatch_raises_a_repair_issue(hass, fake):
     issue = ir.async_get(hass).async_get_issue(DOMAIN, f"definitions_mismatch_{entry.entry_id}")
     assert issue is not None and issue.severity is ir.IssueSeverity.WARNING and not issue.is_fixable
     assert issue.translation_placeholders == {
-        "count": "2", "missing": "1", "different": "1", "version": "1.0.0", "accepted": ">=0.6.0, <2.0",
+        "count": "2", "missing": "1", "different": "1", "version": "1.3.0", "accepted": ">=0.6.0, <2.0",
         "messages": "bc1/SupplyTemp, ka/BlockingTime"}
     registry = er.async_get(hass)
     # no broken entity for the two messages, the others are there
@@ -200,7 +200,7 @@ async def test_ebusd_with_other_definitions(hass, fake):
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     issue = ir.async_get(hass).async_get_issue(DOMAIN, f"definitions_mismatch_{entry.entry_id}")
-    assert issue.severity is ir.IssueSeverity.ERROR and issue.translation_placeholders["count"] == "668"
+    assert issue.severity is ir.IssueSeverity.ERROR and issue.translation_placeholders["count"] == "686"
     assert er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id) == []
     assert fake.reads_of() == []
 
@@ -286,7 +286,7 @@ async def test_diagnostics_hold_nothing_of_the_site(hass, fake):
     text = json.dumps(data, default=str)
     assert "127.0.0.1" not in text and str(fake.port) in text  # the host is redacted, the port is not a secret
     assert data["entry"]["data"]["host"] == "**REDACTED**"
-    assert data["definitions"]["metadata_version"] == "1.0.0" and data["definitions"]["mismatches"] == []
+    assert data["definitions"]["metadata_version"] == "1.3.0" and data["definitions"]["mismatches"] == []
     assert not [key for key in data["readings"] if "Program" in key or key == "ka/BlockingTime"]  # disabled, not read
     assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 19
     # ten circuits, the clock, and the write definitions of eight circuits for the probe of the build

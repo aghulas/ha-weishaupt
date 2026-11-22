@@ -669,13 +669,14 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 1.0 | 1.0.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.2 | 1.3.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.0 – 1.1 | 1.0.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.13 | 0.8.0 | 0.6.0 to 0.8.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
-The integration ships the metadata file of definitions 1.0.0 (`weishaupt-metadata-1.0.0.json`: 669 messages, of
-which 668 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
+The integration ships the metadata file of definitions 1.3.0 (`weishaupt-metadata-1.3.0.json`: 687 messages, of
+which 686 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
 integration compares, message by message, what ebusd loaded with that file:
 
 - a device of the definitions that does not answer on the bus gets no device in Home Assistant;
@@ -765,6 +766,11 @@ under the same name. After the update:
 
 The release notes on GitHub give each version in full; here only what changed what you install or see.
 
+- 1.2.0: definitions 1.3.0 shipped (687 messages, of which 686 can be read): boiler heating-specialist parameters
+  (`InstallerParameters1`–`5`, new *Heating specialist parameters* menu), boiler fan speeds while firing
+  (`FanOperation`), module H1 digital input (`H1Status`), 16-bit `FloorDryingTemp` / `RoomThermostatTemp`, and all
+  five `fs2` programs marked `shared_with` `fs1`.
+- 1.1.0: panel and card usability (global search, quick filters, program editing; no definitions change).
 - 1.0.0: definitions 1.0.0 shipped and accepted (`>=0.6.0, <2.0`, 668/668 readable messages covered by fixtures);
   `stored_only` badge and note on room-unit DHW/circulation programs in the panel; `DeviceEntry.config_entry_id`
   in `services.py` (removes HA 2027.10 deprecation warning).

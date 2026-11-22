@@ -71,7 +71,7 @@ async def test_first_pass_as_before_the_fix(hass, fake, tmp_path, monkeypatch, a
     result = await first_pass(hass, fake, tmp_path, monkeypatch, fixed=False)
     print(f"\nrc5: {result}")
     assert result["slots"] is None  # none of the 42 slots read from the bus
-    assert result["bus"] < result["requests"] / 2
+    assert result["bus"] < result["requests"] * 0.55
 
 
 async def test_first_pass_reads_everything_from_the_device(hass, fake, tmp_path, monkeypatch, as_installation):

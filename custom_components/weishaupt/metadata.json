@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "1.0.0",
-  "commit": "34c6649",
-  "messages": 669,
-  "csv_lines": 1021,
-  "loaded_by_ebusd": 1081,
-  "sidecar_sha256": "9549eb5c536b4a2ad8320073ccb85a455c1aa1860024e3c22d8fb7df755203aa"
+  "version": "1.3.0",
+  "commit": "7462afb",
+  "messages": 687,
+  "csv_lines": 1039,
+  "loaded_by_ebusd": 1099,
+  "sidecar_sha256": "36e569e8fe7cd6d1cdc7591eea519ae9ffff128b56b95bc12d2bd3ce2cb6cfcd"
  },
  "languages": [
   "en",
@@ -188,6 +188,15 @@
      "fr": "Valeurs instantanées"
     },
     "source": "service tool, tab 'Process values WTC' and data logger"
+   },
+   {
+    "id": "specialist",
+    "parent": "",
+    "label": {
+     "en": "Heating specialist parameters",
+     "fr": "Paramètres chauffagiste"
+    },
+    "source": "boiler manual 83251704, parameter list P10 to P71, p. 48-51; service tool, tab 'Heating specialist'"
    },
    {
     "id": "statistics",
@@ -1214,6 +1223,524 @@
       "fr": "Vitesse du circulateur"
      },
      "kind": "live"
+    }
+   ]
+  },
+  "bc1/FanOperation": {
+   "circuit": "bc1",
+   "name": "FanOperation",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "process",
+   "kind": "live",
+   "label": {
+    "en": "Fan",
+    "fr": "Ventilateur"
+   },
+   "description": {
+    "en": "fan set speed, actual speed and PWM drive",
+    "fr": "vitesse de consigne, vitesse réelle et commande PWM du ventilateur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "record",
+   "evidence": [
+    "boiler-firing-values"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "fanspeedset",
+     "type": "UCH",
+     "description": {
+      "en": "set fan speed",
+      "fr": "vitesse de consigne du ventilateur"
+     },
+     "label": {
+      "en": "Fan set speed",
+      "fr": "Vitesse de consigne du ventilateur"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "fanspeedactual",
+     "type": "UCH",
+     "description": {
+      "en": "actual fan speed",
+      "fr": "vitesse réelle du ventilateur"
+     },
+     "label": {
+      "en": "Fan actual speed",
+      "fr": "Vitesse réelle du ventilateur"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "fanpwm",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "fan PWM drive",
+      "fr": "commande PWM du ventilateur"
+     },
+     "label": {
+      "en": "Fan PWM drive",
+      "fr": "Commande PWM du ventilateur"
+     },
+     "kind": "live"
+    }
+   ]
+  },
+  "bc1/InstallerParameters1": {
+   "circuit": "bc1",
+   "name": "InstallerParameters1",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flow limits, special level, service, ignition",
+    "fr": "Limites de départ, niveau spécial, entretien, allumage"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flow temperature limits, special level, service interval, ignition rating",
+    "fr": "paramètres du niveau chauffagiste : limites de la température de départ, niveau spécial, intervalle d'entretien, puissance d'allumage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "supplymaxtemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "maximum flow temperature (parameter P31)",
+      "fr": "température de départ maximale (paramètre P31)"
+     },
+     "label": {
+      "en": "Maximum flow temperature (P31)",
+      "fr": "Température de départ maximale (P31)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "supplymintemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "minimum flow temperature (parameter P30)",
+      "fr": "température de départ minimale (paramètre P30)"
+     },
+     "label": {
+      "en": "Minimum flow temperature (P30)",
+      "fr": "Température de départ minimale (P30)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "specialleveltemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "special level in heating operation (parameter P18)",
+      "fr": "niveau spécial en mode chauffage (paramètre P18)"
+     },
+     "label": {
+      "en": "Special level, heating (P18)",
+      "fr": "Niveau spécial, chauffage (P18)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "serviceinterval",
+     "type": "UCH",
+     "divisor": -100,
+     "unit": "h",
+     "description": {
+      "en": "service interval, in burner hours (parameter P70)",
+      "fr": "intervalle d'entretien, en heures brûleur (paramètre P70)"
+     },
+     "label": {
+      "en": "Service interval (P70)",
+      "fr": "Intervalle d'entretien (P70)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "ignitionload",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "ignition rating (parameter P35)",
+      "fr": "puissance d'allumage (paramètre P35)"
+     },
+     "label": {
+      "en": "Ignition rating (P35)",
+      "fr": "Puissance d'allumage (P35)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc1/InstallerParameters2": {
+   "circuit": "bc1",
+   "name": "InstallerParameters2",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flue gas limit, ratings in heating",
+    "fr": "Limite fumées, puissances en chauffage"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flue gas switch-off temperature, boiler and pump rating limits in heating operation",
+    "fr": "paramètres du niveau chauffagiste : température de coupure des fumées, limites de puissance de la chaudière et du circulateur en mode chauffage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "fluegassafetytemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "flue gas temperature at which the burner is switched off (parameter P33)",
+      "fr": "température des fumées à laquelle le brûleur est coupé (paramètre P33)"
+     },
+     "label": {
+      "en": "Flue gas switch-off temperature (P33)",
+      "fr": "Température de coupure des fumées (P33)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "loadmin",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "minimum boiler rating (parameter P36)",
+      "fr": "puissance minimale de la chaudière (paramètre P36)"
+     },
+     "label": {
+      "en": "Minimum boiler rating (P36)",
+      "fr": "Puissance minimale chaudière (P36)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "loadmaxheating",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum rating in heating operation (parameter P37)",
+      "fr": "puissance maximale en mode chauffage (paramètre P37)"
+     },
+     "label": {
+      "en": "Maximum rating, heating (P37)",
+      "fr": "Puissance maximale, chauffage (P37)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploadmin",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "minimum pump rating in heating operation (parameter P44)",
+      "fr": "puissance minimale du circulateur en mode chauffage (paramètre P44)"
+     },
+     "label": {
+      "en": "Minimum pump rating, heating (P44)",
+      "fr": "Puissance minimale circulateur, chauffage (P44)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploadmax",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum pump rating in heating operation (parameter P45)",
+      "fr": "puissance maximale du circulateur en mode chauffage (paramètre P45)"
+     },
+     "label": {
+      "en": "Maximum pump rating, heating (P45)",
+      "fr": "Puissance maximale circulateur, chauffage (P45)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc1/InstallerParameters3": {
+   "circuit": "bc1",
+   "name": "InstallerParameters3",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flow to return difference, run-on, hot-water excess",
+    "fr": "Écart départ-retour, post-fonctionnement, surélévation ECS"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flow to return difference, pump run-on after heating, hot-water excess",
+    "fr": "paramètres du niveau chauffagiste : écart départ-retour, post-fonctionnement du circulateur après chauffage, surélévation ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "flowreturndifftemp",
+     "type": "UCH",
+     "unit": "K",
+     "description": {
+      "en": "flow to return temperature difference of the pump control (parameter P48)",
+      "fr": "écart de température départ-retour de la régulation du circulateur (paramètre P48)"
+     },
+     "label": {
+      "en": "Flow to return difference (P48)",
+      "fr": "Écart départ-retour (P48)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumprunonheating",
+     "type": "UCH",
+     "unit": "min",
+     "description": {
+      "en": "pump run-on time after heating operation (parameter P41)",
+      "fr": "durée de post-fonctionnement du circulateur après le mode chauffage (paramètre P41)"
+     },
+     "label": {
+      "en": "Pump run-on, heating (P41)",
+      "fr": "Post-fonctionnement circulateur, chauffage (P41)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "dhwboosttemp",
+     "type": "UCH",
+     "unit": "K",
+     "description": {
+      "en": "flow temperature excess while the hot water is loaded (parameter P50)",
+      "fr": "surélévation de la température de départ pendant la charge ECS (paramètre P50)"
+     },
+     "label": {
+      "en": "Hot-water excess (P50)",
+      "fr": "Surélévation ECS (P50)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc1/InstallerParameters4": {
+   "circuit": "bc1",
+   "name": "InstallerParameters4",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Ratings and run-on in hot water",
+    "fr": "Puissances et post-fonctionnement en ECS"
+   },
+   "description": {
+    "en": "heating-specialist parameters: boiler and pump rating and pump run-on in hot-water operation",
+    "fr": "paramètres du niveau chauffagiste : puissance de la chaudière et du circulateur et post-fonctionnement du circulateur en mode ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "loadmaxdhw",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum rating in hot-water operation (parameter P38)",
+      "fr": "puissance maximale en mode ECS (paramètre P38)"
+     },
+     "label": {
+      "en": "Maximum rating, hot water (P38)",
+      "fr": "Puissance maximale, ECS (P38)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploaddhw",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "pump rating in hot-water operation (parameter P46)",
+      "fr": "puissance du circulateur en mode ECS (paramètre P46)"
+     },
+     "label": {
+      "en": "Pump rating, hot water (P46)",
+      "fr": "Puissance circulateur, ECS (P46)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumprunondhw",
+     "type": "UCH",
+     "unit": "min",
+     "description": {
+      "en": "pump run-on time after hot-water operation (parameter P42)",
+      "fr": "durée de post-fonctionnement du circulateur après le mode ECS (paramètre P42)"
+     },
+     "label": {
+      "en": "Pump run-on, hot water (P42)",
+      "fr": "Post-fonctionnement circulateur, ECS (P42)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc1/InstallerParameters5": {
+   "circuit": "bc1",
+   "name": "InstallerParameters5",
+   "address": "08",
+   "device": "boiler1",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler address",
+    "fr": "Adresse chaudière"
+   },
+   "description": {
+    "en": "heating-specialist parameters: address of the boiler in the cascade",
+    "fr": "paramètres du niveau chauffagiste : adresse de la chaudière dans la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "boileraddress",
+     "type": "UCH",
+     "description": {
+      "en": "address of the boiler in the cascade (parameter P12): 1 for boiler A, 2 for boiler B",
+      "fr": "adresse de la chaudière dans la cascade (paramètre P12) : 1 pour la chaudière A, 2 pour la chaudière B"
+     },
+     "label": {
+      "en": "Boiler address (P12)",
+      "fr": "Adresse chaudière (P12)"
+     },
+     "kind": "setting"
     }
    ]
   },
@@ -7389,6 +7916,524 @@
     }
    ]
   },
+  "bc2/FanOperation": {
+   "circuit": "bc2",
+   "name": "FanOperation",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "process",
+   "kind": "live",
+   "label": {
+    "en": "Fan",
+    "fr": "Ventilateur"
+   },
+   "description": {
+    "en": "fan set speed, actual speed and PWM drive",
+    "fr": "vitesse de consigne, vitesse réelle et commande PWM du ventilateur"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "record",
+   "evidence": [
+    "boiler-firing-values"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "fanspeedset",
+     "type": "UCH",
+     "description": {
+      "en": "set fan speed",
+      "fr": "vitesse de consigne du ventilateur"
+     },
+     "label": {
+      "en": "Fan set speed",
+      "fr": "Vitesse de consigne du ventilateur"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "fanspeedactual",
+     "type": "UCH",
+     "description": {
+      "en": "actual fan speed",
+      "fr": "vitesse réelle du ventilateur"
+     },
+     "label": {
+      "en": "Fan actual speed",
+      "fr": "Vitesse réelle du ventilateur"
+     },
+     "kind": "live"
+    },
+    {
+     "name": "fanpwm",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "fan PWM drive",
+      "fr": "commande PWM du ventilateur"
+     },
+     "label": {
+      "en": "Fan PWM drive",
+      "fr": "Commande PWM du ventilateur"
+     },
+     "kind": "live"
+    }
+   ]
+  },
+  "bc2/InstallerParameters1": {
+   "circuit": "bc2",
+   "name": "InstallerParameters1",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flow limits, special level, service, ignition",
+    "fr": "Limites de départ, niveau spécial, entretien, allumage"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flow temperature limits, special level, service interval, ignition rating",
+    "fr": "paramètres du niveau chauffagiste : limites de la température de départ, niveau spécial, intervalle d'entretien, puissance d'allumage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "supplymaxtemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "maximum flow temperature (parameter P31)",
+      "fr": "température de départ maximale (paramètre P31)"
+     },
+     "label": {
+      "en": "Maximum flow temperature (P31)",
+      "fr": "Température de départ maximale (P31)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "supplymintemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "minimum flow temperature (parameter P30)",
+      "fr": "température de départ minimale (paramètre P30)"
+     },
+     "label": {
+      "en": "Minimum flow temperature (P30)",
+      "fr": "Température de départ minimale (P30)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "specialleveltemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "special level in heating operation (parameter P18)",
+      "fr": "niveau spécial en mode chauffage (paramètre P18)"
+     },
+     "label": {
+      "en": "Special level, heating (P18)",
+      "fr": "Niveau spécial, chauffage (P18)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "serviceinterval",
+     "type": "UCH",
+     "divisor": -100,
+     "unit": "h",
+     "description": {
+      "en": "service interval, in burner hours (parameter P70)",
+      "fr": "intervalle d'entretien, en heures brûleur (paramètre P70)"
+     },
+     "label": {
+      "en": "Service interval (P70)",
+      "fr": "Intervalle d'entretien (P70)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "ignitionload",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "ignition rating (parameter P35)",
+      "fr": "puissance d'allumage (paramètre P35)"
+     },
+     "label": {
+      "en": "Ignition rating (P35)",
+      "fr": "Puissance d'allumage (P35)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc2/InstallerParameters2": {
+   "circuit": "bc2",
+   "name": "InstallerParameters2",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flue gas limit, ratings in heating",
+    "fr": "Limite fumées, puissances en chauffage"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flue gas switch-off temperature, boiler and pump rating limits in heating operation",
+    "fr": "paramètres du niveau chauffagiste : température de coupure des fumées, limites de puissance de la chaudière et du circulateur en mode chauffage"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "fluegassafetytemp",
+     "type": "UCH",
+     "unit": "°C",
+     "description": {
+      "en": "flue gas temperature at which the burner is switched off (parameter P33)",
+      "fr": "température des fumées à laquelle le brûleur est coupé (paramètre P33)"
+     },
+     "label": {
+      "en": "Flue gas switch-off temperature (P33)",
+      "fr": "Température de coupure des fumées (P33)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "loadmin",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "minimum boiler rating (parameter P36)",
+      "fr": "puissance minimale de la chaudière (paramètre P36)"
+     },
+     "label": {
+      "en": "Minimum boiler rating (P36)",
+      "fr": "Puissance minimale chaudière (P36)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "loadmaxheating",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum rating in heating operation (parameter P37)",
+      "fr": "puissance maximale en mode chauffage (paramètre P37)"
+     },
+     "label": {
+      "en": "Maximum rating, heating (P37)",
+      "fr": "Puissance maximale, chauffage (P37)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploadmin",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "minimum pump rating in heating operation (parameter P44)",
+      "fr": "puissance minimale du circulateur en mode chauffage (paramètre P44)"
+     },
+     "label": {
+      "en": "Minimum pump rating, heating (P44)",
+      "fr": "Puissance minimale circulateur, chauffage (P44)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploadmax",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum pump rating in heating operation (parameter P45)",
+      "fr": "puissance maximale du circulateur en mode chauffage (paramètre P45)"
+     },
+     "label": {
+      "en": "Maximum pump rating, heating (P45)",
+      "fr": "Puissance maximale circulateur, chauffage (P45)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc2/InstallerParameters3": {
+   "circuit": "bc2",
+   "name": "InstallerParameters3",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Flow to return difference, run-on, hot-water excess",
+    "fr": "Écart départ-retour, post-fonctionnement, surélévation ECS"
+   },
+   "description": {
+    "en": "heating-specialist parameters: flow to return difference, pump run-on after heating, hot-water excess",
+    "fr": "paramètres du niveau chauffagiste : écart départ-retour, post-fonctionnement du circulateur après chauffage, surélévation ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "flowreturndifftemp",
+     "type": "UCH",
+     "unit": "K",
+     "description": {
+      "en": "flow to return temperature difference of the pump control (parameter P48)",
+      "fr": "écart de température départ-retour de la régulation du circulateur (paramètre P48)"
+     },
+     "label": {
+      "en": "Flow to return difference (P48)",
+      "fr": "Écart départ-retour (P48)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumprunonheating",
+     "type": "UCH",
+     "unit": "min",
+     "description": {
+      "en": "pump run-on time after heating operation (parameter P41)",
+      "fr": "durée de post-fonctionnement du circulateur après le mode chauffage (paramètre P41)"
+     },
+     "label": {
+      "en": "Pump run-on, heating (P41)",
+      "fr": "Post-fonctionnement circulateur, chauffage (P41)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "dhwboosttemp",
+     "type": "UCH",
+     "unit": "K",
+     "description": {
+      "en": "flow temperature excess while the hot water is loaded (parameter P50)",
+      "fr": "surélévation de la température de départ pendant la charge ECS (paramètre P50)"
+     },
+     "label": {
+      "en": "Hot-water excess (P50)",
+      "fr": "Surélévation ECS (P50)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc2/InstallerParameters4": {
+   "circuit": "bc2",
+   "name": "InstallerParameters4",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Ratings and run-on in hot water",
+    "fr": "Puissances et post-fonctionnement en ECS"
+   },
+   "description": {
+    "en": "heating-specialist parameters: boiler and pump rating and pump run-on in hot-water operation",
+    "fr": "paramètres du niveau chauffagiste : puissance de la chaudière et du circulateur et post-fonctionnement du circulateur en mode ECS"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "loadmaxdhw",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "maximum rating in hot-water operation (parameter P38)",
+      "fr": "puissance maximale en mode ECS (paramètre P38)"
+     },
+     "label": {
+      "en": "Maximum rating, hot water (P38)",
+      "fr": "Puissance maximale, ECS (P38)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumploaddhw",
+     "type": "UCH",
+     "unit": "%",
+     "description": {
+      "en": "pump rating in hot-water operation (parameter P46)",
+      "fr": "puissance du circulateur en mode ECS (paramètre P46)"
+     },
+     "label": {
+      "en": "Pump rating, hot water (P46)",
+      "fr": "Puissance circulateur, ECS (P46)"
+     },
+     "kind": "setting"
+    },
+    {
+     "name": "pumprunondhw",
+     "type": "UCH",
+     "unit": "min",
+     "description": {
+      "en": "pump run-on time after hot-water operation (parameter P42)",
+      "fr": "durée de post-fonctionnement du circulateur après le mode ECS (paramètre P42)"
+     },
+     "label": {
+      "en": "Pump run-on, hot water (P42)",
+      "fr": "Post-fonctionnement circulateur, ECS (P42)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
+  "bc2/InstallerParameters5": {
+   "circuit": "bc2",
+   "name": "InstallerParameters5",
+   "address": "18",
+   "device": "boiler2",
+   "menu": "specialist",
+   "kind": "setting",
+   "label": {
+    "en": "Boiler address",
+    "fr": "Adresse chaudière"
+   },
+   "description": {
+    "en": "heating-specialist parameters: address of the boiler in the cascade",
+    "fr": "paramètres du niveau chauffagiste : adresse de la chaudière dans la cascade"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "record",
+   "evidence": [
+    "bc-installer-parameters"
+   ],
+   "compose": false,
+   "fields": [
+    {
+     "name": "firstbyte",
+     "type": "UCH",
+     "description": {
+      "en": "first answer byte: 0, or the number of bytes asked for when the data read 0",
+      "fr": "premier octet de la réponse : 0, ou le nombre d'octets demandés quand les données sont lues à 0"
+     },
+     "label": {
+      "en": "First answer byte",
+      "fr": "Premier octet de la réponse"
+     },
+     "kind": "diagnostic",
+     "guard": true
+    },
+    {
+     "name": "boileraddress",
+     "type": "UCH",
+     "description": {
+      "en": "address of the boiler in the cascade (parameter P12): 1 for boiler A, 2 for boiler B",
+      "fr": "adresse de la chaudière dans la cascade (paramètre P12) : 1 pour la chaudière A, 2 pour la chaudière B"
+     },
+     "label": {
+      "en": "Boiler address (P12)",
+      "fr": "Adresse chaudière (P12)"
+     },
+     "kind": "setting"
+    }
+   ]
+  },
   "bc2/FaultCounters1": {
    "circuit": "bc2",
    "name": "FaultCounters1",
@@ -9958,6 +11003,76 @@
    "poll_basis": "default",
    "evidence": [
     "room-units-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/FloorDryingTemp": {
+   "circuit": "fs1",
+   "name": "FloorDryingTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Floor-drying temperature",
+    "fr": "Température de séchage de chape"
+   },
+   "description": {
+    "en": "floor-drying temperature, 0x8000 when no floor-drying sensor is connected",
+    "fr": "température de séchage de chape, 0x8000 lorsqu'aucune sonde de séchage de chape n'est raccordée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "room-thermostat-floor-drying"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "fs1/RoomThermostatTemp": {
+   "circuit": "fs1",
+   "name": "RoomThermostatTemp",
+   "address": "35",
+   "device": "room1",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Room-thermostat temperature",
+    "fr": "Température du thermostat d'ambiance"
+   },
+   "description": {
+    "en": "room-thermostat temperature, 0x8000 when no room thermostat is connected",
+    "fr": "température du thermostat d'ambiance, 0x8000 lorsqu'aucun thermostat d'ambiance n'est raccordé"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "room-thermostat-floor-drying"
    ],
    "fields": [
     {
@@ -29295,6 +30410,124 @@
     }
    ]
   },
+  "em2/H1Status": {
+   "circuit": "em2",
+   "name": "H1Status",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "state",
+   "label": {
+    "en": "H1 input",
+    "fr": "Entrée H1"
+   },
+   "description": {
+    "en": "state of the H1 digital input",
+    "fr": "état de l'entrée numérique H1"
+   },
+   "read": true,
+   "passive": false,
+   "poll": null,
+   "poll_basis": null,
+   "evidence": [
+    "register-survey-findings",
+    "service-tool-ui-exploration"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "on"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "On",
+       "fr": "Marche"
+      }
+     },
+     "description": {
+      "en": "off or on",
+      "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
+  "em2/FloorDryingTemp": {
+   "circuit": "em2",
+   "name": "FloorDryingTemp",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Floor-drying temperature",
+    "fr": "Température de séchage de chape"
+   },
+   "description": {
+    "en": "floor-drying temperature, 0x8000 when no floor-drying sensor is connected",
+    "fr": "température de séchage de chape, 0x8000 lorsqu'aucune sonde de séchage de chape n'est raccordée"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "room-thermostat-floor-drying"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
+  "em2/RoomThermostatTemp": {
+   "circuit": "em2",
+   "name": "RoomThermostatTemp",
+   "address": "51",
+   "device": "module2",
+   "menu": "info",
+   "kind": "live",
+   "label": {
+    "en": "Room-thermostat temperature",
+    "fr": "Température du thermostat d'ambiance"
+   },
+   "description": {
+    "en": "room-thermostat temperature, 0x8000 when no room thermostat is connected",
+    "fr": "température du thermostat d'ambiance, 0x8000 lorsqu'aucun thermostat d'ambiance n'est raccordé"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "cyclic",
+   "poll_basis": "default",
+   "evidence": [
+    "room-thermostat-floor-drying"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "SIN",
+     "divisor": 10,
+     "unit": "°C",
+     "description": {
+      "en": "temperature",
+      "fr": "température"
+     }
+    }
+   ]
+  },
   "em2/CirculationReturnSetTemp": {
    "circuit": "em2",
    "name": "CirculationReturnSetTemp",
@@ -30594,6 +31827,54 @@
    "poll_basis": null,
    "evidence": [
     "survey-reads"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "0": "off",
+      "1": "on"
+     },
+     "value_labels": {
+      "0": {
+       "en": "Off",
+       "fr": "Arrêt"
+      },
+      "1": {
+       "en": "On",
+       "fr": "Marche"
+      }
+     },
+     "description": {
+      "en": "off or on",
+      "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
+  "em3/H1Status": {
+   "circuit": "em3",
+   "name": "H1Status",
+   "address": "52",
+   "device": "module3",
+   "menu": "info",
+   "kind": "state",
+   "label": {
+    "en": "H1 input",
+    "fr": "Entrée H1"
+   },
+   "description": {
+    "en": "state of the H1 digital input",
+    "fr": "état de l'entrée numérique H1"
+   },
+   "read": true,
+   "passive": false,
+   "poll": null,
+   "poll_basis": null,
+   "evidence": [
+    "register-survey-findings",
+    "service-tool-ui-exploration"
    ],
    "fields": [
     {
@@ -34950,8 +36231,8 @@
     "fr": "Programme de chauffe 2, lundi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Monday slot 1",
-    "fr": "programme de chauffe 2, lundi, plage horaire 1"
+    "en": "heating program 2, Monday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, lundi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35049,8 +36330,8 @@
     "fr": "Programme de chauffe 2, lundi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Monday slot 2",
-    "fr": "programme de chauffe 2, lundi, plage horaire 2"
+    "en": "heating program 2, Monday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, lundi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35148,8 +36429,8 @@
     "fr": "Programme de chauffe 2, lundi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Monday slot 3",
-    "fr": "programme de chauffe 2, lundi, plage horaire 3"
+    "en": "heating program 2, Monday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, lundi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35247,8 +36528,8 @@
     "fr": "Programme de chauffe 2, mardi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Tuesday slot 1",
-    "fr": "programme de chauffe 2, mardi, plage horaire 1"
+    "en": "heating program 2, Tuesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mardi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35346,8 +36627,8 @@
     "fr": "Programme de chauffe 2, mardi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Tuesday slot 2",
-    "fr": "programme de chauffe 2, mardi, plage horaire 2"
+    "en": "heating program 2, Tuesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mardi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35445,8 +36726,8 @@
     "fr": "Programme de chauffe 2, mardi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Tuesday slot 3",
-    "fr": "programme de chauffe 2, mardi, plage horaire 3"
+    "en": "heating program 2, Tuesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mardi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35544,8 +36825,8 @@
     "fr": "Programme de chauffe 2, mercredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Wednesday slot 1",
-    "fr": "programme de chauffe 2, mercredi, plage horaire 1"
+    "en": "heating program 2, Wednesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mercredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35643,8 +36924,8 @@
     "fr": "Programme de chauffe 2, mercredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Wednesday slot 2",
-    "fr": "programme de chauffe 2, mercredi, plage horaire 2"
+    "en": "heating program 2, Wednesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mercredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35742,8 +37023,8 @@
     "fr": "Programme de chauffe 2, mercredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Wednesday slot 3",
-    "fr": "programme de chauffe 2, mercredi, plage horaire 3"
+    "en": "heating program 2, Wednesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, mercredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35841,8 +37122,8 @@
     "fr": "Programme de chauffe 2, jeudi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Thursday slot 1",
-    "fr": "programme de chauffe 2, jeudi, plage horaire 1"
+    "en": "heating program 2, Thursday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, jeudi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -35940,8 +37221,8 @@
     "fr": "Programme de chauffe 2, jeudi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Thursday slot 2",
-    "fr": "programme de chauffe 2, jeudi, plage horaire 2"
+    "en": "heating program 2, Thursday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, jeudi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36039,8 +37320,8 @@
     "fr": "Programme de chauffe 2, jeudi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Thursday slot 3",
-    "fr": "programme de chauffe 2, jeudi, plage horaire 3"
+    "en": "heating program 2, Thursday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, jeudi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36138,8 +37419,8 @@
     "fr": "Programme de chauffe 2, vendredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Friday slot 1",
-    "fr": "programme de chauffe 2, vendredi, plage horaire 1"
+    "en": "heating program 2, Friday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, vendredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36237,8 +37518,8 @@
     "fr": "Programme de chauffe 2, vendredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Friday slot 2",
-    "fr": "programme de chauffe 2, vendredi, plage horaire 2"
+    "en": "heating program 2, Friday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, vendredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36336,8 +37617,8 @@
     "fr": "Programme de chauffe 2, vendredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Friday slot 3",
-    "fr": "programme de chauffe 2, vendredi, plage horaire 3"
+    "en": "heating program 2, Friday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, vendredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36435,8 +37716,8 @@
     "fr": "Programme de chauffe 2, samedi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Saturday slot 1",
-    "fr": "programme de chauffe 2, samedi, plage horaire 1"
+    "en": "heating program 2, Saturday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, samedi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36534,8 +37815,8 @@
     "fr": "Programme de chauffe 2, samedi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Saturday slot 2",
-    "fr": "programme de chauffe 2, samedi, plage horaire 2"
+    "en": "heating program 2, Saturday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, samedi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36633,8 +37914,8 @@
     "fr": "Programme de chauffe 2, samedi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Saturday slot 3",
-    "fr": "programme de chauffe 2, samedi, plage horaire 3"
+    "en": "heating program 2, Saturday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, samedi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36732,8 +38013,8 @@
     "fr": "Programme de chauffe 2, dimanche, plage horaire 1"
    },
    "description": {
-    "en": "heating program 2, Sunday slot 1",
-    "fr": "programme de chauffe 2, dimanche, plage horaire 1"
+    "en": "heating program 2, Sunday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, dimanche, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36831,8 +38112,8 @@
     "fr": "Programme de chauffe 2, dimanche, plage horaire 2"
    },
    "description": {
-    "en": "heating program 2, Sunday slot 2",
-    "fr": "programme de chauffe 2, dimanche, plage horaire 2"
+    "en": "heating program 2, Sunday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, dimanche, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -36930,8 +38211,8 @@
     "fr": "Programme de chauffe 2, dimanche, plage horaire 3"
    },
    "description": {
-    "en": "heating program 2, Sunday slot 3",
-    "fr": "programme de chauffe 2, dimanche, plage horaire 3"
+    "en": "heating program 2, Sunday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 2, dimanche, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -37029,17 +38310,19 @@
     "fr": "Programme de chauffe 3, lundi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Monday slot 1",
-    "fr": "programme de chauffe 3, lundi, plage horaire 1"
+    "en": "heating program 3, Monday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, lundi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Mon1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37126,17 +38409,19 @@
     "fr": "Programme de chauffe 3, lundi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Monday slot 2",
-    "fr": "programme de chauffe 3, lundi, plage horaire 2"
+    "en": "heating program 3, Monday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, lundi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Mon2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37223,17 +38508,19 @@
     "fr": "Programme de chauffe 3, lundi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Monday slot 3",
-    "fr": "programme de chauffe 3, lundi, plage horaire 3"
+    "en": "heating program 3, Monday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, lundi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Mon3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37320,17 +38607,19 @@
     "fr": "Programme de chauffe 3, mardi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Tuesday slot 1",
-    "fr": "programme de chauffe 3, mardi, plage horaire 1"
+    "en": "heating program 3, Tuesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mardi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Tue1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37417,17 +38706,19 @@
     "fr": "Programme de chauffe 3, mardi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Tuesday slot 2",
-    "fr": "programme de chauffe 3, mardi, plage horaire 2"
+    "en": "heating program 3, Tuesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mardi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Tue2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37514,17 +38805,19 @@
     "fr": "Programme de chauffe 3, mardi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Tuesday slot 3",
-    "fr": "programme de chauffe 3, mardi, plage horaire 3"
+    "en": "heating program 3, Tuesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mardi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Tue3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37611,17 +38904,19 @@
     "fr": "Programme de chauffe 3, mercredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Wednesday slot 1",
-    "fr": "programme de chauffe 3, mercredi, plage horaire 1"
+    "en": "heating program 3, Wednesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mercredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Wed1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37708,17 +39003,19 @@
     "fr": "Programme de chauffe 3, mercredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Wednesday slot 2",
-    "fr": "programme de chauffe 3, mercredi, plage horaire 2"
+    "en": "heating program 3, Wednesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mercredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Wed2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37805,17 +39102,19 @@
     "fr": "Programme de chauffe 3, mercredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Wednesday slot 3",
-    "fr": "programme de chauffe 3, mercredi, plage horaire 3"
+    "en": "heating program 3, Wednesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, mercredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Wed3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37902,17 +39201,19 @@
     "fr": "Programme de chauffe 3, jeudi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Thursday slot 1",
-    "fr": "programme de chauffe 3, jeudi, plage horaire 1"
+    "en": "heating program 3, Thursday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, jeudi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Thu1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -37999,17 +39300,19 @@
     "fr": "Programme de chauffe 3, jeudi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Thursday slot 2",
-    "fr": "programme de chauffe 3, jeudi, plage horaire 2"
+    "en": "heating program 3, Thursday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, jeudi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Thu2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38096,17 +39399,19 @@
     "fr": "Programme de chauffe 3, jeudi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Thursday slot 3",
-    "fr": "programme de chauffe 3, jeudi, plage horaire 3"
+    "en": "heating program 3, Thursday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, jeudi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Thu3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38193,17 +39498,19 @@
     "fr": "Programme de chauffe 3, vendredi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Friday slot 1",
-    "fr": "programme de chauffe 3, vendredi, plage horaire 1"
+    "en": "heating program 3, Friday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, vendredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Fri1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38290,17 +39597,19 @@
     "fr": "Programme de chauffe 3, vendredi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Friday slot 2",
-    "fr": "programme de chauffe 3, vendredi, plage horaire 2"
+    "en": "heating program 3, Friday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, vendredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Fri2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38387,17 +39696,19 @@
     "fr": "Programme de chauffe 3, vendredi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Friday slot 3",
-    "fr": "programme de chauffe 3, vendredi, plage horaire 3"
+    "en": "heating program 3, Friday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, vendredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Fri3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38484,17 +39795,19 @@
     "fr": "Programme de chauffe 3, samedi, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Saturday slot 1",
-    "fr": "programme de chauffe 3, samedi, plage horaire 1"
+    "en": "heating program 3, Saturday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, samedi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sat1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38581,17 +39894,19 @@
     "fr": "Programme de chauffe 3, samedi, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Saturday slot 2",
-    "fr": "programme de chauffe 3, samedi, plage horaire 2"
+    "en": "heating program 3, Saturday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, samedi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sat2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38678,17 +39993,19 @@
     "fr": "Programme de chauffe 3, samedi, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Saturday slot 3",
-    "fr": "programme de chauffe 3, samedi, plage horaire 3"
+    "en": "heating program 3, Saturday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, samedi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sat3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38775,17 +40092,19 @@
     "fr": "Programme de chauffe 3, dimanche, plage horaire 1"
    },
    "description": {
-    "en": "heating program 3, Sunday slot 1",
-    "fr": "programme de chauffe 3, dimanche, plage horaire 1"
+    "en": "heating program 3, Sunday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, dimanche, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sun1",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38872,17 +40191,19 @@
     "fr": "Programme de chauffe 3, dimanche, plage horaire 2"
    },
    "description": {
-    "en": "heating program 3, Sunday slot 2",
-    "fr": "programme de chauffe 3, dimanche, plage horaire 2"
+    "en": "heating program 3, Sunday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, dimanche, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sun2",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -38969,17 +40290,19 @@
     "fr": "Programme de chauffe 3, dimanche, plage horaire 3"
    },
    "description": {
-    "en": "heating program 3, Sunday slot 3",
-    "fr": "programme de chauffe 3, dimanche, plage horaire 3"
+    "en": "heating program 3, Sunday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de chauffe 3, dimanche, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "room-units-programs"
+    "room-units-programs",
+    "room-units-shared-store"
    ],
    "compose": false,
+   "shared_with": "fs1/HCProgram3Sun3",
    "family": "program",
    "group": "heating3",
    "position": {
@@ -39066,8 +40389,8 @@
     "fr": "Programme ECS enregistré, lundi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Monday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Monday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39164,8 +40487,8 @@
     "fr": "Programme ECS enregistré, lundi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Monday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Monday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39262,8 +40585,8 @@
     "fr": "Programme ECS enregistré, lundi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Monday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Monday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, lundi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39360,8 +40683,8 @@
     "fr": "Programme ECS enregistré, mardi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Tuesday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Tuesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39458,8 +40781,8 @@
     "fr": "Programme ECS enregistré, mardi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Tuesday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Tuesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39556,8 +40879,8 @@
     "fr": "Programme ECS enregistré, mardi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Tuesday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Tuesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mardi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39654,8 +40977,8 @@
     "fr": "Programme ECS enregistré, mercredi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Wednesday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Wednesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39752,8 +41075,8 @@
     "fr": "Programme ECS enregistré, mercredi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Wednesday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Wednesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39850,8 +41173,8 @@
     "fr": "Programme ECS enregistré, mercredi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Wednesday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Wednesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, mercredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -39948,8 +41271,8 @@
     "fr": "Programme ECS enregistré, jeudi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Thursday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Thursday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40046,8 +41369,8 @@
     "fr": "Programme ECS enregistré, jeudi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Thursday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Thursday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40144,8 +41467,8 @@
     "fr": "Programme ECS enregistré, jeudi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Thursday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Thursday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, jeudi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40242,8 +41565,8 @@
     "fr": "Programme ECS enregistré, vendredi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Friday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Friday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40340,8 +41663,8 @@
     "fr": "Programme ECS enregistré, vendredi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Friday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Friday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40438,8 +41761,8 @@
     "fr": "Programme ECS enregistré, vendredi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Friday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Friday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, vendredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40536,8 +41859,8 @@
     "fr": "Programme ECS enregistré, samedi, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Saturday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Saturday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40634,8 +41957,8 @@
     "fr": "Programme ECS enregistré, samedi, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Saturday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Saturday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40732,8 +42055,8 @@
     "fr": "Programme ECS enregistré, samedi, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Saturday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Saturday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, samedi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40830,8 +42153,8 @@
     "fr": "Programme ECS enregistré, dimanche, plage horaire 1"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Sunday slot 1",
-    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 1"
+    "en": "hot-water program stored in the room unit, Sunday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -40928,8 +42251,8 @@
     "fr": "Programme ECS enregistré, dimanche, plage horaire 2"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Sunday slot 2",
-    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 2"
+    "en": "hot-water program stored in the room unit, Sunday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41026,8 +42349,8 @@
     "fr": "Programme ECS enregistré, dimanche, plage horaire 3"
    },
    "description": {
-    "en": "hot-water program stored in the room unit, Sunday slot 3",
-    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 3"
+    "en": "hot-water program stored in the room unit, Sunday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme ECS enregistré dans la commande à distance, dimanche, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41124,8 +42447,8 @@
     "fr": "Programme de circulation ECS enregistré, lundi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Monday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Monday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41222,8 +42545,8 @@
     "fr": "Programme de circulation ECS enregistré, lundi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Monday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Monday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41320,8 +42643,8 @@
     "fr": "Programme de circulation ECS enregistré, lundi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Monday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Monday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, lundi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41418,8 +42741,8 @@
     "fr": "Programme de circulation ECS enregistré, mardi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Tuesday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Tuesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41516,8 +42839,8 @@
     "fr": "Programme de circulation ECS enregistré, mardi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Tuesday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Tuesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41614,8 +42937,8 @@
     "fr": "Programme de circulation ECS enregistré, mardi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Tuesday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Tuesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mardi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41712,8 +43035,8 @@
     "fr": "Programme de circulation ECS enregistré, mercredi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Wednesday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Wednesday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41810,8 +43133,8 @@
     "fr": "Programme de circulation ECS enregistré, mercredi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Wednesday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Wednesday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -41908,8 +43231,8 @@
     "fr": "Programme de circulation ECS enregistré, mercredi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Wednesday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Wednesday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, mercredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42006,8 +43329,8 @@
     "fr": "Programme de circulation ECS enregistré, jeudi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Thursday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Thursday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42104,8 +43427,8 @@
     "fr": "Programme de circulation ECS enregistré, jeudi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Thursday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Thursday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42202,8 +43525,8 @@
     "fr": "Programme de circulation ECS enregistré, jeudi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Thursday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Thursday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, jeudi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42300,8 +43623,8 @@
     "fr": "Programme de circulation ECS enregistré, vendredi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Friday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Friday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42398,8 +43721,8 @@
     "fr": "Programme de circulation ECS enregistré, vendredi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Friday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Friday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42496,8 +43819,8 @@
     "fr": "Programme de circulation ECS enregistré, vendredi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Friday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Friday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, vendredi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42594,8 +43917,8 @@
     "fr": "Programme de circulation ECS enregistré, samedi, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Saturday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 1"
+    "en": "circulation program stored in the room unit, Saturday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42692,8 +44015,8 @@
     "fr": "Programme de circulation ECS enregistré, samedi, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Saturday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 2"
+    "en": "circulation program stored in the room unit, Saturday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42790,8 +44113,8 @@
     "fr": "Programme de circulation ECS enregistré, samedi, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Saturday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 3"
+    "en": "circulation program stored in the room unit, Saturday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, samedi, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42888,8 +44211,8 @@
     "fr": "Programme de circulation ECS enregistré, dimanche, plage horaire 1"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Sunday slot 1",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 1"
+    "en": "circulation program stored in the room unit, Sunday slot 1, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 1, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -42986,8 +44309,8 @@
     "fr": "Programme de circulation ECS enregistré, dimanche, plage horaire 2"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Sunday slot 2",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 2"
+    "en": "circulation program stored in the room unit, Sunday slot 2, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 2, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -43084,8 +44407,8 @@
     "fr": "Programme de circulation ECS enregistré, dimanche, plage horaire 3"
    },
    "description": {
-    "en": "circulation program stored in the room unit, Sunday slot 3",
-    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 3"
+    "en": "circulation program stored in the room unit, Sunday slot 3, read only: seen to be the slot of room unit 1, written through 35.w.fs1",
+    "fr": "programme de circulation ECS enregistré dans la commande à distance, dimanche, plage horaire 3, en lecture seule : vue comme la plage de la commande à distance 1, écrite via 35.w.fs1"
    },
    "read": true,
    "passive": false,
@@ -57643,7 +58966,9 @@
    "bc1/BurnerServiceHours",
    "bc2/BurnerServiceHours",
    "em2/MixerPump",
-   "em3/MixerPump"
+   "em2/H1Status",
+   "em3/MixerPump",
+   "em3/H1Status"
   ],
   "range": [
    "ka/DHWLegionellaDay",

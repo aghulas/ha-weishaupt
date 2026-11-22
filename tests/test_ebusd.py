@@ -37,7 +37,7 @@ def test_parse_info_of_a_running_ebusd():
 
 def test_parse_definitions(golden):
     definitions = {d.name: d for d in parse_definitions(golden["definitions"]["bc1"])}
-    assert len(definitions) == 28
+    assert len(definitions) == 35
     counters = definitions["Counters"]
     assert counters.is_read and not counters.is_passive
     assert [(f.name, f.type, f.unit) for f in counters.fields] == [

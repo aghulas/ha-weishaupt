@@ -564,6 +564,9 @@
       "manager_hcmode_valveopening": {
         "name": "Vanne mélangeuse, ouverture"
       },
+      "module_h1status": {
+        "name": "Entrée H1"
+      },
       "module_hcmode_dhw": {
         "name": "ECS"
       },
@@ -813,6 +816,15 @@
       "boiler_eventcounters_shutoffcount": {
         "name": "Coupures"
       },
+      "boiler_fanoperation_fanpwm": {
+        "name": "Commande PWM du ventilateur"
+      },
+      "boiler_fanoperation_fanspeedactual": {
+        "name": "Vitesse réelle du ventilateur"
+      },
+      "boiler_fanoperation_fanspeedset": {
+        "name": "Vitesse de consigne du ventilateur"
+      },
       "boiler_fault_history": {
         "name": "Mémoire de défauts",
         "state_attributes": {
@@ -931,6 +943,57 @@
       },
       "boiler_hydraulicseparatortemp": {
         "name": "Température de la bouteille casse-pression (i39)"
+      },
+      "boiler_installerparameters1_ignitionload": {
+        "name": "Puissance d'allumage (P35)"
+      },
+      "boiler_installerparameters1_serviceinterval": {
+        "name": "Intervalle d'entretien (P70)"
+      },
+      "boiler_installerparameters1_specialleveltemp": {
+        "name": "Niveau spécial, chauffage (P18)"
+      },
+      "boiler_installerparameters1_supplymaxtemp": {
+        "name": "Température de départ maximale (P31)"
+      },
+      "boiler_installerparameters1_supplymintemp": {
+        "name": "Température de départ minimale (P30)"
+      },
+      "boiler_installerparameters2_fluegassafetytemp": {
+        "name": "Température de coupure des fumées (P33)"
+      },
+      "boiler_installerparameters2_loadmaxheating": {
+        "name": "Puissance maximale, chauffage (P37)"
+      },
+      "boiler_installerparameters2_loadmin": {
+        "name": "Puissance minimale chaudière (P36)"
+      },
+      "boiler_installerparameters2_pumploadmax": {
+        "name": "Puissance maximale circulateur, chauffage (P45)"
+      },
+      "boiler_installerparameters2_pumploadmin": {
+        "name": "Puissance minimale circulateur, chauffage (P44)"
+      },
+      "boiler_installerparameters3_dhwboosttemp": {
+        "name": "Surélévation ECS (P50)"
+      },
+      "boiler_installerparameters3_flowreturndifftemp": {
+        "name": "Écart départ-retour (P48)"
+      },
+      "boiler_installerparameters3_pumprunonheating": {
+        "name": "Post-fonctionnement circulateur, chauffage (P41)"
+      },
+      "boiler_installerparameters4_loadmaxdhw": {
+        "name": "Puissance maximale, ECS (P38)"
+      },
+      "boiler_installerparameters4_pumploaddhw": {
+        "name": "Puissance circulateur, ECS (P46)"
+      },
+      "boiler_installerparameters4_pumprunondhw": {
+        "name": "Post-fonctionnement circulateur, ECS (P42)"
+      },
+      "boiler_installerparameters5": {
+        "name": "Adresse chaudière"
       },
       "boiler_operation_ionisation": {
         "name": "Signal d'ionisation"
@@ -1403,6 +1466,9 @@
       "module_circulationreturnsettemp": {
         "name": "Consigne retour circulation ECS"
       },
+      "module_floordryingtemp": {
+        "name": "Température de séchage de chape"
+      },
       "module_gradientcurve": {
         "name": "Pente de la courbe de chauffe"
       },
@@ -1441,6 +1507,9 @@
       },
       "module_roomsetbacktemp": {
         "name": "Température ambiante réduite"
+      },
+      "module_roomthermostattemp": {
+        "name": "Température du thermostat d'ambiance"
       },
       "module_summerwinterchangeovertemp": {
         "name": "Commutation été/hiver"
@@ -1743,6 +1812,9 @@
       "room_erroryear": {
         "name": "Année du défaut"
       },
+      "room_floordryingtemp": {
+        "name": "Température de séchage de chape"
+      },
       "room_frostprotectionlimittemp": {
         "name": "Température limite hors-gel"
       },
@@ -1823,6 +1895,9 @@
       },
       "room_roomtemp": {
         "name": "Température ambiante"
+      },
+      "room_roomthermostattemp": {
+        "name": "Température du thermostat d'ambiance"
       },
       "room_summertimeendday": {
         "name": "Fin heure d'été, jour"

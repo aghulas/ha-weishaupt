@@ -157,9 +157,9 @@ async def test_a_failed_program_write_notifies(hass, fake, log, monkeypatch):
 
 
 async def test_room_unit_2_is_refused(hass, fake, log):
-    """Room unit 2 does not keep slot writes: the definitions give its programs no write conditions, and mark its
-    heating programs 1 and 2 (and stored DHW/circulation programs) as kept by room unit 1 (the refusal then names
-    where to change it); heating program 3 has no sharing marker."""
+    """Room unit 2 does not keep slot writes: the definitions give its programs no write conditions, and mark all
+    five of its programs (heating 1–3, stored DHW and circulation) as kept by room unit 1 (the refusal then names
+    where to change it)."""
     entry, writer = await writing(hass, fake, log)
     for program in ("heating1", "heating2", "heating3"):
         with pytest.raises(WriteRefused) as err:
@@ -172,7 +172,7 @@ async def test_room_unit_2_is_refused(hass, fake, log):
                 "device_id": device_id(hass, entry, "room2"), "program": program, "monday": "06:30-18:00"},
                 blocking=True)
         shown[program] = raised.value.translation_key
-    assert shown == {"heating1": "program_shared", "heating2": "program_shared", "heating3": "not_writable"} and fake.writes == []
+    assert shown == {"heating1": "program_shared", "heating2": "program_shared", "heating3": "program_shared"} and fake.writes == []
 
 
 async def test_set_program_for_a_week(hass, fake, log):

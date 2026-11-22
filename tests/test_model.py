@@ -24,8 +24,8 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "1.0.0"
-    assert len(model.messages) == 669
+    assert model.version == "1.3.0"
+    assert len(model.messages) == 687
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
     assert {c.circuit for c in model.devices["manager"].circuits} == {"ka", "em1"}
@@ -61,7 +61,7 @@ def test_missing_and_different_definitions_are_found(model, fake):
 
 def test_a_circuit_ebusd_did_not_load_is_all_missing(model):
     found = model.compare({"bc2"}, {})
-    assert len(found) == 28 and {m.reason for m in found} == {"missing"}
+    assert len(found) == 34 and {m.reason for m in found} == {"missing"}
 
 
 def test_present_devices(model, golden):
@@ -95,7 +95,7 @@ def test_entities(model):
     assert not groups["fs1/group/heating1"].enabled_default and groups["bc1/group/fault_history"].enabled_default
     assert not by_key["ka/BlockingTime/value"].enabled_default and by_key["bc1/Counters/burnerstarts"].enabled_default
     enabled = [e for e in list(model.value_entities) + list(model.group_entities) if e.enabled_default]
-    assert len(enabled) == 184  # of 495: live values, states, operating counters, fault histories
+    assert len(enabled) == 196  # of 541: live values, states, operating counters, fault histories
 
 
 def test_no_written_setting_becomes_anything_else_than_a_sensor(model):
@@ -181,7 +181,8 @@ def test_fixtures_of_the_release(model, golden):
     readings = fixtures["readings"]
     read = {k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
     captured = {f"{r['circuit']}/{r['message']}" for r in readings}
-    assert len(readings) == 1000 and captured == read and len(captured) == 668
+    assert len(readings) == 1017 and len(captured) == 683
+    assert read - captured == {"bc1/FanOperation", "em2/H1Status", "em3/H1Status"}
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"

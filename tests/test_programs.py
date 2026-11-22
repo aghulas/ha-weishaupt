@@ -74,6 +74,7 @@ def test_the_programs_the_definitions_prove(programs):
     assert refused == [
         "fs2/heating1: kept by fs1/heating1, changed there",
         "fs2/heating2: kept by fs1/heating2, changed there",
+        "fs2/heating3: kept by fs1/heating3, changed there",
         "fs2/dhw_stored: kept by fs1/dhw_stored, changed there",
         "fs2/circulation_stored: kept by fs1/circulation_stored, changed there",
     ] and len(specs) == 12 * 21 == 252

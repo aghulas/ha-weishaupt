@@ -48,7 +48,7 @@ async def test_only_reading_commands_reach_ebusd(hass, fake):
     # disabled by default, so never requested: per-fault counters, programs a room unit only stores, the clock
     assert not [k for k in asked if "FaultCounters" in k or "Program" in k or k.startswith("em1/System")
                 or hub.model.messages[k].kind == "setting"]
-    assert len(asked) == 85 and hub.statistics.bus_requests == 72  # 13 passive messages come from the cache
+    assert len(asked) == 93 and hub.statistics.bus_requests == 80  # 13 passive messages come from the cache
     assert hub.statistics.bus_requests + hub.statistics.cache_reads == len(asked)
 
 

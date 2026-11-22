@@ -8,15 +8,19 @@ import "./week-grid.ts";
 import {
   bars,
   choose,
+  clockText,
+  dragRange,
   followPlan,
   jobText,
   priceText,
   formatAge,
   formatRange,
   formatValue,
+  isoWeekday,
   label,
   languageOf,
   addDragged,
+  matchesRow,
   queuedText,
   reportHtml,
   reportRows,
@@ -31,6 +35,7 @@ import {
   redundant,
   t,
   WEEKDAYS,
+  type RowFilter,
 } from "./format.ts";
 import type {
   Days, Device, Estimate, FaultTable, Follow, FollowAnswer, Hass, Installation, JobProgress, LiveEvent, Program, Reading,
@@ -90,6 +95,11 @@ export class WeishauptPanel extends LitElement {
     _reads: { state: true },
     _pending: { state: true },
     _followNote: { state: true },
+    _hideZeroFaults: { state: true },
+    _query: { state: true },
+    _filter: { state: true },
+    _dragPreview: { state: true },
+    _dragError: { state: true },
   };
 
   declare hass: Hass;
@@ -117,6 +127,11 @@ export class WeishauptPanel extends LitElement {
   declare _reads: Record<string, ReadState>; // scope (ALL, device, device|menu) -> its read on demand
   declare _pending: Record<string, boolean>; // entity id -> followed or not, chosen and not applied yet
   declare _followNote: { text: string; error: boolean } | undefined;
+  declare _hideZeroFaults: boolean;
+  declare _query: string;
+  declare _filter: RowFilter;
+  declare _dragPreview: { program: string; day: string; start: number; end: number } | undefined;
+  declare _dragError: Record<string, string>; // `${program}|${day}` -> i18n error key
   private _faultTimer?: number;
   private _drag?: { program: string; day: string; from: number; element: HTMLElement };
 
@@ -140,6 +155,10 @@ export class WeishauptPanel extends LitElement {
     this._weekResult = {};
     this._reads = {};
     this._pending = {};
+    this._hideZeroFaults = true;
+    this._query = "";
+    this._filter = "all";
+    this._dragError = {};
   }
 
   private get _lang(): string {
@@ -169,6 +188,14 @@ export class WeishauptPanel extends LitElement {
           if (found.length) void this._select(found[0].entry_id);
         })
         .catch((err: Error) => (this._error = err.message));
+    }
+  }
+
+  protected updated(changed: PropertyValues): void {
+    if (changed.has("_dialog") && this._dialog) {
+      this.renderRoot.querySelector<HTMLButtonElement>(".dialog button.cancel")?.focus();
+    } else if (changed.has("_editing") && this._editing) {
+      this.renderRoot.querySelector<HTMLElement>("form.edit input, form.edit select")?.focus();
     }
   }
 
@@ -307,27 +334,45 @@ export class WeishauptPanel extends LitElement {
                     <p class="secondary">${t(lang, "fault_no_time")}</p>`}`
         : nothing}
       ${table.counters
-        ? html`<h3>${t(lang, "fault_counters")}</h3>
-            <div class="scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">${t(lang, "fault_number")}</th>
-                    <th scope="col">${t(lang, "fault_count")}</th>
-                    <th scope="col">${t(lang, "fault_text")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${table.counters.map(
-                    (c) => html`<tr>
-                      <th scope="row">${c.number}</th>
-                      <td class=${c.count ? "" : "secondary"}>${c.count === null ? t(lang, "day_unread") : c.count}</td>
-                      <td>${label(c.text, lang) || "-"}</td>
-                    </tr>`,
-                  )}
-                </tbody>
-              </table>
-            </div>`
+        ? (() => {
+            const zeroCount = table.counters.filter((c) => c.count === 0).length;
+            const visible = this._hideZeroFaults ? table.counters.filter((c) => c.count !== 0) : table.counters;
+            return html`<h3>${t(lang, "fault_counters")}</h3>
+              ${zeroCount > 0
+                ? html`<label class="inline-check secondary">
+                    <input
+                      type="checkbox"
+                      .checked=${this._hideZeroFaults}
+                      @change=${(e: Event) => (this._hideZeroFaults = (e.target as HTMLInputElement).checked)}
+                    />
+                    ${t(lang, "fault_hide_zero", { n: zeroCount })}
+                  </label>`
+                : nothing}
+              ${visible.length === 0
+                ? html`<p class="secondary">${t(lang, "fault_all_zero")}</p>`
+                : html`<div class="scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">${t(lang, "fault_number")}</th>
+                          <th scope="col">${t(lang, "fault_count")}</th>
+                          <th scope="col">${t(lang, "fault_text")}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${visible.map(
+                          (c) => html`<tr>
+                            <th scope="row">${c.number}</th>
+                            <td class=${c.count ? "num" : "secondary num"}>
+                              ${c.count === null ? t(lang, "day_unread") : c.count}
+                            </td>
+                            <td>${label(c.text, lang) || "-"}</td>
+                          </tr>`,
+                        )}
+                      </tbody>
+                    </table>
+                  </div>`}`;
+          })()
         : nothing}
       ${table.log
         ? html`<h3>${t(lang, "fault_log")}</h3>
@@ -493,15 +538,16 @@ export class WeishauptPanel extends LitElement {
     this._followNote = undefined;
   }
 
-  private _followCell(follow: Follow | null): TemplateResult | typeof nothing {
+  private _followCell(follow: Follow | null, showLabel = true, rowLabel = ""): TemplateResult | typeof nothing {
     const lang = this._lang;
     if (!follow) return nothing;
     if (follow.blocked) return html`<span class="secondary">${t(lang, "follow_blocked")}</span>`;
     const changed = this._pending[follow.entity_id] !== undefined;
+    const aria = rowLabel ? `${t(lang, "follow")} — ${rowLabel}` : t(lang, "follow");
     return html`<label class=${changed ? "follow changed" : "follow"}>
-      <input type="checkbox" .checked=${this._followed(follow)}
+      <input type="checkbox" aria-label=${aria} .checked=${this._followed(follow)}
         @change=${(e: Event) => this._toggle(follow, (e.target as HTMLInputElement).checked)} />
-      ${t(lang, "follow")}
+      ${showLabel ? t(lang, "follow") : nothing}
     </label>`;
   }
 
@@ -511,13 +557,25 @@ export class WeishauptPanel extends LitElement {
     const n = plan.enable.length + plan.disable.length;
     if (!n) {
       return this._followNote
-        ? html`<div class=${this._followNote.error ? "message error" : "message"} role="status">${this._followNote.text}</div>`
+        ? html`<div class=${this._followNote.error ? "message error" : "message"} role="status">
+            ${this._followNote.text}
+            <button class="ghost" type="button" aria-label=${t(lang, "dismiss")} @click=${() => (this._followNote = undefined)}>
+              ×
+            </button>
+          </div>`
         : nothing;
     }
     return html`<div class="message follow-bar" role="status">
       <p>${t(lang, "follow_pending", { n, enable: plan.enable.length, disable: plan.disable.length })}</p>
       ${plan.enable.length ? html`<p class="secondary">${t(lang, "follow_reload", { s: 30 })}</p>` : nothing}
       ${plan.defaultsOff ? html`<p class="warning">${t(lang, "follow_defaults_off", { n: plan.defaultsOff })}</p>` : nothing}
+      <details class="follow-details">
+        <summary>${t(lang, "follow_details", { n })}</summary>
+        <ul>
+          ${plan.enable.map((id) => html`<li><code>+ ${id}</code></li>`)}
+          ${plan.disable.map((id) => html`<li><code>− ${id}</code></li>`)}
+        </ul>
+      </details>
       <button class="primary" ?disabled=${this._busy} @click=${() => this._applyFollow()}>${t(lang, "follow_apply")}</button>
       <button class="link" @click=${() => (this._pending = {})}>${t(lang, "follow_discard")}</button>
     </div>`;
@@ -575,12 +633,16 @@ export class WeishauptPanel extends LitElement {
             >`
           : nothing}
         ${this._clock()}
+        ${this._writesPill()}
         ${this._tree
           ? html`<button class="link" @click=${() => this._report()}>${t(lang, "report")}</button>
               <button class="link" @click=${() => this._csv()}>${t(lang, "export_csv")}</button>`
           : nothing}
         ${this._rowResult.__report__
-          ? html`<span class="error" role="alert">${this._rowResult.__report__.text}</span>`
+          ? html`<span class="error" role="alert">
+              ${this._rowResult.__report__.text}
+              <button class="ghost" type="button" aria-label=${t(lang, "dismiss")} @click=${() => this._dismissRowResult("__report__")}>×</button>
+            </span>`
           : nothing}
         ${this._tree?.writes?.clock_writable
           ? html`<button class="link" ?disabled=${this._busy} @click=${() => this._setClock()}>
@@ -588,14 +650,15 @@ export class WeishauptPanel extends LitElement {
             </button>`
           : nothing}
         ${this._rowResult.__clock__
-          ? html`<span class=${this._rowResult.__clock__.error ? "error" : "secondary"} role="status"
-              >${this._rowResult.__clock__.text}</span
-            >`
+          ? html`<span class=${this._rowResult.__clock__.error ? "error" : "secondary"} role="status">
+              ${this._rowResult.__clock__.text}
+              <button class="ghost" type="button" aria-label=${t(lang, "dismiss")} @click=${() => this._dismissRowResult("__clock__")}>×</button>
+            </span>`
           : nothing}
       </header>
       ${this._available ? nothing : html`<div class="message warning" role="status">${t(lang, "unavailable")}</div>`}
       ${this._reloading ? html`<div class="message" role="status">${t(lang, "reloading")}</div>` : nothing}
-      ${this._tree ? html`<div class="top-tools">${this._readBar()}</div>` : nothing}
+      ${this._tree ? html`<div class="top-tools">${this._searchBar()}${this._readBar()}</div>` : nothing}
       ${this._followBar()}
       ${this._tree ? this._body(this._tree) : html`<div class="message">${t(lang, "loading")}</div>`}
       ${this._dialog ? this._confirmDialog(this._dialog.answer) : nothing}
@@ -632,6 +695,38 @@ export class WeishauptPanel extends LitElement {
     if (!writes) return false;
     const state = writes.switch_entity_id ? this.hass.states[writes.switch_entity_id] : undefined;
     return state ? state.state === "on" : writes.switch;
+  }
+
+  private _writesPill(): TemplateResult | typeof nothing {
+    const writes = this._tree?.writes;
+    if (!writes) return nothing;
+    const lang = this._lang;
+    const on = this._switchOn();
+    const state = writes.switch_entity_id ? this.hass.states[writes.switch_entity_id] : undefined;
+    const used = typeof state?.attributes.writes_last_hour === "number"
+      ? state.attributes.writes_last_hour
+      : writes.writes_last_hour;
+    const max = typeof state?.attributes.max_writes_per_hour === "number"
+      ? state.attributes.max_writes_per_hour
+      : writes.max_per_hour;
+    const text = on ? t(lang, "writes_pill_on", { n: used, max }) : t(lang, "writes_pill_off");
+    if (writes.switch_entity_id) {
+      return html`<button class="writes-pill ${on ? "on" : "off"}" @click=${() => this._open(writes.switch_entity_id!)}>
+        ${text}
+      </button>`;
+    }
+    return html`<span class="writes-pill ${on ? "on" : "off"}">${text}</span>`;
+  }
+
+  private _switchOffHint(): TemplateResult {
+    const lang = this._lang;
+    const id = this._tree?.writes?.switch_entity_id;
+    return html`<div class="error">
+      ${t(lang, "switch_off_hint")}
+      ${id
+        ? html` <button class="link" type="button" @click=${() => this._open(id)}>${t(lang, "open_switch")}</button>`
+        : nothing}
+    </div>`;
   }
 
   private _resultText(answer: WriteAnswer): { text: string; error: boolean } {
@@ -701,13 +796,42 @@ export class WeishauptPanel extends LitElement {
     await this._call({ type: "weishaupt/panel/cancel", pending_id: dialog.answer.pending_id });
   }
 
+  private _dialogKeydown(e: KeyboardEvent): void {
+    if (e.key === "Escape") {
+      void this._withdrawn();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const dialog = e.currentTarget as HTMLElement;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>("button:not([disabled]), [href], input, select, [tabindex]:not([tabindex='-1'])"));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = this.renderRoot instanceof ShadowRoot ? this.renderRoot.activeElement : document.activeElement;
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
   private _confirmDialog(answer: WriteAnswer): TemplateResult {
     const lang = this._lang;
     const p = answer.placeholders ?? {};
     const clock = answer.kind === "clock";
-    return html`<div class="backdrop">
-      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title"
-        @keydown=${(e: KeyboardEvent) => e.key === "Escape" && this._withdrawn()}>
+    return html`<div
+      class="backdrop"
+      @click=${(e: MouseEvent) => e.target === e.currentTarget && void this._withdrawn()}
+    >
+      <div
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-title"
+        @keydown=${(e: KeyboardEvent) => this._dialogKeydown(e)}
+      >
         <h2 id="confirm-title">${t(lang, "confirm_title", { setting: p.setting ?? "", device: p.device ?? "" })}</h2>
         ${clock
           ? html`<p>${t(lang, "clock_current", { current: p.current ?? "-" })}</p>
@@ -723,13 +847,25 @@ export class WeishauptPanel extends LitElement {
               <p>${t(lang, "path", p)}</p>
               <p class="secondary">${t(lang, "regulation_note")}</p>`}
         <div class="actions">
-          <button class="link" @click=${() => this._withdrawn()}>${t(lang, "cancel")}</button>
-          <button class="primary" autofocus @click=${() => this._confirmed()}>
+          <button class="link cancel" @click=${() => this._withdrawn()}>${t(lang, "cancel")}</button>
+          <button class="primary" @click=${() => this._confirmed()}>
             ${t(lang, clock ? "confirm_clock" : "confirm")}
           </button>
         </div>
       </div>
     </div>`;
+  }
+
+  private _dismissRowResult(key: string): void {
+    const rest = { ...this._rowResult };
+    delete rest[key];
+    this._rowResult = rest;
+  }
+
+  private _dismissWeekResult(key: string): void {
+    const rest = { ...this._weekResult };
+    delete rest[key];
+    this._weekResult = rest;
   }
 
   private _writeCell(row: Row): TemplateResult {
@@ -756,7 +892,10 @@ export class WeishauptPanel extends LitElement {
       action = html`<button class="link" @click=${() => this._startEdit(row)}>${t(lang, "edit")}</button>`;
     }
     return html`${badge}${action}${result
-      ? html`<div class=${result.error ? "error" : "secondary"} role="status">${result.text}</div>`
+      ? html`<div class=${result.error ? "error" : "secondary"} role="status">
+          ${result.text}
+          <button class="ghost" type="button" aria-label=${t(lang, "dismiss")} @click=${() => this._dismissRowResult(row.key)}>×</button>
+        </div>`
       : nothing}`;
   }
 
@@ -764,8 +903,13 @@ export class WeishauptPanel extends LitElement {
     const lang = this._lang;
     const writable = row.writable!;
     const reading = readingOf(row, this._readings);
+    const currentDraft = initialDraft(row, reading);
+    const unchanged = currentDraft !== "" && this._draft === currentDraft;
+    const switchOn = this._switchOn();
+    const range = formatRange(row, lang);
     return html`<form
         class="edit"
+        @keydown=${(e: KeyboardEvent) => e.key === "Escape" && (this._editing = undefined)}
         @submit=${(e: Event) => {
           e.preventDefault();
           void this._writeRow(row);
@@ -783,18 +927,18 @@ export class WeishauptPanel extends LitElement {
               min=${writable.minimum ?? ""} max=${writable.maximum ?? ""} step=${writable.step ?? "any"}
               @input=${(e: Event) => (this._draft = (e.target as HTMLInputElement).value)} />${row.unit
               ? html` ${row.unit}`
-              : nothing}`}
-        <button class="primary" type="submit" ?disabled=${this._busy || this._draft === ""}>${t(lang, "write_now")}</button>
+              : nothing}${range ? html` <span class="secondary">(${range})</span>` : nothing}`}
+        <button class="primary" type="submit" ?disabled=${this._busy || this._draft === "" || unchanged || !switchOn}>
+          ${t(lang, "write_now")}
+        </button>
         <button class="link" type="button" @click=${() => (this._editing = undefined)}>${t(lang, "cancel")}</button>
         <div class="secondary">
           ${formatValue(row, reading, lang) ?? "-"} ·
           ${t(lang, "path_short", { address: writable.address ?? "", register: writable.register ?? "", source: writable.source })}
         </div>
         <div class="secondary">${t(lang, writable.risk === "comfort" ? "comfort_note" : "regulation_note")}</div>
-        ${this._tree?.writes && !this._switchOn()
-          ? html`<div class="error">${t(lang, "switch_off_hint")}</div>`
-          : nothing}
-      </form>`
+        ${this._tree?.writes && !switchOn ? this._switchOffHint() : nothing}
+      </form>`;
   }
 
   private _startEdit(row: Row): void {
@@ -821,6 +965,12 @@ export class WeishauptPanel extends LitElement {
 
   private _setDay(program: string, day: string, text: string): void {
     this._weekDraft = { ...this._weekDraft, [program]: { ...this._weekDraft[program], [day]: text } };
+    const key = `${program}|${day}`;
+    if (this._dragError[key]) {
+      const rest = { ...this._dragError };
+      delete rest[key];
+      this._dragError = rest;
+    }
   }
 
   private _changed(program: Program): string[] {
@@ -875,19 +1025,37 @@ export class WeishauptPanel extends LitElement {
     const element = e.currentTarget as HTMLElement;
     if ((e.target as HTMLElement).classList.contains("bar")) return; // a click on a range removes it
     const box = element.getBoundingClientRect();
-    this._drag = { program, day, from: (e.clientX - box.left) / box.width, element };
+    const from = (e.clientX - box.left) / box.width;
+    this._drag = { program, day, from, element };
+    const [start, end] = dragRange(from, from);
+    this._dragPreview = { program, day, start, end };
     element.setPointerCapture(e.pointerId);
+  }
+
+  private _dragMove(e: PointerEvent): void {
+    const drag = this._drag;
+    if (!drag) return;
+    const box = drag.element.getBoundingClientRect();
+    const [start, end] = dragRange(drag.from, (e.clientX - box.left) / box.width);
+    this._dragPreview = { program: drag.program, day: drag.day, start, end };
+  }
+
+  private _dragCancel(): void {
+    this._drag = undefined;
+    this._dragPreview = undefined;
   }
 
   private _dragEnd(e: PointerEvent): void {
     const drag = this._drag;
     this._drag = undefined;
+    this._dragPreview = undefined;
     if (!drag) return;
     const box = drag.element.getBoundingClientRect();
     const parsed = parseDay(this._weekDraft[drag.program][drag.day]);
     if (!("ranges" in parsed)) return;
     const next = addDragged(parsed.ranges, drag.from, (e.clientX - box.left) / box.width);
     if (next) this._setDay(drag.program, drag.day, formatDay(next));
+    else this._dragError = { ...this._dragError, [`${drag.program}|${drag.day}`]: "day_too_many" };
   }
 
   private _removeRange(program: string, day: string, index: number): void {
@@ -911,12 +1079,76 @@ export class WeishauptPanel extends LitElement {
     </button>`;
   }
 
+  private _searchActive(): boolean {
+    return this._query.trim() !== "" || this._filter !== "all";
+  }
+
+  private _clearSearch(): void {
+    this._query = "";
+    this._filter = "all";
+  }
+
+  private _searchBar(): TemplateResult {
+    const lang = this._lang;
+    const filters: [RowFilter, string][] = [
+      ["all", t(lang, "filter_all")],
+      ["writable", t(lang, "filter_writable")],
+      ["followed", t(lang, "filter_followed")],
+      ["unread", t(lang, "filter_unread")],
+    ];
+    return html`<div class="search-bar" role="search">
+      <input
+        type="search"
+        .value=${this._query}
+        placeholder=${t(lang, "search_placeholder")}
+        aria-label=${t(lang, "search_placeholder")}
+        @input=${(e: Event) => (this._query = (e.target as HTMLInputElement).value)}
+        @keydown=${(e: KeyboardEvent) => e.key === "Escape" && this._clearSearch()}
+      />
+      <div class="filters" role="group">
+        ${filters.map(
+          ([id, text]) => html`<button
+            type="button"
+            class="filter-pill ${this._filter === id ? "active" : ""}"
+            aria-pressed=${this._filter === id ? "true" : "false"}
+            @click=${() => (this._filter = id)}
+          >
+            ${text}
+          </button>`,
+        )}
+      </div>
+      ${this._searchActive()
+        ? html`<button type="button" class="link" @click=${() => this._clearSearch()}>${t(lang, "search_clear")}</button>`
+        : nothing}
+    </div>`;
+  }
+
+  private _searchView(tree: Tree): TemplateResult {
+    const lang = this._lang;
+    const groups = tree.devices
+      .map((device) => ({
+        device,
+        rows: device.rows.filter((row) => matchesRow(row, this._query, this._filter, this._readings, lang)),
+      }))
+      .filter((g) => g.rows.length > 0);
+    const total = groups.reduce((acc, g) => acc + g.rows.length, 0);
+    return html`<h2>${t(lang, total === 1 ? "search_results_one" : "search_results", { n: total })}</h2>
+      ${total === 0
+        ? html`<p class="secondary">${t(lang, "search_empty")}</p>`
+        : groups.map(
+            ({ device, rows }) => html`<h3>${label(device.label, lang)} (${rows.length})</h3>
+              ${this._table(rows)}`,
+          )}`;
+  }
+
   private _body(tree: Tree): TemplateResult {
     const device = tree.devices.find((d) => d.id === this._device);
     return html`<div class=${this.narrow ? "layout narrow" : "layout"}>
       <nav aria-label=${t(this._lang, "devices")}>${this._nav(tree)}</nav>
       <main>
-        ${this._menu === DEFINITIONS
+        ${this._searchActive()
+          ? this._searchView(tree)
+          : this._menu === DEFINITIONS
           ? this._definitions(tree)
           : this._menu === FAULTS
             ? (() => {
@@ -930,8 +1162,34 @@ export class WeishauptPanel extends LitElement {
     </div>`;
   }
 
+  private _faultBadge(deviceId: string): number {
+    const table = this._faults?.find((f) => f.device === deviceId);
+    if (!table) return 0;
+    const hist = table.history?.entries?.length ?? 0;
+    if (hist > 0) return hist;
+    return (table.counters ?? []).filter((c) => (c.count ?? 0) > 0).length;
+  }
+
+  private _menuPendingCount(device: Device, menuId: string): number {
+    const rowPending = device.rows.filter(
+      (r) =>
+        (r.menu === menuId || descends(device.menus, r.menu, menuId)) &&
+        r.follow &&
+        this._pending[r.follow.entity_id] !== undefined,
+    ).length;
+    const progPending = menuId === PROGRAMS
+      ? device.programs.filter((p) => p.follow && this._pending[p.follow.entity_id] !== undefined).length
+      : 0;
+    return rowPending + progPending;
+  }
+
   private _nav(tree: Tree): TemplateResult {
     const lang = this._lang;
+    const selectMenu = (device: string, menu: string): void => {
+      this._device = device;
+      this._menu = menu;
+      if (this._searchActive()) this._clearSearch();
+    };
     if (this.narrow) {
       // a phone: one list to choose from, so that the table is not pushed below the whole tree
       const current = `${this._device ?? ""}|${this._menu ?? ""}`;
@@ -940,8 +1198,7 @@ export class WeishauptPanel extends LitElement {
         <select
           @change=${(e: Event) => {
             const [device, menu] = (e.target as HTMLSelectElement).value.split("|");
-            this._device = device;
-            this._menu = menu;
+            selectMenu(device, menu);
           }}
         >
           ${tree.devices.map(
@@ -965,31 +1222,38 @@ export class WeishauptPanel extends LitElement {
         </select></label
       >`;
     }
-    const item = (device: string, menu: string, text: string, depth: number): TemplateResult => {
-      const current = this._device === device && this._menu === menu;
+    const item = (device: string, menu: string, text: string, depth: number, badge = ""): TemplateResult => {
+      const current = !this._searchActive() && this._device === device && this._menu === menu;
       return html`<li>
         <button
           class="menu depth${depth}"
           aria-current=${current ? "page" : "false"}
-          @click=${() => {
-            this._device = device;
-            this._menu = menu;
-          }}
+          @click=${() => selectMenu(device, menu)}
         >
-          ${text}
+          <span>${text}</span>
+          ${badge ? html`<span class="nav-badge">${badge}</span>` : nothing}
         </button>
       </li>`;
     };
     return html`<ul>
-      ${tree.devices.map(
-        (device) => html`<li>
+      ${tree.devices.map((device) => {
+        const faultCount = this._faultBadge(device.id);
+        const hasWeekDraft = device.programs.some((p) => this._weekDraft[p.key] !== undefined);
+        return html`<li>
           <span class="device">${label(device.label, lang)}</span>
           <ul>
-            ${menuTree(device.menus).map(([menu, depth]) => item(device.id, menu.id, label(menu.label, lang), depth))}
-            ${this._faults?.some((f) => f.device === device.id) ? item(device.id, FAULTS, t(lang, "faults"), 0) : nothing}
+            ${menuTree(device.menus).map(([menu, depth]) => {
+              const pending = this._menuPendingCount(device, menu.id);
+              const badge = menu.id === PROGRAMS && hasWeekDraft ? "•" : pending > 0 ? String(pending) : "";
+              return item(device.id, menu.id, label(menu.label, lang), depth, badge);
+            })}
+            ${this._faults?.some((f) => f.device === device.id)
+              ? item(device.id, FAULTS, t(lang, "faults"), 0, faultCount > 0 ? String(faultCount) : "")
+              : nothing}
           </ul>
-        </li>`,
-      )}
+        </li>`;
+      })}
+      <li class="nav-sep" role="separator"></li>
       ${item(this._device ?? "", DEFINITIONS, t(lang, "definitions"), 0)}
     </ul>`;
   }
@@ -1009,7 +1273,7 @@ export class WeishauptPanel extends LitElement {
       .filter(([, rows]) => rows.length);
     return html`<h2>${label(device.label, lang)}${menu ? html` — ${label(menu.label, lang)}` : nothing}</h2>
       ${info.length ? html`<p class="secondary">${info.join(" · ")}</p>` : nothing}
-      ${this._readBar(device.id)}
+      ${device.rows.some((r) => !r.listened && r.read && !r.passive) ? this._readBar(device.id) : nothing}
       ${this._menu === PROGRAMS ? this._programs_view(device) : nothing}
       ${sections.length ? html`<p class="secondary">${t(lang, "write_hint")}</p>` : nothing}
       ${sections.map(
@@ -1018,9 +1282,9 @@ export class WeishauptPanel extends LitElement {
             ${rows.some((r) => !r.listened && r.read && !r.passive) ? this._readBar(device.id, m.id) : nothing}
             ${rows.some((r) => r.follow && !r.follow.blocked)
               ? html`<span>
-                  <button class="link" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), true))}>
+                  <button class="ghost" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), true))}>
                     ${t(lang, "follow_all")}</button>
-                  <button class="link" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), false))}>
+                  <button class="ghost" @click=${() => (this._pending = choose(this._pending, rows.map((r) => r.follow), false))}>
                     ${t(lang, "follow_none")}</button>
                 </span>`
               : nothing}
@@ -1057,7 +1321,7 @@ export class WeishauptPanel extends LitElement {
                   ${label(row.label, lang)}
                   ${description ? html`<div class="description">${description}</div>` : nothing}
                 </th>
-                <td class="nowrap">${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
+                <td class="nowrap num">${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
                 <td class="secondary nowrap">
                   ${reading ? this._age(reading) : ""}${reading?.kept
                     ? html`<div class="kept">${t(lang, "kept")}</div>`
@@ -1065,14 +1329,14 @@ export class WeishauptPanel extends LitElement {
                     ? html`<div class="kept">${t(lang, "read_once")}</div>`
                     : nothing}
                 </td>
-                <td class="nowrap">${formatRange(row, lang)}</td>
+                <td class="nowrap num">${formatRange(row, lang)}</td>
                 <td>${this._writeCell(row)}</td>
                 <td>
                   ${row.entity_id
-                    ? html`<button class="link" @click=${() => this._open(row.entity_id!)}>${t(lang, "open")}</button>`
+                    ? html`<button class="ghost" @click=${() => this._open(row.entity_id!)}>${t(lang, "open")}</button>`
                     : nothing}
                 </td>
-                <td>${this._followCell(row.follow)}</td>
+                <td class="follow-cell">${this._followCell(row.follow, false, label(row.label, lang))}</td>
               </tr>${this._editing === row.key
                 ? html`<tr class="edit-row"><td colspan="7">${this._editForm(row)}</td></tr>`
                 : nothing}`;
@@ -1141,6 +1405,7 @@ export class WeishauptPanel extends LitElement {
               language=${lang}
               unread=${t(lang, program.listened ? "day_unread" : "not_listened")}
               caption=${label(program.label, lang)}
+              today=${isoWeekday(new Date())}
             ></weishaupt-week-grid>`
           : html`<table class="week">
           <caption class="visually-hidden">${label(program.label, lang)}</caption>
@@ -1158,7 +1423,11 @@ export class WeishauptPanel extends LitElement {
               if (editing) {
                 const parsed = parseDay(draft[day]);
                 const ranges = "ranges" in parsed ? parsed.ranges : [];
-                const error = errors[day];
+                const error = errors[day] ?? this._dragError[`${program.key}|${day}`] ?? null;
+                const preview =
+                  this._dragPreview?.program === program.key && this._dragPreview.day === day
+                    ? this._dragPreview
+                    : undefined;
                 return html`<tr class=${changed.includes(day) ? "changed" : ""}>
                   <th scope="row">${name}</th>
                   <td>
@@ -1166,15 +1435,28 @@ export class WeishauptPanel extends LitElement {
                       class="day editable"
                       aria-hidden="true"
                       @pointerdown=${(e: PointerEvent) => this._dragStart(e, program.key, day)}
+                      @pointermove=${(e: PointerEvent) => this._dragMove(e)}
                       @pointerup=${(e: PointerEvent) => this._dragEnd(e)}
+                      @pointercancel=${() => this._dragCancel()}
                     >
                       ${ranges.map(
                         ([a, b], index) => html`<span
                           class="bar"
+                          title=${t(lang, "bar_remove_hint", { range: `${clockText(a)}-${clockText(b)}` })}
                           style="left:${(a / 1440) * 100}%;width:${((b - a) / 1440) * 100}%"
                           @click=${() => this._removeRange(program.key, day, index)}
                         ></span>`,
                       )}
+                      ${preview
+                        ? html`<span
+                              class="bar preview"
+                              style="left:${(preview.start / 1440) * 100}%;width:${((preview.end - preview.start) / 1440) * 100}%"
+                            ></span>
+                            <span
+                              class="drag-label"
+                              style="left:${((preview.start + preview.end) / 2880) * 100}%"
+                            >${clockText(preview.start)}–${clockText(preview.end)}</span>`
+                        : nothing}
                     </div>
                     <div class="day-edit">
                       <input
@@ -1185,6 +1467,14 @@ export class WeishauptPanel extends LitElement {
                         .value=${draft[day]}
                         @input=${(e: Event) => this._setDay(program.key, day, (e.target as HTMLInputElement).value)}
                       />
+                      <button
+                        class="ghost"
+                        type="button"
+                        ?disabled=${draft[day].trim() === "" || draft[day].trim() === "-"}
+                        @click=${() => this._setDay(program.key, day, "-")}
+                      >
+                        ${t(lang, "clear_day")}
+                      </button>
                       <label class="secondary"
                         >${t(lang, "copy_to")}
                         <select
@@ -1195,9 +1485,9 @@ export class WeishauptPanel extends LitElement {
                           }}
                         >
                           <option value="">…</option>
-                          <option value="all">${lang === "fr" ? "tous les jours" : "every day"}</option>
-                          <option value="weekdays">${lang === "fr" ? "lundi – vendredi" : "Monday – Friday"}</option>
-                          <option value="weekend">${lang === "fr" ? "samedi, dimanche" : "Saturday, Sunday"}</option>
+                          <option value="all">${t(lang, "copy_all")}</option>
+                          <option value="weekdays">${t(lang, "copy_weekdays")}</option>
+                          <option value="weekend">${t(lang, "copy_weekend")}</option>
                           ${days.map((other, k) => (k === i ? nothing : html`<option value=${String(k + 1)}>${other}</option>`))}
                         </select></label
                       >
@@ -1219,18 +1509,23 @@ export class WeishauptPanel extends LitElement {
                   max: writes.max_per_hour,
                 })}
               </p>
-              ${this._switchOn() ? nothing : html`<p class="error">${t(lang, "switch_off_hint")}</p>`}
+              ${this._switchOn() ? nothing : this._switchOffHint()}
               <div class="actions">
                 <button class="link" @click=${() => {
                   const rest = { ...this._weekDraft };
                   delete rest[program.key];
                   this._weekDraft = rest;
                 }}>${t(lang, "discard")}</button>
-                <button class="primary" ?disabled=${this._busy || invalid || !changed.length}
+                <button class="primary" ?disabled=${this._busy || invalid || !changed.length || !this._switchOn()}
                   @click=${() => this._writeWeek(program)}>${t(lang, "write_days")}</button>
               </div>`
           : nothing}
-        ${result ? html`<p class=${result.error ? "error" : "secondary"} role="status">${result.text}</p>` : nothing}
+        ${result
+          ? html`<p class=${result.error ? "error" : "secondary"} role="status">
+              ${result.text}
+              <button class="ghost" type="button" aria-label=${t(lang, "dismiss")} @click=${() => this._dismissWeekResult(program.key)}>×</button>
+            </p>`
+          : nothing}
       </section>`;
     })}`;
   }
@@ -1238,8 +1533,13 @@ export class WeishauptPanel extends LitElement {
   private _definitions(tree: Tree): TemplateResult {
     const lang = this._lang;
     const d = tree.definitions;
-    const list = (items: string[]): TemplateResult =>
-      items.length ? html`<ul>${items.map((i) => html`<li><code>${i}</code></li>`)}</ul>` : html`${t(lang, "none")}`;
+    const list = (items: string[]): TemplateResult => {
+      if (!items.length) return html`${t(lang, "none")}`;
+      const ul = html`<ul>${items.map((i) => html`<li><code>${i}</code></li>`)}</ul>`;
+      if (items.length <= 5) return ul;
+      const summary = t(lang, items.length === 1 ? "items_count_one" : "items_count", { n: items.length });
+      return html`<details><summary>${summary}</summary>${ul}</details>`;
+    };
     const writes = tree.writes;
     return html`<h2>${t(lang, "definitions")}</h2>
       <dl>
@@ -1247,6 +1547,20 @@ export class WeishauptPanel extends LitElement {
         <dd>
           ${d.version}${d.commit ? html` <code>${d.commit.slice(0, 7)}</code>` : nothing} —
           ${d.source === "bundled" ? t(lang, "source_bundled") : t(lang, "source_file", { file: d.source })}
+        </dd>
+        <dt>${t(lang, "ebusd")}</dt>
+        <dd>
+          ${tree.ebusd.endpoint ?? "?"} · ${tree.ebusd.version ?? "?"}${tree.ebusd.own_address ? ` (${tree.ebusd.own_address})` : ""} ·
+          ${t(lang, "capability", { value: tree.ebusd.capability })} ·
+          ${t(lang, tree.ebusd.mode === "follow" ? "mode_follow" : "mode_pinned", { n: tree.ebusd.endpoints.length })}
+        </dd>
+        <dt>${t(lang, "writes")}</dt>
+        <dd>
+          ${writes
+            ? html`${t(lang, this._switchOn() ? "switch_on" : "switch_off")} ·
+              ${t(lang, "capability", { value: writes.capability })} ·
+              ${t(lang, "per_hour", { n: writes.writes_last_hour, max: writes.max_per_hour })}`
+            : t(lang, "writes_off")}
         </dd>
         <dt>${t(lang, "messages")}</dt>
         <dd>
@@ -1261,28 +1575,14 @@ export class WeishauptPanel extends LitElement {
         <dd>${list(Object.entries(d.refused).map(([file, why]) => `${file}: ${why}`))}</dd>
         <dt>${t(lang, "mismatches")}</dt>
         <dd>${list(d.mismatches.map((m) => `${m.key}: ${m.reason}${m.detail ? ` (${m.detail})` : ""}`))}</dd>
+        <dt>${t(lang, "unknown_addresses")}</dt>
+        <dd>${list(tree.unknown_addresses)}</dd>
         <dt>${t(lang, "named_from_metadata")}</dt>
         <dd>
           ${list(d.named_from_metadata.map((e) => (e.disabled ? `${e.entity_id} (${t(lang, "disabled")})` : e.entity_id)))}
         </dd>
         <dt>${t(lang, "not_named")}</dt>
         <dd>${list(d.not_named)}</dd>
-        <dt>${t(lang, "ebusd")}</dt>
-        <dd>
-          ${tree.ebusd.endpoint ?? "?"} · ${tree.ebusd.version ?? "?"}${tree.ebusd.own_address ? ` (${tree.ebusd.own_address})` : ""} ·
-          ${t(lang, "capability", { value: tree.ebusd.capability })} ·
-          ${t(lang, tree.ebusd.mode === "follow" ? "mode_follow" : "mode_pinned", { n: tree.ebusd.endpoints.length })}
-        </dd>
-        <dt>${t(lang, "unknown_addresses")}</dt>
-        <dd>${list(tree.unknown_addresses)}</dd>
-        <dt>${t(lang, "writes")}</dt>
-        <dd>
-          ${writes
-            ? html`${t(lang, this._switchOn() ? "switch_on" : "switch_off")} ·
-              ${t(lang, "capability", { value: writes.capability })} ·
-              ${t(lang, "per_hour", { n: writes.writes_last_hour, max: writes.max_per_hour })}`
-            : t(lang, "writes_off")}
-        </dd>
         ${writes
           ? html`<dt>${t(lang, "read_only_settings")}</dt>
               <dd>${list(writes.read_only.map((r) => `${r.key}: ${r.reason}`))}</dd>`
@@ -1299,7 +1599,43 @@ export class WeishauptPanel extends LitElement {
       margin: 4px 0;
     }
     .top-tools {
-      padding: 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px 16px;
+      padding: 8px 16px 0;
+    }
+    .search-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 8px;
+      flex: 1 1 320px;
+    }
+    .search-bar input[type="search"] {
+      flex: 1 1 200px;
+      max-width: 340px;
+      min-width: 0;
+    }
+    .filters {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .filter-pill {
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color);
+      color: var(--secondary-text-color);
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.85em;
+      cursor: pointer;
+    }
+    .filter-pill.active {
+      border-color: var(--primary-color);
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
     }
     .read-bar progress {
       width: 160px;
@@ -1325,9 +1661,58 @@ export class WeishauptPanel extends LitElement {
       z-index: 2;
       background: var(--card-background-color, var(--primary-background-color));
       border-bottom: 1px solid var(--divider-color);
+      border-inline-start: 4px solid var(--primary-color);
     }
     .follow-bar p {
       margin: 0 0 6px;
+    }
+    .follow-details {
+      margin: 0 0 8px;
+      font-size: 0.9em;
+    }
+    .follow-details ul {
+      margin: 4px 0 0;
+      padding-inline-start: 18px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .writes-pill {
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.9em;
+      border: 1px solid currentColor;
+      background: none;
+      cursor: pointer;
+    }
+    .writes-pill.on {
+      color: var(--success-color, var(--primary-color));
+    }
+    .writes-pill.off {
+      color: var(--secondary-text-color);
+    }
+    .nav-sep {
+      border-top: 1px solid var(--divider-color);
+      margin: 10px 0;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+    .follow-cell {
+      text-align: center;
+    }
+    .inline-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 8px;
+      cursor: pointer;
+    }
+    details summary {
+      cursor: pointer;
+      color: var(--primary-color);
+    }
+    details[open] summary {
+      margin-bottom: 4px;
     }
     :host {
       display: block;
@@ -1407,7 +1792,10 @@ export class WeishauptPanel extends LitElement {
       color: inherit;
     }
     button.menu {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
       width: 100%;
       text-align: start;
       border: 0;
@@ -1415,6 +1803,14 @@ export class WeishauptPanel extends LitElement {
       padding: 6px 8px;
       border-radius: 6px;
       cursor: pointer;
+    }
+    .nav-badge {
+      font-size: 0.78em;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: var(--secondary-background-color);
+      color: var(--primary-color);
+      font-weight: 500;
     }
     button.menu.depth1 {
       padding-inline-start: 24px;
@@ -1438,6 +1834,17 @@ export class WeishauptPanel extends LitElement {
       padding: 2px 8px;
       cursor: pointer;
       color: var(--primary-color);
+    }
+    button.ghost {
+      border: 0;
+      background: none;
+      border-radius: 6px;
+      padding: 2px 6px;
+      cursor: pointer;
+      color: var(--primary-color);
+    }
+    button.ghost:hover:not(:disabled) {
+      background: var(--secondary-background-color);
     }
     .nowrap {
       white-space: nowrap;
@@ -1463,6 +1870,13 @@ export class WeishauptPanel extends LitElement {
     tbody th {
       font-weight: 400;
       min-width: 12em;
+    }
+    tbody tr:hover {
+      background: var(--secondary-background-color);
+    }
+    tr.edit-row,
+    tr.edit-row:hover {
+      background: var(--secondary-background-color);
     }
     .description,
     .secondary {
@@ -1507,10 +1921,28 @@ export class WeishauptPanel extends LitElement {
       color: var(--secondary-text-color);
       font-size: 0.8em;
     }
+    .scale span:first-child {
+      transform: none;
+    }
+    .scale span:last-child {
+      transform: translateX(-100%);
+    }
     .day {
       position: relative;
       height: 14px;
-      background: var(--secondary-background-color);
+      background-color: var(--secondary-background-color);
+      background-image: linear-gradient(
+        to right,
+        transparent calc(25% - 0.5px),
+        var(--divider-color) 25%,
+        transparent calc(25% + 0.5px),
+        transparent calc(50% - 0.5px),
+        var(--divider-color) 50%,
+        transparent calc(50% + 0.5px),
+        transparent calc(75% - 0.5px),
+        var(--divider-color) 75%,
+        transparent calc(75% + 0.5px)
+      );
       border-radius: 4px;
     }
     .bar {
@@ -1591,6 +2023,26 @@ export class WeishauptPanel extends LitElement {
     }
     .day.editable .bar {
       cursor: pointer;
+    }
+    .day.editable .bar:hover {
+      background: var(--error-color);
+    }
+    .bar.preview {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .drag-label {
+      position: absolute;
+      top: -22px;
+      transform: translateX(-50%);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.78em;
+      white-space: nowrap;
+      background: var(--primary-text-color);
+      color: var(--card-background-color);
+      pointer-events: none;
+      z-index: 3;
     }
     .day-edit {
       display: flex;

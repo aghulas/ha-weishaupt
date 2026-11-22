@@ -11,6 +11,7 @@ export class WeishauptWeekGrid extends LitElement {
     language: { type: String },
     unread: { type: String }, // text of a day not read yet
     today: { type: Number }, // 1 (Monday) … 7, 0 for none
+    now: { type: Number }, // minutes since midnight; negative/omitted uses the current clock
     caption: { type: String },
   };
 
@@ -18,6 +19,7 @@ export class WeishauptWeekGrid extends LitElement {
   declare language: string;
   declare unread: string;
   declare today: number;
+  declare now: number;
   declare caption: string;
 
   constructor() {
@@ -25,12 +27,18 @@ export class WeishauptWeekGrid extends LitElement {
     this.language = "en";
     this.unread = "";
     this.today = 0;
+    this.now = -1;
     this.caption = "";
   }
 
   render(): TemplateResult {
     const lang = this.language;
     const names = WEEKDAYS[lang] ?? WEEKDAYS.en;
+    const currentMinutes = this.now >= 0 ? this.now : (() => {
+      const d = new Date();
+      return d.getHours() * 60 + d.getMinutes();
+    })();
+    const nowPercent = Math.min(100, Math.max(0, (currentMinutes / 1440) * 100));
     return html`<table>
       ${this.caption ? html`<caption class="visually-hidden">${this.caption}</caption>` : nothing}
       <thead>
@@ -58,6 +66,9 @@ export class WeishauptWeekGrid extends LitElement {
                   ? bars(ranges!).map(
                       (bar) => html`<span class="bar" style="left:${bar.left}%;width:${bar.width}%"></span>`,
                     )
+                  : nothing}
+                ${this.today === i + 1
+                  ? html`<span class="now-line" style="left:${nowPercent}%"></span>`
                   : nothing}
               </div>
               <div class="day-text">${text}</div>
@@ -101,10 +112,28 @@ export class WeishauptWeekGrid extends LitElement {
       color: var(--secondary-text-color);
       font-size: 0.8em;
     }
+    .scale span:first-child {
+      transform: none;
+    }
+    .scale span:last-child {
+      transform: translateX(-100%);
+    }
     .day {
       position: relative;
       height: 14px;
-      background: var(--secondary-background-color);
+      background-color: var(--secondary-background-color);
+      background-image: linear-gradient(
+        to right,
+        transparent calc(25% - 0.5px),
+        var(--divider-color) 25%,
+        transparent calc(25% + 0.5px),
+        transparent calc(50% - 0.5px),
+        var(--divider-color) 50%,
+        transparent calc(50% + 0.5px),
+        transparent calc(75% - 0.5px),
+        var(--divider-color) 75%,
+        transparent calc(75% + 0.5px)
+      );
       border-radius: 4px;
     }
     .bar {
@@ -113,6 +142,16 @@ export class WeishauptWeekGrid extends LitElement {
       bottom: 0;
       background: var(--primary-color);
       border-radius: 4px;
+    }
+    .now-line {
+      position: absolute;
+      top: -2px;
+      bottom: -2px;
+      width: 2px;
+      margin-left: -1px;
+      background: var(--error-color);
+      border-radius: 1px;
+      pointer-events: none;
     }
     .day-text {
       font-size: 0.85em;

@@ -177,7 +177,7 @@ async def test_definitions_mismatch_raises_a_repair_issue(hass, fake):
     issue = ir.async_get(hass).async_get_issue(DOMAIN, f"definitions_mismatch_{entry.entry_id}")
     assert issue is not None and issue.severity is ir.IssueSeverity.WARNING and not issue.is_fixable
     assert issue.translation_placeholders == {
-        "count": "2", "missing": "1", "different": "1", "version": "0.8.0", "accepted": ">=0.6.0, <0.9",
+        "count": "2", "missing": "1", "different": "1", "version": "1.0.0", "accepted": ">=0.6.0, <2.0",
         "messages": "bc1/SupplyTemp, ka/BlockingTime"}
     registry = er.async_get(hass)
     # no broken entity for the two messages, the others are there
@@ -286,7 +286,7 @@ async def test_diagnostics_hold_nothing_of_the_site(hass, fake):
     text = json.dumps(data, default=str)
     assert "127.0.0.1" not in text and str(fake.port) in text  # the host is redacted, the port is not a secret
     assert data["entry"]["data"]["host"] == "**REDACTED**"
-    assert data["definitions"]["metadata_version"] == "0.8.0" and data["definitions"]["mismatches"] == []
+    assert data["definitions"]["metadata_version"] == "1.0.0" and data["definitions"]["mismatches"] == []
     assert not [key for key in data["readings"] if "Program" in key or key == "ka/BlockingTime"]  # disabled, not read
     assert data["ebusd"]["commands_sent"]["info"] == 1 and data["ebusd"]["commands_sent"]["find"] == 19
     # ten circuits, the clock, and the write definitions of eight circuits for the probe of the build

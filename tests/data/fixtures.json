@@ -1,7 +1,7 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "0.8.0",
+  "version": "1.0.0",
   "commit": "34c6649",
   "messages": 669
  },
@@ -12,12 +12,12 @@
  },
  "coverage": {
   "messages": 669,
-  "covered": 617,
-  "readings": 957,
+  "covered": 668,
+  "readings": 1008,
   "by_kind": {
    "live": {
     "messages": 56,
-    "covered": 53
+    "covered": 56
    },
    "counter": {
     "messages": 20,
@@ -25,15 +25,15 @@
    },
    "diagnostic": {
     "messages": 74,
-    "covered": 49
+    "covered": 74
    },
    "state": {
     "messages": 9,
-    "covered": 8
+    "covered": 9
    },
    "setting": {
     "messages": 153,
-    "covered": 130
+    "covered": 152
    },
    "program_slot": {
     "messages": 357,
@@ -55,23 +55,23 @@
    },
    "room1": {
     "messages": 154,
-    "covered": 153
+    "covered": 154
    },
    "module2": {
     "messages": 16,
-    "covered": 14
+    "covered": 16
    },
    "module3": {
     "messages": 16,
-    "covered": 13
+    "covered": 16
    },
    "room2": {
     "messages": 154,
-    "covered": 131
+    "covered": 154
    },
    "room3": {
     "messages": 154,
-    "covered": 132
+    "covered": 154
    },
    "system": {
     "messages": 2,
@@ -79,57 +79,6 @@
    }
   },
   "not_covered": [
-   "fs1/VersionMinor",
-   "em2/MixerPump",
-   "em2/CirculationReturnSetTemp",
-   "em3/MixerParameter",
-   "em3/VersionMajor",
-   "em3/VersionMinor",
-   "fs2/RoomSetpointTemp",
-   "fs2/OutsideMixedTemp",
-   "fs2/VersionMajor",
-   "fs2/VersionMinor",
-   "fs2/DHWLoadingPriority",
-   "fs2/DHWSetbackTemp",
-   "fs2/DHWMaxTemp",
-   "fs2/DHWLegionellaDay",
-   "fs2/LegionellaCirculationTime",
-   "fs2/LegionellaSetpoint",
-   "fs2/SummerTimeStartDay",
-   "fs2/SummerTimeStartMonth",
-   "fs2/SummerTimeEndDay",
-   "fs2/SummerTimeEndMonth",
-   "fs2/ErrorId",
-   "fs2/ErrorCode",
-   "fs2/ErrorType",
-   "fs2/ErrorDevice",
-   "fs2/ErrorMinute",
-   "fs2/ErrorHour",
-   "fs2/ErrorDay",
-   "fs2/ErrorMonth",
-   "fs2/ErrorYear",
-   "fs3/OutsideMixedTemp",
-   "fs3/VersionMajor",
-   "fs3/VersionMinor",
-   "fs3/DHWLoadingPriority",
-   "fs3/DHWSetbackTemp",
-   "fs3/DHWMaxTemp",
-   "fs3/DHWLegionellaDay",
-   "fs3/LegionellaCirculationTime",
-   "fs3/LegionellaSetpoint",
-   "fs3/SummerTimeStartDay",
-   "fs3/SummerTimeStartMonth",
-   "fs3/SummerTimeEndDay",
-   "fs3/SummerTimeEndMonth",
-   "fs3/ErrorId",
-   "fs3/ErrorCode",
-   "fs3/ErrorType",
-   "fs3/ErrorDevice",
-   "fs3/ErrorMinute",
-   "fs3/ErrorHour",
-   "fs3/ErrorDay",
-   "fs3/ErrorMonth",
-   "fs3/ErrorYear",
    "broadcast/Datetime"
   ],
   "refused_by_ebusd": []
@@ -22868,6 +22817,1077 @@
    "text": "30.0",
    "evidence": "survey-reads",
    "date": "2026-11-19"
+  },
+  {
+   "circuit": "fs1",
+   "message": "VersionMinor",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "a1 9a 01",
+   "slave": "1a 00",
+   "telegram": "3135502203a19a01/021a00",
+   "device": "room1",
+   "expect": {
+    "value": 26
+   },
+   "decoded": {
+    "value": 26
+   },
+   "text": "26",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "em2",
+   "message": "MixerPump",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "70 52 00",
+   "slave": "01 00",
+   "telegram": "3151502203705200/020100",
+   "device": "module2",
+   "expect": {
+    "value": "on"
+   },
+   "decoded": {
+    "value": "on"
+   },
+   "text": "on",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "em2",
+   "message": "CirculationReturnSetTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "cc a9 04",
+   "slave": "2c 01",
+   "telegram": "3151502203cca904/022c01",
+   "device": "module2",
+   "expect": {
+    "value": 30.0
+   },
+   "decoded": {
+    "value": 30.0
+   },
+   "text": "30.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "em3",
+   "message": "MixerParameter",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "61 8f 01",
+   "slave": "50 00",
+   "telegram": "3152502203618f01/025000",
+   "device": "module3",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "em3",
+   "message": "VersionMajor",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "45 99 01",
+   "slave": "74 01",
+   "telegram": "3152502203459901/027401",
+   "device": "module3",
+   "expect": {
+    "value": 372
+   },
+   "decoded": {
+    "value": 372
+   },
+   "text": "372",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "em3",
+   "message": "VersionMinor",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "a1 9a 01",
+   "slave": "03 00",
+   "telegram": "3152502203a19a01/020300",
+   "device": "module3",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "RoomSetpointTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "08 12 00",
+   "slave": "50 00",
+   "telegram": "3175502203081200/025000",
+   "device": "room2",
+   "expect": {
+    "value": 8.0
+   },
+   "decoded": {
+    "value": 8.0
+   },
+   "text": "8.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "OutsideMixedTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "5a 1a 0a",
+   "slave": "5c 00",
+   "telegram": "31755022035a1a0a/025c00",
+   "device": "room2",
+   "expect": {
+    "value": 9.2
+   },
+   "decoded": {
+    "value": 9.2
+   },
+   "text": "9.2",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "VersionMajor",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "45 99 01",
+   "slave": "47 01",
+   "telegram": "3175502203459901/024701",
+   "device": "room2",
+   "expect": {
+    "value": 327
+   },
+   "decoded": {
+    "value": 327
+   },
+   "text": "327",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "VersionMinor",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "a1 9a 01",
+   "slave": "1a 00",
+   "telegram": "3175502203a19a01/021a00",
+   "device": "room2",
+   "expect": {
+    "value": 26
+   },
+   "decoded": {
+    "value": 26
+   },
+   "text": "26",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWLoadingPriority",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "d8 23 00",
+   "slave": "02 00",
+   "telegram": "3175502203d82300/020200",
+   "device": "room2",
+   "expect": {
+    "value": "Parallel"
+   },
+   "decoded": {
+    "value": "Parallel"
+   },
+   "text": "Parallel",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "12 8a 02",
+   "slave": "90 01",
+   "telegram": "3175502203128a02/029001",
+   "device": "room2",
+   "expect": {
+    "value": 40.0
+   },
+   "decoded": {
+    "value": 40.0
+   },
+   "text": "40.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "ad 81 01",
+   "slave": "58 02",
+   "telegram": "3175502203ad8101/025802",
+   "device": "room2",
+   "expect": {
+    "value": 60.0
+   },
+   "decoded": {
+    "value": 60.0
+   },
+   "text": "60.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "DHWLegionellaDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "5d 01 01",
+   "slave": "05 00",
+   "telegram": "31755022035d0101/020500",
+   "device": "room2",
+   "expect": {
+    "value": "Friday"
+   },
+   "decoded": {
+    "value": "Friday"
+   },
+   "text": "Friday",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "LegionellaCirculationTime",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "29 b1 09",
+   "slave": "b4 00",
+   "telegram": "317550220329b109/02b400",
+   "device": "room2",
+   "expect": {
+    "value": 180
+   },
+   "decoded": {
+    "value": 180
+   },
+   "text": "180",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "LegionellaSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "3d 87 05",
+   "slave": "58 02",
+   "telegram": "31755022033d8705/025802",
+   "device": "room2",
+   "expect": {
+    "value": 60.0
+   },
+   "decoded": {
+    "value": 60.0
+   },
+   "text": "60.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerTimeStartDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "09 de fd",
+   "slave": "19 00",
+   "telegram": "317550220309defd/021900",
+   "device": "room2",
+   "expect": {
+    "value": 25
+   },
+   "decoded": {
+    "value": 25
+   },
+   "text": "25",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerTimeStartMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "55 df fd",
+   "slave": "03 00",
+   "telegram": "317550220355dffd/020300",
+   "device": "room2",
+   "expect": {
+    "value": "March"
+   },
+   "decoded": {
+    "value": "March"
+   },
+   "text": "March",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerTimeEndDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "49 e0 fd",
+   "slave": "19 00",
+   "telegram": "317550220349e0fd/021900",
+   "device": "room2",
+   "expect": {
+    "value": 25
+   },
+   "decoded": {
+    "value": 25
+   },
+   "text": "25",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "SummerTimeEndMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "15 e1 fd",
+   "slave": "0a 00",
+   "telegram": "317550220315e1fd/020a00",
+   "device": "room2",
+   "expect": {
+    "value": "October"
+   },
+   "decoded": {
+    "value": "October"
+   },
+   "text": "October",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorId",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "ab 9a 0b",
+   "slave": "00 00",
+   "telegram": "3175502203ab9a0b/020000",
+   "device": "room2",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorCode",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "f7 9b 0b",
+   "slave": "00 00",
+   "telegram": "3175502203f79b0b/020000",
+   "device": "room2",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorType",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "3f 9c 0b",
+   "slave": "03 00",
+   "telegram": "31755022033f9c0b/020300",
+   "device": "room2",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorDevice",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "63 9d 0b",
+   "slave": "00 00",
+   "telegram": "3175502203639d0b/020000",
+   "device": "room2",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorMinute",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "db 9f 0b",
+   "slave": "33 00",
+   "telegram": "3175502203db9f0b/023300",
+   "device": "room2",
+   "expect": {
+    "value": 51
+   },
+   "decoded": {
+    "value": 51
+   },
+   "text": "51",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorHour",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "c7 a0 0b",
+   "slave": "03 00",
+   "telegram": "3175502203c7a00b/020300",
+   "device": "room2",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "9b a1 0b",
+   "slave": "01 00",
+   "telegram": "31755022039ba10b/020100",
+   "device": "room2",
+   "expect": {
+    "value": 1
+   },
+   "decoded": {
+    "value": 1
+   },
+   "text": "1",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "7f a2 0b",
+   "slave": "09 00",
+   "telegram": "31755022037fa20b/020900",
+   "device": "room2",
+   "expect": {
+    "value": "September"
+   },
+   "decoded": {
+    "value": "September"
+   },
+   "text": "September",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs2",
+   "message": "ErrorYear",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "23 a3 0b",
+   "slave": "00 00",
+   "telegram": "317550220323a30b/020000",
+   "device": "room2",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "OutsideMixedTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "5a 1a 0a",
+   "slave": "5c 00",
+   "telegram": "31f55022035a1a0a/025c00",
+   "device": "room3",
+   "expect": {
+    "value": 9.2
+   },
+   "decoded": {
+    "value": 9.2
+   },
+   "text": "9.2",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "VersionMajor",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "45 99 01",
+   "slave": "47 01",
+   "telegram": "31f5502203459901/024701",
+   "device": "room3",
+   "expect": {
+    "value": 327
+   },
+   "decoded": {
+    "value": 327
+   },
+   "text": "327",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "VersionMinor",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "a1 9a 01",
+   "slave": "1a 00",
+   "telegram": "31f5502203a19a01/021a00",
+   "device": "room3",
+   "expect": {
+    "value": 26
+   },
+   "decoded": {
+    "value": 26
+   },
+   "text": "26",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWLoadingPriority",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "d8 23 00",
+   "slave": "02 00",
+   "telegram": "31f5502203d82300/020200",
+   "device": "room3",
+   "expect": {
+    "value": "Parallel"
+   },
+   "decoded": {
+    "value": "Parallel"
+   },
+   "text": "Parallel",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWSetbackTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "12 8a 02",
+   "slave": "90 01",
+   "telegram": "31f5502203128a02/029001",
+   "device": "room3",
+   "expect": {
+    "value": 40.0
+   },
+   "decoded": {
+    "value": 40.0
+   },
+   "text": "40.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWMaxTemp",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "ad 81 01",
+   "slave": "58 02",
+   "telegram": "31f5502203ad8101/025802",
+   "device": "room3",
+   "expect": {
+    "value": 60.0
+   },
+   "decoded": {
+    "value": 60.0
+   },
+   "text": "60.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "DHWLegionellaDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "5d 01 01",
+   "slave": "05 00",
+   "telegram": "31f55022035d0101/020500",
+   "device": "room3",
+   "expect": {
+    "value": "Friday"
+   },
+   "decoded": {
+    "value": "Friday"
+   },
+   "text": "Friday",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "LegionellaCirculationTime",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "29 b1 09",
+   "slave": "b4 00",
+   "telegram": "31f550220329b109/02b400",
+   "device": "room3",
+   "expect": {
+    "value": 180
+   },
+   "decoded": {
+    "value": 180
+   },
+   "text": "180",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "LegionellaSetpoint",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "3d 87 05",
+   "slave": "58 02",
+   "telegram": "31f55022033d8705/025802",
+   "device": "room3",
+   "expect": {
+    "value": 60.0
+   },
+   "decoded": {
+    "value": 60.0
+   },
+   "text": "60.0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerTimeStartDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "09 de fd",
+   "slave": "19 00",
+   "telegram": "31f550220309defd/021900",
+   "device": "room3",
+   "expect": {
+    "value": 25
+   },
+   "decoded": {
+    "value": 25
+   },
+   "text": "25",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerTimeStartMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "55 df fd",
+   "slave": "03 00",
+   "telegram": "31f550220355dffd/020300",
+   "device": "room3",
+   "expect": {
+    "value": "March"
+   },
+   "decoded": {
+    "value": "March"
+   },
+   "text": "March",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerTimeEndDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "49 e0 fd",
+   "slave": "19 00",
+   "telegram": "31f550220349e0fd/021900",
+   "device": "room3",
+   "expect": {
+    "value": 25
+   },
+   "decoded": {
+    "value": 25
+   },
+   "text": "25",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "SummerTimeEndMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "15 e1 fd",
+   "slave": "0a 00",
+   "telegram": "31f550220315e1fd/020a00",
+   "device": "room3",
+   "expect": {
+    "value": "October"
+   },
+   "decoded": {
+    "value": "October"
+   },
+   "text": "October",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorId",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "ab 9a 0b",
+   "slave": "00 00",
+   "telegram": "31f5502203ab9a0b/020000",
+   "device": "room3",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorCode",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "f7 9b 0b",
+   "slave": "00 00",
+   "telegram": "31f5502203f79b0b/020000",
+   "device": "room3",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorType",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "3f 9c 0b",
+   "slave": "03 00",
+   "telegram": "31f55022033f9c0b/020300",
+   "device": "room3",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorDevice",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "63 9d 0b",
+   "slave": "00 00",
+   "telegram": "31f5502203639d0b/020000",
+   "device": "room3",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorMinute",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "db 9f 0b",
+   "slave": "33 00",
+   "telegram": "31f5502203db9f0b/023300",
+   "device": "room3",
+   "expect": {
+    "value": 51
+   },
+   "decoded": {
+    "value": 51
+   },
+   "text": "51",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorHour",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "c7 a0 0b",
+   "slave": "03 00",
+   "telegram": "31f5502203c7a00b/020300",
+   "device": "room3",
+   "expect": {
+    "value": 3
+   },
+   "decoded": {
+    "value": 3
+   },
+   "text": "3",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorDay",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "9b a1 0b",
+   "slave": "01 00",
+   "telegram": "31f55022039ba10b/020100",
+   "device": "room3",
+   "expect": {
+    "value": 1
+   },
+   "decoded": {
+    "value": 1
+   },
+   "text": "1",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorMonth",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "7f a2 0b",
+   "slave": "09 00",
+   "telegram": "31f55022037fa20b/020900",
+   "device": "room3",
+   "expect": {
+    "value": "September"
+   },
+   "decoded": {
+    "value": "September"
+   },
+   "text": "September",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
+  },
+  {
+   "circuit": "fs3",
+   "message": "ErrorYear",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "23 a3 0b",
+   "slave": "00 00",
+   "telegram": "31f550220323a30b/020000",
+   "device": "room3",
+   "expect": {
+    "value": 0
+   },
+   "decoded": {
+    "value": 0
+   },
+   "text": "0",
+   "evidence": "remaining-reads",
+   "date": "2026-11-22"
   }
  ]
 }

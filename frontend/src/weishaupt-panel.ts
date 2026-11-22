@@ -1113,6 +1113,7 @@ export class WeishauptPanel extends LitElement {
       return html`<section class="program">
         <h3>
           ${label(program.label, lang)}
+          ${program.stored_only ? html`<span class="badge">${t(lang, "stored_only_badge")}</span>` : nothing}
           ${program.entity_id
             ? html`<button class="link" @click=${() => this._open(program.entity_id!)}>${t(lang, "open")}</button>`
             : nothing}
@@ -1122,6 +1123,7 @@ export class WeishauptPanel extends LitElement {
           ${this._followCell(program.follow)}
         </h3>
         <p class="secondary">${note}</p>
+        ${program.stored_only ? html`<p class="secondary">${t(lang, "stored_only_note")}</p>` : nothing}
         ${program.read && !program.listened
           ? this._queued[program.key] !== undefined
             ? html`<p class="secondary" role="status">${queuedText(this._queued[program.key], lang)}</p>`

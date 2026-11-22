@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "0.8.0",
+  "version": "1.0.0",
   "commit": "34c6649",
   "messages": 669,
   "csv_lines": 1021,

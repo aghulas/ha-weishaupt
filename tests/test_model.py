@@ -24,7 +24,7 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "0.8.0"
+    assert model.version == "1.0.0"
     assert len(model.messages) == 669
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
@@ -172,16 +172,16 @@ def test_renamed_message(model):
 
 
 def test_fixtures_of_the_release(model, golden):
-    """The fixtures file (schema 2): telegrams captured on a bus, for 617 of the 668 messages read (0.6.0 has none
-    for 51 messages of room units 2 and 3 and of the modules, which the installation does not answer). Each has as many values
-    as the metadata has fields, the values the evidence states, and the answer the simulated ebusd replays for a
-    message is the text of one of its captured telegrams, as the real ebusd gave it again when recorded."""
+    """The fixtures file (schema 2): telegrams captured on a bus, for all 668 readable messages of 1.0.0.
+    Each has as many values as the metadata has fields, the values the evidence states, and the answer the
+    simulated ebusd replays for a message is the text of one of its captured telegrams, as the real ebusd
+    gave it again when recorded."""
     fixtures = json.loads((DATA / "fixtures.json").read_text())
     assert fixtures["schema"] == 2 and fixtures["definitions"]["version"] == model.version
     readings = fixtures["readings"]
     read = {k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
     captured = {f"{r['circuit']}/{r['message']}" for r in readings}
-    assert len(readings) == 949 and captured <= read and len(captured) == 617
+    assert len(readings) == 1000 and captured == read and len(captured) == 668
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"
@@ -199,7 +199,7 @@ def test_fixtures_of_the_release(model, golden):
                 assert text == expected, key
         if reading.get("case") == "first-byte-not-zero":
             assert values[message.guard.index] != "0"
-    assert set(golden["reads"]) == captured  # the others are answered by the simulation (tests/fake_ebusd.py)
+    assert set(golden["reads"]) <= captured  # every golden read has a matching captured fixture
     for key, text in golden["reads"].items():
         assert text in texts[key], key
     assert golden["reads_not_decoded_here"] == ["ka/DHWSwitchDiff", "ka/DeCoupleMinTemp", "ka/RegulationP"]

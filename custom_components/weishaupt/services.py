@@ -39,7 +39,7 @@ async def _async_set_program(call: ServiceCall) -> ServiceResponse:
     device = dr.async_get(hass).async_get(call.data["device_id"])
     if device is None:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="unknown_device")
-    for entry_id in device.config_entries:
+    for entry_id in ((device.config_entry_id,) if device.config_entry_id else ()):
         entry = hass.config_entries.async_get_entry(entry_id)
         if entry is None or entry.domain != DOMAIN or entry.state is not ConfigEntryState.LOADED:
             continue

@@ -29,9 +29,10 @@ METADATA_FILE = Path(__file__).parent / "metadata.json"
 # later 0.5.x only adds messages.
 # 0.6 renamed fields of HcMode, retyped MixerPump and LegionellaStartTime, renamed DHWExceeded: the second number of
 # the definitions changed. With ebusd still on 0.5.x the comparison names the messages that differ (see README).
-# 0.7 and 0.8 keep the same 669 metadata messages, field names and types (adding composite-read carriers and optional
-# metadata keys: write.below/above, stored_only, pointer, and fs2 shared_with programs).
-ACCEPTED_DEFINITIONS = ">=0.6.0, <0.9"
+# 0.7, 0.8 and 1.0 keep the same 669 metadata messages, field names and types (adding composite-read carriers and
+# optional metadata keys: write.below/above, stored_only, pointer, and fs2 shared_with programs). From 1.0.0 on,
+# breaking changes bump the first number.
+ACCEPTED_DEFINITIONS = ">=0.6.0, <2.0"
 
 ON_OFF = {"0": "off", "1": "on"}
 NAME_SEPARATOR = " – "

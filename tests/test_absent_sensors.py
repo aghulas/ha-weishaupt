@@ -18,7 +18,7 @@ def _metadata_beside(hass, unmarked: tuple[str, ...] | None) -> None:
     """The shipped metadata (whose boiler temperatures carry `absent` -40.0) as a newer release beside the
     configuration, without the marker on the messages `unmarked` (None: on none at all)."""
     data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "0.8.1"
+    data["definitions"]["version"] = "1.0.1"
     for key, message in data["messages"].items():
         if unmarked is None or key in unmarked:
             for fld in message["fields"]:
@@ -26,8 +26,8 @@ def _metadata_beside(hass, unmarked: tuple[str, ...] | None) -> None:
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-0.8.1.json").write_bytes(text)
-    (folder / "sha256sums-0.8.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-0.8.1.json\n")
+    (folder / "weishaupt-metadata-1.0.1.json").write_bytes(text)
+    (folder / "sha256sums-1.0.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.0.1.json\n")
 
 
 async def test_absent_marker_reads_unknown_only_for_the_exact_value(hass, fake, entity_registry_enabled_by_default):
@@ -38,7 +38,7 @@ async def test_absent_marker_reads_unknown_only_for_the_exact_value(hass, fake, 
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     await settled(hass, entry)
-    assert entry.runtime_data.model.version == "0.8.1"
+    assert entry.runtime_data.model.version == "1.0.1"
     absent = state_of(hass, entry, "bc1/DHWTemp/value")
     assert absent.state == STATE_UNKNOWN and absent.attributes["no_sensor"] is True
     near = state_of(hass, entry, "bc1/HydraulicSeparatorTemp/value")

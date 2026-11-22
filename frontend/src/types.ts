@@ -135,6 +135,7 @@ export interface Program {
   key: string;
   label: Labels;
   writable: boolean;
+  stored_only?: boolean;
   read: boolean;
   listened: boolean; // an enabled entity reads its slots
   slots: number;

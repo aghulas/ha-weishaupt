@@ -150,20 +150,27 @@ integration then reloads on the new ebusd, as after a restart:
   new ebusd is checked again before anything can be written; the hourly write limit carries over;
 - the panel and the diagnostics show the ebusd in use, by its name, and its build.
 
-**What each ebusd allows.** Reads are the same with every build. Writes need an ebusd that computes the run-time
-checksum, found without sending anything to the bus (*Run-time checksum* on the panel's definitions page):
+**What each ebusd allows.** Reads are the same with every build. The build is found without sending anything to the
+bus (*Run-time checksum* on the panel's definitions page). The build that computes the run-time checksum writes
+every controller; a stock ebusd writes the non-boiler controllers once *Allow writes on a stock ebusd* is enabled
+(off by default):
 
 | ebusd | Run-time checksum | Writes |
 |---|---|---|
 | eBUSd (Weishaupt CRC), build `v26.1-weishaupt.1` | `present` | allowed, through the guard |
 | eBUSd (Weishaupt next, test), pre-release `v26.1-weishaupt.2-rc1` | `present` expected | allowed when `present`; a test build |
-| stock eBUSd 26.1 | `absent` | refused (see below) |
+| stock eBUSd 26.1 | `absent` | non-boiler controllers allowed with *Allow writes on a stock ebusd*; boiler automats refused |
 | any other answer | `unknown` | refused |
 
-A stock ebusd has been seen writing one setting of the system manager, which does not check the checksum; whether
-the integration may write through a stock ebusd on the devices that do not check it is not decided, and this
-version refuses it. The test build's other features (composite reads, longer message IDs) need nothing from the
-integration: with definitions that use them, its messages simply load.
+On a stock ebusd the write carries the checksum byte of the write definition (its placeholder), not a computed one.
+On-site validation on 2026-11-23 showed a stock ebusd 26.1 writes every published setting of the non-boiler
+controllers — the system manager (`ka`, `15`), the heating modules (`em1`–`em3`) and the room units (`fs1`–`fs3`) —
+end to end, from sources `ff` and `31`; those controllers accept the placeholder checksum byte on the bus and take
+the value. This is opt-in (*Allow writes on a stock ebusd*, off by default) because it bypasses the integration's
+build check. The boiler automats (`08`/`18`) are never written on a stock ebusd: that was never tested, and today
+no boiler setting is proven writable anyway. `unknown` is always refused. The test build's other features (composite
+reads, longer message IDs) need nothing from the integration: with definitions that use them, its messages simply
+load.
 
 **When the ebusd in use does not answer**, its entities are unavailable and a repair says which ebusd answer and,
 for an add-on, whether it is started. When another ebusd answers, the repair offers to use it (pinned) or to follow
@@ -188,7 +195,7 @@ Each ebusd has its own **telegram log** for the writes from `ff`: *⋮ → Recon
 | address | the hexadecimal address of a device on the eBUS; `fe` is a broadcast to all |
 | source address | the address a write is sent from: `31` is ebusd's own (its default), `ff` the vendor's service tool's. A device keeps some settings only when written from the source the definitions give |
 | service tool | the vendor's diagnostic software, connected to the bus by an installer; it sends from `ff` |
-| stock ebusd / ebusd with the run-time checksum | the official ebusd, which must not write these settings; the build of `aghulas/ebusd` (also called the fork's build), which can |
+| stock ebusd / ebusd with the run-time checksum | the official ebusd, which does not compute the run-time checksum (it writes the non-boiler controllers only with *Allow writes on a stock ebusd*, and never a boiler automat); the build of `aghulas/ebusd` (also called the fork's build), which computes it and writes every controller |
 | run-time checksum | a checksum over the register and the value that these devices require in a write; ebusd must compute it when it sends (`[WCRC]` in the definitions' comments) |
 | telegram | one exchange on the bus; the **telegram log** is the SQLite file the ebusd add-on keeps of all of them |
 | slot | one of the three time ranges of a day of a weekly program |
@@ -349,9 +356,13 @@ write switch, the hourly limit and the read-back apply as everywhere else; a ref
 Reading works without any of this. Writing needs all of it; the integration checks each point itself and refuses
 every write while one is missing.
 
-1. **An ebusd that computes the run-time checksum** of the Weishaupt register writes. A stock ebusd loads the write
-   lines of the definitions but cannot give them a valid checksum; the build of
-   [aghulas/ebusd](https://github.com/aghulas/ebusd/releases) can, until john30/ebusd#1825 is merged. How to run it
+1. **An ebusd that computes the run-time checksum** of the Weishaupt register writes, **or** the option *Allow
+   writes on a stock ebusd* for the non-boiler controllers (see *What each ebusd allows* above).
+   A stock ebusd loads the write
+   lines of the definitions but cannot give them a valid checksum; it then writes the non-boiler controllers with
+   the placeholder checksum of the definition (opt-in, validated on site), never a boiler automat. The build of
+   [aghulas/ebusd](https://github.com/aghulas/ebusd/releases) computes the checksum and writes every controller,
+   until john30/ebusd#1825 is merged. How to run it
    is in the notice of the definitions release. For Home Assistant OS, the add-on *eBUSd (Weishaupt CRC)* is the
    ebusd add-on with this build: in the add-on store (⋮ → *Repositories*) add
    `https://github.com/aghulas/ha-addons#weishaupt`. That form, with `#weishaupt`, is for the store only; in a
@@ -365,7 +376,8 @@ every write while one is missing.
    Check the build with the first line of `ebusctl info` (step 1). The integration checks it too, without
    sending anything to the bus, at every start: *Run-time checksum* on the panel's definitions page and, once writes
    are enabled (item 3), the attribute `run_time_checksum` of the switch
-   **Writes** reads `present`, `absent` or `unknown`, and only `present` allows writes.
+   **Writes** reads `present`, `absent` or `unknown`. `present` allows every write; `absent` allows the non-boiler
+   controllers only with *Allow writes on a stock ebusd*; `unknown` allows none.
 2. **The telegram log**, for the settings written from the address of the vendor service tool (`ff`, 79 of the
    83): every telegram ebusd sees, kept in an SQLite file Home Assistant can read. A write from `ff` is refused
    while the service tool may be connected (a telegram from `ff` that is not ours in the last 10 minutes), and
@@ -546,7 +558,9 @@ programs).
 
 **Each write**, in this order, stops at the first refusal and tells you why:
 
-1. write switch on; the setting writable; ebusd known to compute the run-time checksum; ebusd
+1. write switch on; the setting writable; ebusd able to send the write — it computes the run-time
+   checksum, or the target is a non-boiler controller and *Allow writes on a stock ebusd* is on (a
+   boiler automat and an `unknown` build are always refused); ebusd
    reachable; for the settings proven written from ebusd's own address `31` (the flow limits of the
    heating modules), ebusd's address is `31`; the value in the range and on a step;
 2. the setting read from the device, and the setting it is linked to: setback room temperature at
@@ -576,7 +590,9 @@ once with the correct checksum and once with the checksum byte of the definition
 matches the first and refuses it for its circuit; a stock ebusd matches only the second. Both are
 refused by ebusd before sending: nothing reaches the bus. The result (`present`, `absent`, `unknown`) is on the
 panel's definitions page, in the diagnostics and, with writes enabled, the attribute `run_time_checksum` of the
-write switch; anything but `present` refuses every write. It is checked again whenever the integration moves to
+write switch. `present` allows every write; `absent` with *Allow writes on a stock ebusd* allows the non-boiler
+controllers (the write then carries the placeholder checksum of the definition); `unknown` refuses every write. It
+is checked again whenever the integration moves to
 another ebusd, and when the ebusd in use reports another version after a lost connection (an add-on updated in
 place).
 
@@ -625,7 +641,7 @@ add up; the definitions release sets no poll priority.
 
 Weishaupt heating systems whose controllers speak eBUS, as the definitions describe them:
 
-| Device | Bus address(es) | Read | Written (with the run-time checksum build) |
+| Device | Bus address(es) | Read | Written (run-time checksum build, or stock ebusd with *Allow writes on a stock ebusd* for the non-boiler controllers) |
 |---|---|---|---|
 | WTC gas condensing boiler (automat W-FM, one per boiler) | 08, 18 | live values, statistics and counters, fault memory and fault counters | — |
 | WCM system manager (cascade manager), and its own heating circuit | 15, 50 | live values, cascade and hot-water settings, its fault-log entry, weekly programs | settings, choices, programs proven writable, the clock |
@@ -639,8 +655,10 @@ register they do not describe is not shown. Limits a second installation should 
   answering at three addresses (on that installation one unit serves heating circuits 1 and 2 and answers at `35` and `75`,
   definitions notice), one software version each. Another model or version may answer differently: the comparison at start-up
   names what ebusd did not load as described, and a diagnostics download shows what was read.
-- **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), and the
-  telegram log for the settings written from the service tool's address. Without them everything is read only.
+- **Writes need the ebusd build** that computes the run-time checksum (until john30/ebusd#1825 is merged), or, for
+  the non-boiler controllers only, a stock ebusd with *Allow writes on a stock ebusd* enabled (validated on site on
+  2026-11-23; the boiler automats always need the build). Writes from the service tool's address also need the
+  telegram log. Without a usable build or the option, everything is read only.
 - **Room unit 2 reads some values from room unit 1's store** (as on the tested installation): its heating
   program 1 and its setback and frost protection room temperatures. A write sent to room unit 2 is acknowledged and
   not kept: they are read only there, and the panel, the program sensor and the card say they are changed on room

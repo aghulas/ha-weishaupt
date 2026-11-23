@@ -20,6 +20,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_ALLOW_STOCK_WRITES,
     CONF_CYCLIC_INTERVAL,
     CONF_MAX_WRITES_PER_HOUR,
     CONF_REQUEST_GAP,
@@ -65,6 +66,7 @@ def _settings_schema(options: Any) -> vol.Schema:
         vol.Required(CONF_CYCLIC_INTERVAL, default=options.get(CONF_CYCLIC_INTERVAL, DEFAULT_CYCLIC_INTERVAL)):
             _seconds(MIN_CYCLIC_INTERVAL, MAX_CYCLIC_INTERVAL),
         vol.Required(CONF_WRITES_ENABLED, default=options.get(CONF_WRITES_ENABLED, False)): bool,
+        vol.Required(CONF_ALLOW_STOCK_WRITES, default=options.get(CONF_ALLOW_STOCK_WRITES, False)): bool,
         vol.Required(CONF_MAX_WRITES_PER_HOUR, default=options.get(CONF_MAX_WRITES_PER_HOUR, MAX_PER_HOUR)):
             vol.All(vol.Coerce(int), vol.Range(min=MAX_PER_HOUR_RANGE[0], max=MAX_PER_HOUR_RANGE[1])),
     })
@@ -75,6 +77,7 @@ def _settings_data(user_input: dict[str, Any]) -> dict[str, Any]:
     return {CONF_REQUEST_GAP: int(user_input[CONF_REQUEST_GAP]),
             CONF_CYCLIC_INTERVAL: int(user_input[CONF_CYCLIC_INTERVAL]),
             CONF_WRITES_ENABLED: bool(user_input.get(CONF_WRITES_ENABLED, False)),
+            CONF_ALLOW_STOCK_WRITES: bool(user_input.get(CONF_ALLOW_STOCK_WRITES, False)),
             CONF_MAX_WRITES_PER_HOUR: int(user_input.get(CONF_MAX_WRITES_PER_HOUR, MAX_PER_HOUR))}
 
 

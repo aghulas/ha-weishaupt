@@ -4,8 +4,9 @@ Created only when writes are enabled in the options of the entry. Nothing here i
 
 Path of a write (decided in `out/ha-companion-phase2.md` of the workbench):
 
-1. gates that need no bus: writes enabled (option and switch), the setting writable, ebusd known to compute the
-   run-time checksum (probe, below), the source address usable, the value on a step and in the range;
+1. gates that need no bus: writes enabled (option and switch), the setting writable, ebusd able to send the write
+   (the run-time checksum probe below, relaxed for non-boiler controllers by `allow_stock_writes`), the source
+   address usable, the value on a step and in the range;
 2. the setting and the settings linked to it read from the device (`read -f`): the value before, and the bounds
    narrowed by the linked ones;
 3. for a write from ff, the telegram log: refused while the vendor service tool may be connected, or when the log
@@ -23,6 +24,13 @@ Capability (decision D14, without a marker in today's builds): ebusd is asked to
 circuit name no message has, once with the correct checksum and once with the checksum byte of the definition. A
 build with the run-time checksum matches the first and refuses it for its circuit (`ERR: invalid argument`), and
 finds no definition for the second; a stock ebusd does the reverse. Neither is sent to the bus.
+
+On a build with the run-time checksum (`capability == "present"`) a write carries the correct checksum. A stock
+ebusd (`capability == "absent"`) accepts only the checksum byte of the definition (its placeholder), and the
+non-boiler controllers (system manager, heating modules, room units) take that write end to end: validated on
+site on 2026-11-23, sources ff and 31. So with the option `allow_stock_writes` on, writes to the non-boiler
+controllers are allowed on a stock ebusd and sent with the placeholder checksum; the boiler automats (08/18) are
+never written on a stock ebusd, and `capability == "unknown"` always refuses.
 """
 from __future__ import annotations
 
@@ -43,6 +51,8 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    BOILER_DEVICE_TYPE,
+    CONF_ALLOW_STOCK_WRITES,
     CONF_MAX_WRITES_PER_HOUR,
     CONF_TELEGRAM_DB,
     DEFAULT_TELEGRAM_DB,
@@ -183,6 +193,12 @@ class Writer:
     def __init__(self, hass: HomeAssistant, hub, options: dict[str, Any]) -> None:
         self.hass, self.hub = hass, hub
         self.telegram_db: str = options.get(CONF_TELEGRAM_DB) or DEFAULT_TELEGRAM_DB
+        # opt-in: writes to the non-boiler controllers no longer need the run-time checksum build (on-site
+        # 2026-11-23). Off by default: a stock ebusd still refuses, as before.
+        self.allow_stock_writes: bool = bool(options.get(CONF_ALLOW_STOCK_WRITES, False))
+        # bus addresses of the boiler automats: never written on a stock ebusd, whatever the option
+        self.boiler_addresses: set[str] = {c.address.lower() for d in hub.model.devices.values()
+                                            if d.type == BOILER_DEVICE_TYPE for c in d.circuits}
         self.switch_on = False
         try:
             limit = hourly_limit(options.get(CONF_MAX_WRITES_PER_HOUR))
@@ -237,6 +253,14 @@ class Writer:
                          if all(k in self.hub.usable for day in program.slots.values() for k in day)}
         self.slot_specs = {key: spec for key, spec in slots.items()
                            if any(key in day for p in self.programs.values() for day in p.slots.values())}
+        # the placeholder checksum byte of each program slot (as for the settings), so that a stock ebusd gets
+        # the write with the byte it expects. The slot's write definition carries it as `id[:2]`.
+        for key, spec in self.slot_specs.items():
+            message = self.hub.model.messages[key]
+            definition = next((d for d in loaded.get(spec.circuit, [])
+                               if d.name == message.name and d.direction == "w"), None)
+            if definition is not None:
+                self.placeholders[key] = definition.id[:2].lower()
         for reason in refused_programs:
             _LOGGER.warning("program stays read-only: %s", reason)
         message = self.hub.model.messages.get(CLOCK_KEY)
@@ -269,15 +293,30 @@ class Writer:
         self.switch_on = on
         self.guard.enabled = on
 
+    def _stock_write_allowed(self, spec: WriteSpec) -> bool:
+        """Whether a write may go without the run-time checksum build: only a stock ebusd (`capability ==
+        "absent"`), only with the option on, and never to a boiler automat (08/18). `capability == "unknown"` or
+        "not checked" is never allowed — fail safe when the probe could not classify the build."""
+        return (self.capability == "absent" and self.allow_stock_writes
+                and spec.zz not in self.boiler_addresses)
+
+    def _telegram(self, spec: WriteSpec, value: float) -> str:
+        """The telegram to hand ebusd: the correct checksum on a build that computes it; the placeholder checksum
+        of the definition on a stock ebusd, which is the byte it put on the bus in the on-site validation."""
+        placeholder = self.placeholders.get(spec.key)
+        if self.capability != "present" and placeholder is not None:
+            return spec.placeholder_telegram(value, placeholder)
+        return spec.telegram(value)
+
     def _check_static(self, spec: WriteSpec | None, key: str, value: float) -> WriteSpec:
         """Gates that need no request to the bus."""
         if not self.switch_on:
             raise WriteRefused("switch_off")
         if spec is None:
             raise WriteRefused("not_writable", setting=key, reason=self.not_writable.get(key, "no write conditions"))
-        if self.capability == "absent":
-            raise WriteRefused("capability_absent")
-        if self.capability != "present":
+        if self.capability != "present" and not self._stock_write_allowed(spec):
+            if self.capability == "absent":
+                raise WriteRefused("capability_absent")
             raise WriteRefused("capability_unknown", reason=", ".join(self.probe_answers) or self.capability)
         if not self.hub.available:
             raise WriteRefused("unavailable")
@@ -434,7 +473,7 @@ class Writer:
         """Send a write the guard accepted (the caller ran `guard.check`), read it back, trace it."""
         key, source = spec.key, spec.ebusd_source
         raw = spec.raw(value)
-        telegram = spec.telegram(value)
+        telegram = self._telegram(spec, value)
         entry: dict[str, Any] = {
             "time": time.time(), "key": key, "register": spec.register_id, "source": spec.source,
             "risk": spec.risk, "confirmed": confirmed, "user_id": user_id, "before": spec.value_of(before),
@@ -703,6 +742,7 @@ class Writer:
     def snapshot(self) -> dict[str, Any]:
         return {
             "switch": self.switch_on, "capability": self.capability, "probe_answers": self.probe_answers,
+            "allow_stock_writes": self.allow_stock_writes,
             "telegram_db_configured": bool(self.telegram_db),
             "writable": {key: {k: v for k, v in asdict(spec).items() if k not in ("circuit", "name")}
                          for key, spec in sorted(self.specs.items())},

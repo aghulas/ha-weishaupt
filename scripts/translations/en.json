@@ -75,12 +75,14 @@
           "request_gap": "Time between two requests",
           "cyclic_interval": "Interval of the live values",
           "writes_enabled": "Enable writes of the proven settings",
+          "allow_stock_writes": "Allow writes on a stock ebusd (non-boiler controllers)",
           "max_writes_per_hour": "Maximum writes per hour"
         },
         "data_description": {
           "request_gap": "The integration never sends two requests closer together than this.",
           "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
-          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). By default a write needs an ebusd build that computes the run-time checksum (john30/ebusd#1825), checked without sending anything to the bus; the option below lifts that for the non-boiler controllers. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "allow_stock_writes": "Allow writes to the non-boiler controllers (system manager, heating modules, room units) on a stock ebusd that does not compute the run-time checksum. On-site validation on 2026-11-23 showed a stock ebusd 26.1 writes every published setting of these controllers end to end; the write then carries the checksum byte of the definition, which the controllers accept. The boiler automats are never written on a stock ebusd, and the build is still required for them. Leave off if you run the build with the run-time checksum (john30/ebusd#1825).",
           "max_writes_per_hour": "Writes accepted within any sliding hour (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
         },
         "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set. Changing this reloads the integration."
@@ -124,12 +126,14 @@
           "request_gap": "Time between two requests",
           "cyclic_interval": "Interval of the live values",
           "writes_enabled": "Enable writes of the proven settings",
+          "allow_stock_writes": "Allow writes on a stock ebusd (non-boiler controllers)",
           "max_writes_per_hour": "Maximum writes per hour"
         },
         "data_description": {
           "request_gap": "The integration never sends two requests closer together than this.",
           "cyclic_interval": "How often temperatures and other live values are read. Settings, counters and programs are read far less often.",
-          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). Needs an ebusd build that computes the run-time checksum (john30/ebusd#1825); the integration checks it without sending anything to the bus. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "writes_enabled": "Creates a number entity for each setting a release of the definitions proves writable, and the write switch (off). By default a write needs an ebusd build that computes the run-time checksum (john30/ebusd#1825), checked without sending anything to the bus; the option below lifts that for the non-boiler controllers. Regulation settings are written only after a confirmation in Settings > Repairs.",
+          "allow_stock_writes": "Allow writes to the non-boiler controllers (system manager, heating modules, room units) on a stock ebusd that does not compute the run-time checksum. On-site validation on 2026-11-23 showed a stock ebusd 26.1 writes every published setting of these controllers end to end; the write then carries the checksum byte of the definition, which the controllers accept. The boiler automats are never written on a stock ebusd, and the build is still required for them. Leave off if you run the build with the run-time checksum (john30/ebusd#1825).",
           "max_writes_per_hour": "Writes accepted within any sliding hour (1 to 200, default 30). The limit protects the memory of the regulators from wear: keep 30 in normal service. A higher value is only for a supervised test campaign; set it back to 30 when the campaign ends. Changing it reloads the integration, which restarts the count."
         },
         "description": "Load on the bus, and writes. Writes are off unless enabled here; then a write switch on the ebusd device turns them on and off, and only the settings the definitions prove writable can be set."
@@ -306,7 +310,7 @@
       "message": "{setting} is not writable: {reason}"
     },
     "capability_absent": {
-      "message": "This ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused."
+      "message": "This ebusd does not compute the run-time checksum (john30/ebusd#1825). Enable \"Allow writes on a stock ebusd\" in the options to write the non-boiler controllers through it; the boiler automats are never written on a stock ebusd."
     },
     "capability_unknown": {
       "message": "Whether ebusd computes the run-time checksum is not known ({reason}): writes refused."

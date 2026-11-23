@@ -77,6 +77,26 @@ async def test_a_day_written_and_read_back(hass, fake, log):
     assert not [i for i in ir.async_get(hass).issues.values() if i.domain == DOMAIN]
 
 
+async def test_a_day_written_on_a_stock_ebusd_with_opt_in(hass, fake, log):
+    """A program day on a stock ebusd (allow_stock_writes on): the slots are written with the checksum byte of
+    their definition (the placeholder), as settings are, and read back."""
+    fake.runtime_checksum = False
+    entry, writer = await writing(hass, fake, log, allow_stock_writes=True)
+    assert writer.capability == "absent" and writer.allow_stock_writes
+    await settled(hass, entry)
+    fake.commands.clear()
+    entity_id = text_id(hass, entry, "fs1/heating1", "tuesday")
+    await hass.services.async_call("text", "set_value", {"entity_id": entity_id, "value": "06:30-18:00, 19:00-21:00"},
+                                   blocking=True)
+    slot1 = writer.slot_specs["fs1/HCProgram1Tue1"]
+    slot2 = writer.slot_specs["fs1/HCProgram1Tue2"]
+    sent1 = slot1.placeholder_telegram(0x1A48, writer.placeholders["fs1/HCProgram1Tue1"])
+    sent2 = slot2.placeholder_telegram(0x4C54, writer.placeholders["fs1/HCProgram1Tue2"])
+    assert fake.writes == [(None, "fs1", sent1), (None, "fs1", sent2)]
+    assert sent1 != slot1.telegram(0x1A48) and sent2 != slot2.telegram(0x4C54)
+    assert hass.states.get(entity_id).state == "06:30-18:00, 19:00-21:00"
+
+
 @pytest.mark.parametrize("text,code,part", [
     ("06:20-18:00", "bad_day_quarter", "06:20-18:00"),
     ("6h30 to 18h", "bad_day_format", "6h30 to 18h"),

@@ -282,6 +282,63 @@ async def test_capability_absent_on_a_stock_ebusd(hass, fake, log):
     assert sent(fake) == [] and fake.writes == []
     # the number entities exist and show the values; the switch says why nothing can be written
     assert hass.states.get(switch_id(hass, entry)).attributes["run_time_checksum"] == "absent"
+    assert hass.states.get(switch_id(hass, entry)).attributes["allow_stock_writes"] is False
+
+
+async def test_stock_write_allowed_for_non_boiler_with_opt_in(hass, fake, log):
+    """A stock ebusd with allow_stock_writes on: a non-boiler setting is written end to end and the telegram
+    carries the checksum byte of the definition (its placeholder), the byte the on-site validation saw on the
+    bus. The guard and the read-back are unchanged."""
+    fake.runtime_checksum = False
+    entry = make_entry(hass, fake, writes_enabled=True, allow_stock_writes=True, telegram_db=log)
+    await setup(hass, entry)
+    writer = entry.runtime_data.writer
+    assert writer.capability == "absent" and writer.allow_stock_writes
+    assert hass.states.get(switch_id(hass, entry)).attributes["allow_stock_writes"] is True
+    await hass.services.async_call("switch", "turn_on", {"entity_id": switch_id(hass, entry)}, blocking=True)
+    fake.commands.clear()
+    spec = writer.specs["em2/RoomSetbackTemp"]
+    placeholder = writer.placeholders["em2/RoomSetbackTemp"]
+    expected = spec.placeholder_telegram(21.0, placeholder)
+    assert expected != spec.telegram(21.0)  # the placeholder byte, not the run-time checksum
+    result = await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
+    assert result["result"] == "ok" and result["telegram"] == expected
+    assert [c for c in sent(fake)] == [f"write -s ff -c em2 -h {expected}"]
+    assert fake.writes == [("ff", "em2", expected)]
+
+
+async def test_stock_opt_in_never_writes_a_boiler_automat(hass, fake, log):
+    """allow_stock_writes relaxes only the non-boiler controllers: a write to a boiler automat (08/18) stays
+    refused on a stock ebusd. No boiler setting is writable today, so a hypothetical one is built from an
+    existing spec to prove the gate."""
+    import dataclasses
+    fake.runtime_checksum = False
+    entry = make_entry(hass, fake, writes_enabled=True, allow_stock_writes=True, telegram_db=log)
+    await setup(hass, entry)
+    writer = entry.runtime_data.writer
+    writer.set_switch(True)
+    assert writer.boiler_addresses == {"08", "18"}
+    non_boiler = writer.specs["em2/RoomSetbackTemp"]
+    boiler = dataclasses.replace(non_boiler, zz=next(iter(writer.boiler_addresses)))
+    assert writer._stock_write_allowed(non_boiler) is True
+    assert writer._stock_write_allowed(boiler) is False
+    with pytest.raises(WriteRefused) as err:
+        writer._check_static(boiler, "bc1/Hypothetical", boiler.minimum)
+    assert err.value.code == "capability_absent"
+
+
+async def test_stock_opt_in_still_refuses_an_unknown_build(hass, fake, log, monkeypatch):
+    """allow_stock_writes relaxes only a build proven stock (capability "absent"): an unclassified build
+    (capability "unknown") stays refused even with the option on — fail safe."""
+    monkeypatch.setattr(fake, "_write", lambda source, circuit, text: "ERR: timeout")
+    entry = make_entry(hass, fake, writes_enabled=True, allow_stock_writes=True, telegram_db=log)
+    await setup(hass, entry)
+    writer = entry.runtime_data.writer
+    assert writer.capability == "unknown" and writer.allow_stock_writes
+    writer.set_switch(True)
+    with pytest.raises(WriteRefused) as err:
+        await writer.async_write("em2/RoomSetbackTemp", 21.0, None)
+    assert err.value.code == "capability_unknown" and fake.writes == []
 
 
 async def test_read_back_mismatch(hass, fake, log):

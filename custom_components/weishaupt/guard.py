@@ -41,7 +41,8 @@ REASONS = {
     "writes_disabled": "writes are not enabled in the options of the integration",
     "switch_off": "the write switch is off",
     "not_writable": "{setting} is not writable: {reason}",
-    "capability_absent": "ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused",
+    "capability_absent": "ebusd does not compute the run-time checksum (john30/ebusd#1825): writes refused "
+                         "(enable allow_stock_writes to write non-boiler controllers through a stock ebusd)",
     "capability_unknown": "whether ebusd computes the run-time checksum is not known ({reason}): writes refused",
     "source_not_own": "{setting} is proven written from address 31 only, and ebusd's own address is {own}",
     "off_step": "{value} is not on a step of {step} from {minimum}",

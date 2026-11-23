@@ -540,6 +540,7 @@ def tree(hass: HomeAssistant, hub: Hub) -> dict[str, Any]:
             "messages": len(model.messages), "usable": len(hub.usable), "not_usable": _not_usable(hub)},
         "writes": None if writer is None else {
             "switch": writer.switch_on, "capability": writer.capability,
+            "allow_stock_writes": writer.allow_stock_writes,
             "writes_last_hour": writer.guard.writes_last_hour(), "max_per_hour": writer.guard.max_per_hour,
             "read_only": [{"key": key, "reason": reason} for key, reason in sorted(writer.not_writable.items())],
             "switch_entity_id": links.get("writes", {}).get("switch"),

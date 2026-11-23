@@ -6,6 +6,7 @@ DOMAIN = "weishaupt"
 CONF_REQUEST_GAP = "request_gap"
 CONF_CYCLIC_INTERVAL = "cyclic_interval"
 CONF_WRITES_ENABLED = "writes_enabled"
+CONF_ALLOW_STOCK_WRITES = "allow_stock_writes"
 CONF_TELEGRAM_DB = "telegram_db"
 CONF_MAX_WRITES_PER_HOUR = "max_writes_per_hour"
 DEFAULT_TELEGRAM_DB = "/share/ebusd/telegrams.db"  # the telegram log of the ebusd add-on of the test installation
@@ -27,6 +28,7 @@ FAILURES_BEFORE_UNKNOWN = 3  # consecutive failed readings before the value of a
 
 MANUFACTURER = "Weishaupt"
 MODELS = {"boiler": "WTC", "manager": "WCM-KA", "module": "WCM-EM", "room": "WCM-FS"}
+BOILER_DEVICE_TYPE = "boiler"  # automats 08/18: never written, even on a stock ebusd
 DOCUMENTATION_URL = "https://github.com/aghulas/ha-weishaupt"
 
 # Writes

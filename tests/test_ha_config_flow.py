@@ -95,7 +95,7 @@ async def test_reconfigure_menu_sets_bus_load_and_writes(hass, fake):
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
     assert entry.options == {CONF_REQUEST_GAP: 7, CONF_CYCLIC_INTERVAL: 450, "writes_enabled": False,
-                             "max_writes_per_hour": 30}
+                             "allow_stock_writes": False, "max_writes_per_hour": 30}
     assert entry.state is ConfigEntryState.LOADED
     assert (entry.runtime_data.request_gap, entry.runtime_data.cyclic_interval) == (7, 450)
     await hass.config_entries.async_unload(entry.entry_id)
@@ -130,7 +130,7 @@ async def test_options(hass, fake):
     assert result["type"] is FlowResultType.CREATE_ENTRY
     # the telegram log is set per ebusd since 0.12.0 (endpoints of the data), no longer among the options
     assert entry.options == {CONF_REQUEST_GAP: 5, CONF_CYCLIC_INTERVAL: 600, "writes_enabled": False,
-                             "max_writes_per_hour": 30}
+                             "allow_stock_writes": False, "max_writes_per_hour": 30}
     hub = entry.runtime_data  # reloaded with the new options
     assert (hub.request_gap, hub.cyclic_interval) == (5, 600)
 

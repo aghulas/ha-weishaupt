@@ -75,12 +75,14 @@
           "request_gap": "Délai entre deux requêtes",
           "cyclic_interval": "Intervalle des valeurs instantanées",
           "writes_enabled": "Activer l'écriture des réglages prouvés",
+          "allow_stock_writes": "Autoriser l'écriture avec un ebusd standard (régulateurs hors chaudière)",
           "max_writes_per_hour": "Écritures par heure au maximum"
         },
         "data_description": {
           "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
           "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
-          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Par défaut une écriture nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825), vérifié sans rien envoyer sur le bus ; l'option ci-dessous lève cette condition pour les régulateurs hors chaudière. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "allow_stock_writes": "Autorise l'écriture des régulateurs hors chaudière (gestionnaire de système, modules de chauffe, unités d'ambiance) avec un ebusd standard qui ne calcule pas le checksum à l'exécution. La validation sur site du 23/11/2026 a montré qu'un ebusd 26.1 standard écrit de bout en bout chaque réglage publié de ces régulateurs ; l'écriture porte alors l'octet de checksum de la définition, que les régulateurs acceptent. Les automates de chaudière ne sont jamais écrits avec un ebusd standard, et le build reste requis pour eux. Laissez décoché si vous utilisez le build qui calcule le checksum à l'exécution (john30/ebusd#1825).",
           "max_writes_per_hour": "Écritures acceptées sur toute heure glissante (1 à 200, 30 par défaut). La limite protège la mémoire des régulateurs de l'usure : gardez 30 en service normal. Une valeur plus haute est réservée à une campagne d'essais surveillée ; remettez 30 à la fin de la campagne. La modifier recharge l'intégration, ce qui remet le compte à zéro."
         },
         "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés. Changer ce choix recharge l'intégration."
@@ -124,12 +126,14 @@
           "request_gap": "Délai entre deux requêtes",
           "cyclic_interval": "Intervalle des valeurs instantanées",
           "writes_enabled": "Activer l'écriture des réglages prouvés",
+          "allow_stock_writes": "Autoriser l'écriture avec un ebusd standard (régulateurs hors chaudière)",
           "max_writes_per_hour": "Écritures par heure au maximum"
         },
         "data_description": {
           "request_gap": "L'intégration n'envoie jamais deux requêtes plus rapprochées que ce délai.",
           "cyclic_interval": "Fréquence de lecture des températures et des autres valeurs instantanées. Les réglages, les compteurs et les programmes sont lus bien moins souvent.",
-          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825) ; l'intégration le vérifie sans rien envoyer sur le bus. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "writes_enabled": "Crée une entité nombre pour chaque réglage qu'une version des définitions prouve inscriptible, et l'interrupteur d'écriture (éteint). Par défaut une écriture nécessite un ebusd qui calcule le checksum à l'exécution (john30/ebusd#1825), vérifié sans rien envoyer sur le bus ; l'option ci-dessous lève cette condition pour les régulateurs hors chaudière. Les réglages de régulation ne sont écrits qu'après une confirmation dans Paramètres > Réparations.",
+          "allow_stock_writes": "Autorise l'écriture des régulateurs hors chaudière (gestionnaire de système, modules de chauffe, unités d'ambiance) avec un ebusd standard qui ne calcule pas le checksum à l'exécution. La validation sur site du 23/11/2026 a montré qu'un ebusd 26.1 standard écrit de bout en bout chaque réglage publié de ces régulateurs ; l'écriture porte alors l'octet de checksum de la définition, que les régulateurs acceptent. Les automates de chaudière ne sont jamais écrits avec un ebusd standard, et le build reste requis pour eux. Laissez décoché si vous utilisez le build qui calcule le checksum à l'exécution (john30/ebusd#1825).",
           "max_writes_per_hour": "Écritures acceptées sur toute heure glissante (1 à 200, 30 par défaut). La limite protège la mémoire des régulateurs de l'usure : gardez 30 en service normal. Une valeur plus haute est réservée à une campagne d'essais surveillée ; remettez 30 à la fin de la campagne. La modifier recharge l'intégration, ce qui remet le compte à zéro."
         },
         "description": "Charge sur le bus, et écritures. Les écritures sont désactivées sauf si elles sont activées ici ; un interrupteur d'écriture sur l'appareil ebusd les active et les coupe ensuite, et seuls les réglages que les définitions prouvent inscriptibles peuvent être modifiés."
@@ -306,7 +310,7 @@
       "message": "{setting} n'est pas inscriptible : {reason}"
     },
     "capability_absent": {
-      "message": "Cet ebusd ne calcule pas le checksum à l'exécution (john30/ebusd#1825) : écritures refusées."
+      "message": "Cet ebusd ne calcule pas le checksum à l'exécution (john30/ebusd#1825). Activez « Autoriser l'écriture avec un ebusd standard » dans les options pour écrire les régulateurs hors chaudière à travers lui ; les automates de chaudière ne sont jamais écrits avec un ebusd standard."
     },
     "capability_unknown": {
       "message": "On ne sait pas si ebusd calcule le checksum à l'exécution ({reason}) : écritures refusées."

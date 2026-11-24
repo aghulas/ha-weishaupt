@@ -3,6 +3,12 @@ from __future__ import annotations
 
 DOMAIN = "weishaupt"
 
+CONF_TRANSPORT = "transport"
+TRANSPORT_EBUSD = "ebusd"
+TRANSPORT_MQTT = "mqtt"
+CONF_BASE_TOPIC = "base_topic"
+DEFAULT_BASE_TOPIC = "weishaupt"
+
 CONF_REQUEST_GAP = "request_gap"
 CONF_CYCLIC_INTERVAL = "cyclic_interval"
 CONF_WRITES_ENABLED = "writes_enabled"

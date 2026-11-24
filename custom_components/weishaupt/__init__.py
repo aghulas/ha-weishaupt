@@ -22,13 +22,24 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
 from . import endpoints
-from .const import CONF_TELEGRAM_DB, CONF_WRITES_ENABLED, DEFAULT_TELEGRAM_DB, DOCUMENTATION_URL, DOMAIN
+from .const import (
+    CONF_BASE_TOPIC,
+    CONF_TELEGRAM_DB,
+    CONF_TRANSPORT,
+    CONF_WRITES_ENABLED,
+    DEFAULT_BASE_TOPIC,
+    DEFAULT_TELEGRAM_DB,
+    DOCUMENTATION_URL,
+    DOMAIN,
+    TRANSPORT_MQTT,
+)
 from .devices import DeviceWatch
 from .ebusd import EbusdClient, EbusdError
 from .entity import device_identifier, hub_identifier
 from .hub import Hub, WeishauptConfigEntry
 from .metadata_file import FOLDER as METADATA_FOLDER, choose
 from .model import ACCEPTED_DEFINITIONS, WEEKDAYS
+from .mqtt_bridge import MqttHub, MqttWriter
 from .panel import async_setup_panel
 from .services import async_register_services
 from .supervisor import addon_states
@@ -104,6 +115,8 @@ async def _async_back(hass: HomeAssistant, entry: WeishauptConfigEntry) -> None:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
+    if entry.data.get(CONF_TRANSPORT) == TRANSPORT_MQTT:
+        return await _async_setup_mqtt_entry(hass, entry)
     await _async_pick_endpoint(hass, entry)
     in_use = endpoints.current(dict(entry.data))
     choice = await hass.async_add_executor_job(choose, Path(hass.config.path(METADATA_FOLDER)))
@@ -175,6 +188,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) ->
     hass.data.setdefault(f"{DOMAIN}_device_watch", {})[entry.entry_id] = watch
     await watch.async_start()
     entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} reader")
+    entry.async_on_unload(entry.add_update_listener(_async_reload))
+    return True
+
+
+async def _async_setup_mqtt_entry(hass: HomeAssistant, entry: WeishauptConfigEntry) -> bool:
+    """Set up the integration in MQTT mode, consuming `weishaupt2mqtt` topics."""
+    choice = await hass.async_add_executor_job(choose, Path(hass.config.path(METADATA_FOLDER)))
+    base_topic = str(entry.data.get(CONF_BASE_TOPIC) or DEFAULT_BASE_TOPIC)
+    hub = MqttHub(hass, entry, base_topic, choice.model)
+    hub.metadata_source, hub.metadata_refused = choice.source, choice.refused
+    if choice.source != "bundled":
+        hub.translated = await hass.async_add_executor_job(_bundled_names)
+
+    await hub.async_setup()
+
+    kept = hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
+    if kept is not None:
+        hub.previously_listened = kept["listened"]
+        hub.restore(kept["readings"])
+    hub.urgent_at_start = hass.data.get(f"{DOMAIN}_enabled_by_migration", {}).pop(entry.entry_id, set())
+
+    if entry.options.get(CONF_WRITES_ENABLED):
+        hub.writer = MqttWriter(hass, hub, dict(entry.options))
+        await hub.writer.async_setup()
+
+    entry.runtime_data = hub
+    endpoints.clear_not_running(hass, entry.entry_id)
+    assert hub.info is not None
+    hub.device_id = dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={hub_identifier(hub)}, name="Weishaupt2MQTT",
+        manufacturer="Weishaupt2MQTT", sw_version=hub.info.version, entry_type=dr.DeviceEntryType.SERVICE).id
+    _update_issues(hass, entry, hub)
+    _follow_renames(hass, entry, hub)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    _update_file_issue(hass, entry, hub)
+    _remove_stale(hass, entry, hub)
+    entry.async_create_background_task(hass, hub.async_run(), f"{DOMAIN} mqtt")
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
 

@@ -15,11 +15,22 @@
       },
       "reconfigure": {
         "title": "Weishaupt",
-        "description": "Changez ce que le bouton Configurer (qui ouvre le panneau) ne permet pas : l'ebusd utilisé par cette entrée, la charge qu'elle met sur le bus et ses écritures, et le journal des télégrammes de chaque ebusd.",
+        "description": "Changez ce que le bouton Configurer (qui ouvre le panneau) ne permet pas : pont MQTT (Weishaupt2MQTT), l'ebusd utilisé par cette entrée, la charge qu'elle met sur le bus et ses écritures, et le journal des télégrammes de chaque ebusd.",
         "menu_options": {
+          "mqtt": "Weishaupt2MQTT (pont MQTT)",
           "endpoints": "ebusd (la liste, et lequel utiliser)",
           "settings": "Charge sur le bus et écritures",
           "telegram_log": "Journal des télégrammes de chaque ebusd"
+        }
+      },
+      "mqtt": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Relier l'installation de chauffage via Weishaupt2MQTT en utilisant l'intégration MQTT de Home Assistant. Les appareils, entités, historique et options existants sont conservés.",
+        "data": {
+          "base_topic": "Topic MQTT de base"
+        },
+        "data_description": {
+          "base_topic": "Topic de base configuré dans Weishaupt2MQTT (par défaut : weishaupt)."
         }
       },
       "endpoints": {
@@ -116,8 +127,16 @@
         "title": "Options",
         "menu_options": {
           "settings": "Charge sur le bus et écritures",
+          "mqtt": "Weishaupt2MQTT (pont MQTT)",
           "ebusd": "Quel ebusd",
           "telegram_log": "Journal des télégrammes de chaque ebusd"
+        }
+      },
+      "mqtt": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Basculer cette entrée vers Weishaupt2MQTT via MQTT, ou modifier le topic MQTT de base.",
+        "data": {
+          "base_topic": "Topic MQTT de base"
         }
       },
       "settings": {

@@ -21,11 +21,14 @@ from homeassistant.helpers import selector
 
 from .const import (
     CONF_ALLOW_STOCK_WRITES,
+    CONF_BASE_TOPIC,
     CONF_CYCLIC_INTERVAL,
     CONF_MAX_WRITES_PER_HOUR,
     CONF_REQUEST_GAP,
     CONF_TELEGRAM_DB,
+    CONF_TRANSPORT,
     CONF_WRITES_ENABLED,
+    DEFAULT_BASE_TOPIC,
     DEFAULT_CYCLIC_INTERVAL,
     DEFAULT_REQUEST_GAP,
     DEFAULT_TELEGRAM_DB,
@@ -34,6 +37,8 @@ from .const import (
     MAX_REQUEST_GAP,
     MIN_CYCLIC_INTERVAL,
     MIN_REQUEST_GAP,
+    TRANSPORT_EBUSD,
+    TRANSPORT_MQTT,
 )
 from .ebusd import DEFAULT_PORT, EbusdClient, EbusdError
 from .endpoints import (
@@ -211,9 +216,22 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="user", data_schema=_schema(user_input or {}), errors=errors)
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """The entry's menu, the UI path to the options the panel does not expose: the endpoints and their mode,
-        the bus load and writes, the telegram log of each ebusd."""
-        return self.async_show_menu(step_id="reconfigure", menu_options=["endpoints", "settings", "telegram_log"])
+        """The entry's menu, the UI path to the options the panel does not expose: MQTT bridge, the endpoints
+        and their mode, the bus load and writes, the telegram log of each ebusd."""
+        return self.async_show_menu(
+            step_id="reconfigure", menu_options=["mqtt", "endpoints", "settings", "telegram_log"]
+        )
+
+    async def async_step_mqtt(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure or switch the entry to use `weishaupt2mqtt` over Home Assistant's MQTT integration."""
+        entry = self._get_reconfigure_entry()
+        if user_input is not None:
+            topic = str(user_input.get(CONF_BASE_TOPIC) or DEFAULT_BASE_TOPIC).strip("/") or DEFAULT_BASE_TOPIC
+            new_data = {**entry.data, CONF_TRANSPORT: TRANSPORT_MQTT, CONF_BASE_TOPIC: topic}
+            return self.async_update_reload_and_abort(entry, unique_id=f"mqtt:{topic}", data=new_data)
+        default_topic = entry.data.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC)
+        schema = vol.Schema({vol.Required(CONF_BASE_TOPIC, default=default_topic): str})
+        return self.async_show_form(step_id="mqtt", data_schema=schema)
 
     async def async_step_endpoints(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         entry = self._get_reconfigure_entry()
@@ -268,12 +286,14 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
                 in_use = next((e for e in candidates if e.key == current(data).key), None)
                 chosen, _ = await _pick(candidates, in_use, stopped)
                 if chosen is not None:
-                    new = use({**base, CONF_HOST: chosen.host, CONF_PORT: chosen.port}, chosen, MODE_FOLLOW)
+                    new = use({**base, CONF_TRANSPORT: TRANSPORT_EBUSD, CONF_HOST: chosen.host, CONF_PORT: chosen.port},
+                              chosen, MODE_FOLLOW)
                     return self.async_update_reload_and_abort(entry, unique_id=chosen.key, data=new)
                 errors["base"] = "cannot_connect"
             else:
                 pinned = next(e for e in candidates if e.key == user_input[CONF_USE])
-                new = use({**base, CONF_HOST: pinned.host, CONF_PORT: pinned.port}, pinned, MODE_PINNED)
+                new = use({**base, CONF_TRANSPORT: TRANSPORT_EBUSD, CONF_HOST: pinned.host, CONF_PORT: pinned.port},
+                          pinned, MODE_PINNED)
                 return self.async_update_reload_and_abort(entry, unique_id=pinned.key, data=new)
         keys = {e.key for e in candidates}
         default = MODE_FOLLOW if mode_of(data) == MODE_FOLLOW or current(data).key not in keys else current(data).key
@@ -331,7 +351,18 @@ class WeishauptOptionsFlow(OptionsFlow):
     _log_endpoint: str | None = None
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return self.async_show_menu(step_id="init", menu_options=["settings", "ebusd", "telegram_log"])
+        return self.async_show_menu(step_id="init", menu_options=["settings", "mqtt", "ebusd", "telegram_log"])
+
+    async def async_step_mqtt(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Switch this entry to `weishaupt2mqtt` over MQTT, or change its base topic."""
+        if user_input is not None:
+            topic = str(user_input.get(CONF_BASE_TOPIC) or DEFAULT_BASE_TOPIC).strip("/") or DEFAULT_BASE_TOPIC
+            new_data = {**self.config_entry.data, CONF_TRANSPORT: TRANSPORT_MQTT, CONF_BASE_TOPIC: topic}
+            self.hass.config_entries.async_update_entry(self.config_entry, unique_id=f"mqtt:{topic}", data=new_data)
+            return self.async_create_entry(data=dict(self.config_entry.options))
+        default_topic = self.config_entry.data.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC)
+        schema = vol.Schema({vol.Required(CONF_BASE_TOPIC, default=default_topic): str})
+        return self.async_show_form(step_id="mqtt", data_schema=schema)
 
     async def async_step_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:

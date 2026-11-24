@@ -15,11 +15,22 @@
       },
       "reconfigure": {
         "title": "Weishaupt",
-        "description": "Change what the Configure button (which opens the panel) does not: the ebusd this entry uses, the load it puts on the bus and its writes, and the telegram log of each ebusd.",
+        "description": "Change what the Configure button (which opens the panel) does not: MQTT bridge (Weishaupt2MQTT), the ebusd this entry uses, the load it puts on the bus and its writes, and the telegram log of each ebusd.",
         "menu_options": {
+          "mqtt": "Weishaupt2MQTT (MQTT bridge)",
           "endpoints": "ebusd (the list, and which one to use)",
           "settings": "Bus load and writes",
           "telegram_log": "Telegram log of each ebusd"
+        }
+      },
+      "mqtt": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Connect to the heating system through Weishaupt2MQTT using Home Assistant's MQTT integration. Existing devices, entities, history and options are kept.",
+        "data": {
+          "base_topic": "Base MQTT topic"
+        },
+        "data_description": {
+          "base_topic": "Base topic configured in Weishaupt2MQTT (default: weishaupt)."
         }
       },
       "endpoints": {
@@ -116,8 +127,16 @@
         "title": "Options",
         "menu_options": {
           "settings": "Bus load and writes",
+          "mqtt": "Weishaupt2MQTT (MQTT bridge)",
           "ebusd": "Which ebusd",
           "telegram_log": "Telegram log of each ebusd"
+        }
+      },
+      "mqtt": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Switch this entry to Weishaupt2MQTT over MQTT, or change the base MQTT topic.",
+        "data": {
+          "base_topic": "Base MQTT topic"
         }
       },
       "settings": {

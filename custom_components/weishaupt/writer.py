@@ -103,9 +103,11 @@ class Pending:
     placeholders: dict[str, str] = field(default_factory=dict)
 
 
-def _text(spec: WriteSpec, value: float, language: str = "en") -> str:
+def _text(spec: WriteSpec, value: float | None, language: str = "en") -> str:
     """A value as the device holds it: the decimals of the step (8.0 °C, not 8 °C) and the unit, or the label of the
     entry of a value list."""
+    if value is None:
+        return "-"
     if spec.values is not None:
         raw = int(value)
         label = (spec.value_labels or {}).get(raw, {})

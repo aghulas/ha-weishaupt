@@ -219,6 +219,8 @@ class ClockOffsetSensor(WeishauptEntity, SensorEntity):
         await self._async_update()
 
     async def _async_update(self, _now=None) -> None:
+        if self.hub.client is None:
+            return
         try:
             broadcast = clock.parse_find(await self.hub.client.last_broadcast_of_clock())
         except EbusdError:

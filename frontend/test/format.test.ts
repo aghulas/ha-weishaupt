@@ -277,6 +277,14 @@ test("vendor codes: search without case and spaces, sort, tooltip, report and CS
   for (const query of ["P31", "p31", "P 31", "p 31", " P31 "]) assert.ok(matchesRow(p31, query, "all", {}, "en"), query);
   assert.ok(!matchesRow(p9, "P 31", "all", {}, "en"));
   assert.ok(!matchesRow(none, "P 31", "all", {}, "en"));
+  // a lettered code is not two words: "P 31" does not find i31, nor a name with "p" and "31" in it
+  assert.ok(!matchesRow(row({ key: "x", label: { en: "Flue gas temperature (i31)" },
+    vendor_codes: [{ code: "i31", ...boiler }] }), "P 31", "all", {}, "en"));
+  assert.ok(matchesRow(i35, "I 35", "all", {}, "en"));
+  assert.ok(!matchesRow(row({ vendor_codes: [{ code: "P315", ...boiler }] }), "P 31", "all", {}, "en")); // the whole code
+  // digits: a code of the system manager, found within any row's code; the register search still works
+  assert.ok(matchesRow(row({ vendor_codes: [{ code: "535", scheme: "wcm-ka-3", document: null,
+    scheme_label: { en: "WCM-KA 3.0" } }] }), "535", "all", {}, "en"));
   assert.ok(matchesRow(p31, "p31 normale", "all", {}, "fr")); // a code is a term like any other
   assert.ok(matchesRow(row({ vendor_codes: undefined }), "normal", "all", {}, "en")); // a server without codes
   // sorted by code: numbers in order, rows without code last both ways, the menus' order without a sort

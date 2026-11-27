@@ -990,8 +990,13 @@ export function sortByCode(rows: Row[], direction: CodeSort): Row[] {
     .map((x) => x.row);
 }
 
-/** Whether a row matches a free-text query (accent- and case-insensitive) and a quick filter. A query that is a
- * vendor code, spaces or not ("P 31", "p31"), finds the rows of that code. */
+// a query written as a lettered vendor code: one or two letters then digits, a space between or not (P31, p 31, i35)
+const CODE_QUERY = /^[a-z]{1,2}\s*\d+$/;
+
+/** Whether a row matches a free-text query (accent- and case-insensitive) and a quick filter. A query written as a
+ * lettered code ("P 31", "p31") finds only the rows of that code (P31: not P315, not i31, not a name with "p" and
+ * "31" in it); any other query is matched word by word against the name, the description, the keys, the register
+ * and the codes, and also finds the rows whose code contains it without spaces ("535"). */
 export function matchesRow(
   row: Row,
   query: string,
@@ -1004,8 +1009,10 @@ export function matchesRow(
   if (filter === "unread" && readingOf(row, readings) !== null) return false;
   const terms = fold(query).trim().split(/\s+/).filter(Boolean);
   if (!terms.length) return true;
+  const codes = (row.vendor_codes ?? []).map((c) => codeKey(fold(c.code)));
   const wanted = codeKey(fold(query));
-  if ((row.vendor_codes ?? []).some((c) => codeKey(fold(c.code)).includes(wanted))) return true;
+  if (CODE_QUERY.test(fold(query).trim())) return codes.includes(wanted);
+  if (codes.some((code) => code.includes(wanted))) return true;
   const haystack = fold([
     label(row.label, language),
     label(row.description, language),

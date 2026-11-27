@@ -1,11 +1,16 @@
 """The panel: its WebSocket commands (read only, admin only, nothing asked from the bus) and its registration."""
 from __future__ import annotations
 
+import hashlib
+import json
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from custom_components.weishaupt import panel
+from custom_components.weishaupt.model import METADATA_FILE
 from ha_common import make_entry, settled, setup
 from test_ha_writes import telegram_log
+from test_vendor_codes import _without_codes
 
 
 async def _loaded(hass, fake, tmp_path, **options):
@@ -210,3 +215,33 @@ async def test_the_card_finds_the_day_texts_of_a_program_sensor(hass, fake, tmp_
              and e.translation_key and e.translation_key.startswith(f"{sensor.translation_key}_")]
     assert sorted(e.translation_key.rsplit("_", 1)[1] for e in texts) == sorted(
         ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
+
+
+async def test_panel_rows_carry_the_codes(hass, fake, tmp_path):
+    """Each row carries the vendor codes of its value with the label and document of their scheme."""
+    entry = await _loaded(hass, fake, tmp_path)
+    tree = panel.tree(hass, entry.runtime_data)
+    rows = {row["key"]: row for d in tree["devices"] for row in d["rows"]}
+    assert rows["fs1/RoomNormalTemp/value"]["vendor_codes"] == [{
+        "code": "P112", "scheme": "wcm-fs-2", "document": "83277504",
+        "scheme_label": {"en": "WCM-FS 2.0 room unit and WCM-EM 2.1 module",
+                         "fr": "Commande à distance WCM-FS 2.0 et module WCM-EM 2.1"}}]
+    assert [c["code"] for c in rows["bc1/Counters/burnerhours"]["vendor_codes"]] == ["i43"]
+    assert rows["bc1/Counters/operatinghours"]["vendor_codes"] == []
+    coded = sum(1 for row in rows.values() if row["vendor_codes"])
+    assert coded > 100
+
+
+async def test_panel_rows_without_codes_in_the_metadata(hass, fake, tmp_path):
+    """A metadata without codes (before definitions 1.4.0) beside the configuration: rows with an empty list."""
+    data = _without_codes(json.loads(METADATA_FILE.read_text()))
+    data["definitions"]["version"] = "1.4.2"
+    folder = Path(hass.config.path("weishaupt"))
+    folder.mkdir(exist_ok=True)
+    text = json.dumps(data).encode()
+    (folder / "weishaupt-metadata-1.4.2.json").write_bytes(text)
+    (folder / "sha256sums-1.4.2.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.2.json\n")
+    entry = await _loaded(hass, fake, tmp_path)
+    assert entry.runtime_data.model.version == "1.4.2"
+    tree = panel.tree(hass, entry.runtime_data)
+    assert all(row["vendor_codes"] == [] for d in tree["devices"] for row in d["rows"])

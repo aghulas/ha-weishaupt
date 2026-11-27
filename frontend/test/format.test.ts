@@ -144,7 +144,7 @@ test("the report: settings only, in the order of the menus, values as read, CSV 
   assert.equal(rows[0].range, "16 … 35 (0,5)");
   assert.equal(rows[1].range, "Réduit"); // a choice: its entries, not "0 … 7 (1)"
   const csv = toCsv(rows, "fr");
-  assert.ok(csv.startsWith("\ufeffAppareil;Menu;Réglage;Valeur;Unité;Plage (pas) ou choix;Inscriptible\r\n"));
+  assert.ok(csv.startsWith("\ufeffAppareil;Menu;Réglage;Valeur;Unité;Plage (pas) ou choix;Inscriptible;Code constructeur;Numérotation du code\r\n"));
   assert.ok(csv.includes("Module de chauffage 2;Réglage;Température ambiante normale;21.5;°C;16 … 35 (0,5);lecture seule"));
   // a setting not read: its reason, never a blank
   assert.equal(reportRows(tree, {}, "fr")[0].value, "en attente de la première lecture");
@@ -263,4 +263,57 @@ test("dragRange and search/filters: accent-insensitive multi-term matching and q
   assert.ok(matchesRow(r, "", "unread", {}, "fr"));
   assert.ok(!matchesRow(row({ writable: null }), "", "writable", readings, "fr"));
   assert.ok(!matchesRow(row({ writable, edited_on: { device: { en: "RU1" }, key: "x" } }), "", "writable", readings, "fr"));
+});
+
+test("vendor codes: search without case and spaces, sort, tooltip, report and CSV", async () => {
+  const { codeKey, codeText, codeTitle, matchesRow, sortByCode } = await import("../src/format.ts");
+  const boiler = { scheme: "wtc-gb", document: "83251704",
+    scheme_label: { en: "WTC-GB boiler automat", fr: "Automate de la chaudière WTC-GB" } };
+  const p31 = row({ key: "bc1/InstallerParameters1/supplymaxtemp", vendor_codes: [{ code: "P31", ...boiler }] });
+  const p9 = row({ key: "p9", vendor_codes: [{ code: "P9", ...boiler }] });
+  const i35 = row({ key: "i35", vendor_codes: [{ code: "i35", ...boiler }] });
+  const none = row({ key: "none" });
+  assert.equal(codeKey(" P 31 "), "p31");
+  for (const query of ["P31", "p31", "P 31", "p 31", " P31 "]) assert.ok(matchesRow(p31, query, "all", {}, "en"), query);
+  assert.ok(!matchesRow(p9, "P 31", "all", {}, "en"));
+  assert.ok(!matchesRow(none, "P 31", "all", {}, "en"));
+  // a lettered code is not two words: "P 31" does not find i31, nor a name with "p" and "31" in it
+  assert.ok(!matchesRow(row({ key: "x", label: { en: "Flue gas temperature (i31)" },
+    vendor_codes: [{ code: "i31", ...boiler }] }), "P 31", "all", {}, "en"));
+  assert.ok(matchesRow(i35, "I 35", "all", {}, "en"));
+  assert.ok(!matchesRow(row({ vendor_codes: [{ code: "P315", ...boiler }] }), "P 31", "all", {}, "en")); // the whole code
+  // digits: a code of the system manager, found within any row's code; the register search still works
+  assert.ok(matchesRow(row({ vendor_codes: [{ code: "535", scheme: "wcm-ka-3", document: null,
+    scheme_label: { en: "WCM-KA 3.0" } }] }), "535", "all", {}, "en"));
+  assert.ok(matchesRow(p31, "p31 normale", "all", {}, "fr")); // a code is a term like any other
+  assert.ok(matchesRow(row({ vendor_codes: undefined }), "normal", "all", {}, "en")); // a server without codes
+  // sorted by code: numbers in order, rows without code last both ways, the menus' order without a sort
+  const rows = [none, p31, i35, p9];
+  assert.deepEqual(sortByCode(rows, "asc").map((r) => r.key), ["i35", "p9", p31.key, "none"]);
+  assert.deepEqual(sortByCode(rows, "desc").map((r) => r.key), [p31.key, "p9", "i35", "none"]);
+  assert.equal(sortByCode(rows, ""), rows);
+  // the tooltip: the scheme, with its document; one line per code when the schemes differ
+  assert.equal(codeTitle(p31, "fr"), "Automate de la chaudière WTC-GB, document 83251704");
+  const two = row({ vendor_codes: [{ code: "593", scheme: "wcm-ka-3", document: null,
+    scheme_label: { en: "WCM-KA 3.0 system manager" } }, { code: "P31", ...boiler }] });
+  assert.equal(codeText(two), "593, P31");
+  assert.equal(codeTitle(two, "en"), "593: WCM-KA 3.0 system manager\nP31: WTC-GB boiler automat, document 83251704");
+  assert.equal(codeTitle(row({ vendor_codes: [{ code: "X", scheme: "later", document: null, scheme_label: {} as never }] }), "en"), "later");
+  // report: a code column beside the setting and a note naming the schemes; CSV: code and scheme last
+  const tree = {
+    devices: [{ id: "boiler1", label: { en: "Boiler 1", fr: "Chaudière 1" },
+      menus: [{ id: "settings", parent: "", label: { en: "Settings", fr: "Réglage" } }],
+      rows: [row({ ...p31, kind: "setting", menu: "settings", label: { en: "Max flow", fr: "Départ maxi" } }),
+        row({ key: "b", kind: "setting", menu: "settings" })] }],
+  } as unknown as Tree;
+  const report = reportRows(tree, {}, "en");
+  assert.deepEqual(report.map((r) => [r.code, r.scheme]), [["P31", "WTC-GB boiler automat, document 83251704"], ["", ""]]);
+  const csv = toCsv(report, "fr").split("\r\n");
+  assert.equal(csv[0], "﻿Appareil;Menu;Réglage;Valeur;Unité;Plage (pas) ou choix;Inscriptible;Code constructeur;Numérotation du code");
+  assert.ok(toCsv(report, "en").includes(",P31,WTC-GB boiler automat, document 83251704") === false); // quoted
+  assert.ok(toCsv(report, "en").includes(',P31,"WTC-GB boiler automat, document 83251704"'));
+  const page = reportHtml(report, "en", { title: "Settings", subtitle: "s" });
+  assert.ok(page.includes("<th>Setting</th><th>Vendor code</th><th>Value</th>"));
+  assert.ok(page.includes("<td>Max flow</td><td>P31</td>"));
+  assert.ok(page.includes("Vendor codes: WTC-GB boiler automat, document 83251704."));
 });

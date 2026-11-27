@@ -21,7 +21,7 @@ def test_parse_info(golden):
     assert info.signal is False  # recorded without a bus
     boiler = info.slave("08")
     assert (boiler.manufacturer, boiler.ident, boiler.software) == ("Kromschroeder", "W", "1104")
-    assert boiler.files == ("kromschroeder/08.w.bc1.csv",)
+    assert boiler.files == ("kromschroeder/08.w.bc1.SW1104.csv",)
     assert info.slave("36") is None  # ebusd's own slave address
     assert info.slave("10") is None  # a master
     scanned = sorted(a.address for a in info.addresses.values() if a.scanned)

@@ -593,7 +593,15 @@
         "name": "Boiler 2 status – Service"
       },
       "manager_circwithlegionella": {
-        "name": "Circulation during legionella protection"
+        "name": "Circulation during legionella protection",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_hcmode_dhw": {
         "name": "Hot water"
@@ -667,76 +675,260 @@
     },
     "number": {
       "manager_blockingtime": {
-        "name": "Blocking time (setting)"
+        "name": "Blocking time (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_calorifierswitchdiff": {
-        "name": "Calorifier switching differential (setting)"
+        "name": "Calorifier switching differential (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_changeovertime": {
-        "name": "Boiler sequence changeover time (setting)"
+        "name": "Boiler sequence changeover time (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_decouplemintemp": {
-        "name": "De-couple minimum temperature (setting)"
+        "name": "De-couple minimum temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwloadtime": {
-        "name": "Maximum hot water loading time (setting)"
+        "name": "Maximum hot water loading time (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwsetpoint": {
-        "name": "Hot water setpoint (setting)"
+        "name": "Hot water setpoint (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwswitchdiff": {
-        "name": "Hot water switching differential (setting)"
+        "name": "Hot water switching differential (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_gradientcurve": {
-        "name": "Heating curve gradient (setting)"
+        "name": "Heating curve gradient (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_legionellacirculationtime": {
-        "name": "Legionella circulation time (setting)"
+        "name": "Legionella circulation time (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_legionellasetpoint": {
-        "name": "Legionella protection setpoint (setting)"
+        "name": "Legionella protection setpoint (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationmax": {
-        "name": "Maximum modulation (optimal range) (setting)"
+        "name": "Maximum modulation (optimal range) (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationmin": {
-        "name": "Minimum modulation (optimal range) (setting)"
+        "name": "Minimum modulation (optimal range) (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_regulationi": {
-        "name": "Power controller, factor I (setting)"
+        "name": "Power controller, factor I (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_regulationp": {
-        "name": "Power controller, factor 1/P (setting)"
+        "name": "Power controller, factor 1/P (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature (setting)"
+        "name": "Frost protection room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomnormaltemp": {
-        "name": "Normal room temperature (setting)"
+        "name": "Normal room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomsetbacktemp": {
-        "name": "Setback room temperature (setting)"
+        "name": "Setback room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_summerwinterchangeovertemp": {
-        "name": "Summer / winter changeover (setting)"
+        "name": "Summer / winter changeover (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_supplymaxtemp": {
-        "name": "Maximum flow temperature (setting)"
+        "name": "Maximum flow temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_supplymintemp": {
-        "name": "Minimum flow temperature (setting)"
+        "name": "Minimum flow temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_gradientcurve": {
         "name": "Heating curve gradient (setting)"
       },
       "module_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature (setting)"
+        "name": "Frost protection room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_roomnormaltemp": {
-        "name": "Normal room temperature (setting)"
+        "name": "Normal room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_roomsetbacktemp": {
-        "name": "Setback room temperature (setting)"
+        "name": "Setback room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_summerwinterchangeovertemp": {
         "name": "Summer / winter changeover (setting)"
@@ -751,43 +943,139 @@
         "name": "Boiler boost offset (setting)"
       },
       "room_controlvariation": {
-        "name": "Control variation (setting)"
+        "name": "Control variation (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_dhwsetpoint": {
-        "name": "Hot water setpoint (setting)"
+        "name": "Hot water setpoint (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_frostprotectionlimittemp": {
-        "name": "Frost protection limit (setting)"
+        "name": "Frost protection limit (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_gradientcurve": {
         "name": "Heating curve gradient (setting)"
       },
       "room_holidayendday": {
-        "name": "Holiday end day (setting)"
+        "name": "Holiday end day (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidayendmonth": {
-        "name": "Holiday end month (setting)"
+        "name": "Holiday end month (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidayendthird": {
-        "name": "Holiday end, third register (setting)"
+        "name": "Holiday end, third register (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartday": {
-        "name": "Holiday start day (setting)"
+        "name": "Holiday start day (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartmonth": {
-        "name": "Holiday start month (setting)"
+        "name": "Holiday start month (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartthird": {
-        "name": "Holiday start, third register (setting)"
+        "name": "Holiday start, third register (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature (setting)"
+        "name": "Frost protection room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomnormaltemp": {
-        "name": "Normal room temperature (setting)"
+        "name": "Normal room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomsetbacktemp": {
-        "name": "Setback room temperature (setting)"
+        "name": "Setback room temperature (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_summerwinterchangeovertemp": {
         "name": "Summer / winter changeover (setting)"
@@ -799,7 +1087,15 @@
         "name": "Minimum flow temperature (setting)"
       },
       "room_switchonruntime": {
-        "name": "Optimised switch-on lead time (setting)"
+        "name": "Optimised switch-on lead time (setting)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       }
     },
     "select": {
@@ -808,6 +1104,14 @@
         "state": {
           "off": "Off",
           "on": "On"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_dhwlegionelladay": {
@@ -821,6 +1125,14 @@
           "friday": "Friday",
           "saturday": "Saturday",
           "sunday": "Sunday"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_holidaytemplevel": {
@@ -828,24 +1140,64 @@
         "state": {
           "antifreeze": "Antifreeze",
           "setback": "Setback"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       }
     },
     "sensor": {
       "boiler_burnerservicehours": {
-        "name": "Burner hours since the last service (i46)"
+        "name": "Burner hours since the last service (i46)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_counters_burnerhours": {
-        "name": "Burner operating hours"
+        "name": "Burner operating hours",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_counters_burnerstarts": {
-        "name": "Burner starts"
+        "name": "Burner starts",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_counters_operatinghours": {
         "name": "Operating hours"
       },
       "boiler_dhwtemp": {
-        "name": "Hot water temperature (i34)"
+        "name": "Hot water temperature (i34)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_eventcounters_burnerhourstoday": {
         "name": "Burner hours today (by the symbol)"
@@ -985,73 +1337,257 @@
         "name": "Fault history pointer"
       },
       "boiler_fluegastemp": {
-        "name": "Flue gas temperature (i31)"
+        "name": "Flue gas temperature (i31)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_hydraulicseparatortemp": {
-        "name": "Hydraulic separator temperature (i39)"
+        "name": "Hydraulic separator temperature (i39)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters1_ignitionload": {
-        "name": "Ignition rating (P35)"
+        "name": "Ignition rating (P35)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters1_serviceinterval": {
-        "name": "Service interval (P70)"
+        "name": "Service interval (P70)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters1_specialleveltemp": {
-        "name": "Special level, heating (P18)"
+        "name": "Special level, heating (P18)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters1_supplymaxtemp": {
-        "name": "Maximum flow temperature (P31)"
+        "name": "Maximum flow temperature (P31)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters1_supplymintemp": {
-        "name": "Minimum flow temperature (P30)"
+        "name": "Minimum flow temperature (P30)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters2_fluegassafetytemp": {
-        "name": "Flue gas switch-off temperature (P33)"
+        "name": "Flue gas switch-off temperature (P33)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters2_loadmaxheating": {
-        "name": "Maximum rating, heating (P37)"
+        "name": "Maximum rating, heating (P37)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters2_loadmin": {
-        "name": "Minimum boiler rating (P36)"
+        "name": "Minimum boiler rating (P36)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters2_pumploadmax": {
-        "name": "Maximum pump rating, heating (P45)"
+        "name": "Maximum pump rating, heating (P45)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters2_pumploadmin": {
-        "name": "Minimum pump rating, heating (P44)"
+        "name": "Minimum pump rating, heating (P44)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters3_dhwboosttemp": {
-        "name": "Hot-water excess (P50)"
+        "name": "Hot-water excess (P50)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters3_flowreturndifftemp": {
-        "name": "Flow to return difference (P48)"
+        "name": "Flow to return difference (P48)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters3_pumprunonheating": {
-        "name": "Pump run-on, heating (P41)"
+        "name": "Pump run-on, heating (P41)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters4_loadmaxdhw": {
-        "name": "Maximum rating, hot water (P38)"
+        "name": "Maximum rating, hot water (P38)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters4_pumploaddhw": {
-        "name": "Pump rating, hot water (P46)"
+        "name": "Pump rating, hot water (P46)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters4_pumprunondhw": {
-        "name": "Pump run-on, hot water (P42)"
+        "name": "Pump run-on, hot water (P42)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_installerparameters5": {
-        "name": "Boiler address"
+        "name": "Boiler address",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_operation_ionisation": {
-        "name": "Ionisation signal"
+        "name": "Ionisation signal",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_operation_load": {
-        "name": "Burner load"
+        "name": "Burner load",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_operation_pumpspeed": {
-        "name": "Pump speed"
+        "name": "Pump speed",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_outsidetemp": {
-        "name": "Outside temperature (i33)"
+        "name": "Outside temperature (i33)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_powerdemand_dhwsettemp": {
         "name": "Hot water setpoint"
@@ -1066,19 +1602,59 @@
         "name": "Request state"
       },
       "boiler_returntemp": {
-        "name": "Return temperature (i37)"
+        "name": "Return temperature (i37)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_softwareversioncpu": {
-        "name": "WCM-CPU software version (i44)"
+        "name": "WCM-CPU software version (i44)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_softwareversioncui": {
-        "name": "WCM-CUI software version (i45)"
+        "name": "WCM-CUI software version (i45)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_supplytemp": {
-        "name": "Flow temperature (i35)"
+        "name": "Flow temperature (i35)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_temperatures_fluegastemp": {
-        "name": "Flue gas temperature"
+        "name": "Flue gas temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "boiler_temperatures_outsidetemp": {
         "name": "Outside temperature"
@@ -1093,7 +1669,15 @@
         "name": "Clock offset of the installation"
       },
       "manager_blockingtime": {
-        "name": "Blocking time"
+        "name": "Blocking time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_boiler1power_currentload": {
         "name": "Boiler 1 load – Current burner load"
@@ -1199,6 +1783,14 @@
         "state": {
           "a": "Boiler A",
           "b": "Boiler B"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_boilersequence1second": {
@@ -1206,6 +1798,14 @@
         "state": {
           "a": "Boiler A",
           "b": "Boiler B"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_boilersequence2first": {
@@ -1213,6 +1813,14 @@
         "state": {
           "a": "Boiler A",
           "b": "Boiler B"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_boilersequence2second": {
@@ -1220,34 +1828,106 @@
         "state": {
           "a": "Boiler A",
           "b": "Boiler B"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_calorifierexcesstemp": {
-        "name": "Buffer excess"
+        "name": "Buffer excess",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_calorifierswitchdiff": {
-        "name": "Calorifier switching differential"
+        "name": "Calorifier switching differential",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_changeovertime": {
-        "name": "Boiler sequence changeover time"
+        "name": "Boiler sequence changeover time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_configstatus": {
         "name": "Configuration status"
       },
       "manager_decoupleexcesstemp": {
-        "name": "De-couple excess"
+        "name": "De-couple excess",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_decouplemaxtemp": {
-        "name": "De-couple maximum"
+        "name": "De-couple maximum",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_decouplemintemp": {
-        "name": "De-couple minimum temperature"
+        "name": "De-couple minimum temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_decoupletemp": {
-        "name": "De-couple sensor B22"
+        "name": "De-couple sensor B22",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwexcesstemp": {
-        "name": "Hot water excess"
+        "name": "Hot water excess",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwlegionelladay": {
         "name": "Legionella protection day",
@@ -1260,6 +1940,14 @@
           "friday": "Friday",
           "saturday": "Saturday",
           "sunday": "Sunday"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_dhwloadingpriority": {
@@ -1271,40 +1959,120 @@
         }
       },
       "manager_dhwloadtime": {
-        "name": "Maximum hot water loading time"
+        "name": "Maximum hot water loading time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwsetbacktemp": {
-        "name": "Reduced hot water setpoint"
+        "name": "Reduced hot water setpoint",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwsetpoint": {
-        "name": "Hot water setpoint"
+        "name": "Hot water setpoint",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwsetvalue": {
         "name": "Current hot water setpoint"
       },
       "manager_dhwswitchdiff": {
-        "name": "Hot water switching differential"
+        "name": "Hot water switching differential",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_dhwtemp": {
-        "name": "Hot water temperature"
+        "name": "Hot water temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errorcode": {
-        "name": "Fault code of the entry"
+        "name": "Fault code of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errorday": {
-        "name": "Fault day of the month"
+        "name": "Fault day of the month",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errordevice": {
-        "name": "Origin of the entry"
+        "name": "Origin of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errorhour": {
-        "name": "Fault hour"
+        "name": "Fault hour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errorid": {
         "name": "Selected fault-log entry"
       },
       "manager_errorminute": {
-        "name": "Fault minute"
+        "name": "Fault minute",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_errormonth": {
         "name": "Fault month",
@@ -1321,19 +2089,51 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_errorstatus": {
         "name": "Fault code"
       },
       "manager_errortype": {
-        "name": "Fault type of the entry"
+        "name": "Fault type of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_erroryear": {
-        "name": "Fault year"
+        "name": "Fault year",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_gradientcurve": {
-        "name": "Heating curve gradient"
+        "name": "Heating curve gradient",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_hcmode_boilermcboosttemp": {
         "name": "Room unit / circuit exchange – Boiler boost offset"
@@ -1360,55 +2160,191 @@
         "name": "Flow temperature"
       },
       "manager_heatdemandtemp": {
-        "name": "Heat demand"
+        "name": "Heat demand",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_legionellacirculationtime": {
-        "name": "Legionella circulation time"
+        "name": "Legionella circulation time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_legionellasetpoint": {
-        "name": "Legionella protection setpoint"
+        "name": "Legionella protection setpoint",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_legionellastarttime": {
-        "name": "Legionella start time"
+        "name": "Legionella start time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationdifftemp": {
-        "name": "Modulation differential"
+        "name": "Modulation differential",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationmax": {
-        "name": "Maximum modulation (optimal range)"
+        "name": "Maximum modulation (optimal range)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationmin": {
-        "name": "Minimum modulation (optimal range)"
+        "name": "Minimum modulation (optimal range)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_modulationstatus": {
-        "name": "Burner modulation"
+        "name": "Burner modulation",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_outsidetemp": {
-        "name": "Outside temperature"
+        "name": "Outside temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_outsideweightedtemp": {
-        "name": "Weighted outside temperature"
+        "name": "Weighted outside temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_plateexchangerprimarytemp": {
-        "name": "Plate exchanger primary B24"
+        "name": "Plate exchanger primary B24",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_regulationi": {
-        "name": "Power controller, factor I"
+        "name": "Power controller, factor I",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_regulationp": {
-        "name": "Power controller, factor 1/P"
+        "name": "Power controller, factor 1/P",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature"
+        "name": "Frost protection room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomnormaltemp": {
-        "name": "Normal room temperature"
+        "name": "Normal room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_roomsetbacktemp": {
-        "name": "Setback room temperature"
+        "name": "Setback room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_summertimeendday": {
-        "name": "Summer time end, day"
+        "name": "Summer time end, day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_summertimeendmonth": {
         "name": "Summer time end, month",
@@ -1425,10 +2361,26 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_summertimestartday": {
-        "name": "Summer time start, day"
+        "name": "Summer time start, day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_summertimestartmonth": {
         "name": "Summer time start, month",
@@ -1445,16 +2397,48 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "manager_summerwinterchangeovertemp": {
-        "name": "Summer / winter changeover"
+        "name": "Summer / winter changeover",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_supplymaxtemp": {
-        "name": "Maximum flow temperature"
+        "name": "Maximum flow temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_supplymintemp": {
-        "name": "Minimum flow temperature"
+        "name": "Minimum flow temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_systemday": {
         "name": "Day of the month"
@@ -1501,16 +2485,40 @@
         "name": "Year"
       },
       "manager_versionmajor": {
-        "name": "Software version, major part"
+        "name": "Software version, major part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "manager_versionminor": {
-        "name": "Software version, minor part"
+        "name": "Software version, minor part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_boilermcboosttemp": {
         "name": "Boiler boost offset"
       },
       "module_circulationreturnsettemp": {
-        "name": "Circulation return setpoint"
+        "name": "Circulation return setpoint",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_floordryingtemp": {
         "name": "Floor-drying temperature"
@@ -1546,13 +2554,37 @@
         "name": "Mixer parameter"
       },
       "module_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature"
+        "name": "Frost protection room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_roomnormaltemp": {
-        "name": "Normal room temperature"
+        "name": "Normal room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_roomsetbacktemp": {
-        "name": "Setback room temperature"
+        "name": "Setback room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_roomthermostattemp": {
         "name": "Room-thermostat temperature"
@@ -1573,10 +2605,26 @@
         "name": "Minimum flow temperature"
       },
       "module_versionmajor": {
-        "name": "Software version, major part"
+        "name": "Software version, major part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "module_versionminor": {
-        "name": "Software version, minor part"
+        "name": "Software version, minor part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "program_circulation": {
         "name": "Circulation program",
@@ -1785,7 +2833,15 @@
         "name": "Boiler boost offset"
       },
       "room_controlvariation": {
-        "name": "Control variation"
+        "name": "Control variation",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_dhwlegionelladay": {
         "name": "Legionella day (stored)",
@@ -1798,6 +2854,14 @@
           "friday": "Friday",
           "saturday": "Saturday",
           "sunday": "Sunday"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_dhwloadingpriority": {
@@ -1809,31 +2873,95 @@
         }
       },
       "room_dhwmaxtemp": {
-        "name": "Maximum hot water temperature (stored)"
+        "name": "Maximum hot water temperature (stored)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_dhwsetbacktemp": {
-        "name": "Reduced hot water setpoint (stored)"
+        "name": "Reduced hot water setpoint (stored)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_dhwsetpoint": {
-        "name": "Hot water setpoint"
+        "name": "Hot water setpoint",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errorcode": {
-        "name": "Fault code of the entry"
+        "name": "Fault code of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errorday": {
-        "name": "Fault day of the month"
+        "name": "Fault day of the month",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errordevice": {
-        "name": "Origin of the entry"
+        "name": "Origin of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errorhour": {
-        "name": "Fault hour"
+        "name": "Fault hour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errorid": {
         "name": "Selected fault-log entry"
       },
       "room_errorminute": {
-        "name": "Fault minute"
+        "name": "Fault minute",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_errormonth": {
         "name": "Fault month",
@@ -1850,19 +2978,51 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_errortype": {
-        "name": "Fault type of the entry"
+        "name": "Fault type of the entry",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_erroryear": {
-        "name": "Fault year"
+        "name": "Fault year",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_floordryingtemp": {
         "name": "Floor-drying temperature"
       },
       "room_frostprotectionlimittemp": {
-        "name": "Frost protection limit"
+        "name": "Frost protection limit",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_gradientcurve": {
         "name": "Heating curve gradient"
@@ -1882,44 +3042,140 @@
         }
       },
       "room_holidayendday": {
-        "name": "Holiday end day"
+        "name": "Holiday end day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidayendmonth": {
-        "name": "Holiday end month"
+        "name": "Holiday end month",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidayendthird": {
-        "name": "Holiday end, third register"
+        "name": "Holiday end, third register",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartday": {
-        "name": "Holiday start day"
+        "name": "Holiday start day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartmonth": {
-        "name": "Holiday start month"
+        "name": "Holiday start month",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaystartthird": {
-        "name": "Holiday start, third register"
+        "name": "Holiday start, third register",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_holidaytemplevel": {
         "name": "Holiday temperature level",
         "state": {
           "antifreeze": "Antifreeze",
           "setback": "Setback"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_legionellacirculationtime": {
-        "name": "Circulation time with legionella (stored)"
+        "name": "Circulation time with legionella (stored)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_legionellasetpoint": {
-        "name": "Legionella setpoint (stored)"
+        "name": "Legionella setpoint (stored)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_outsidemixedtemp": {
-        "name": "Outside temperature, mixed"
+        "name": "Outside temperature, mixed",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_outsidetemp": {
-        "name": "Outside temperature"
+        "name": "Outside temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_outsideweightedtemp": {
-        "name": "Weighted outside temperature"
+        "name": "Weighted outside temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_powerdemand_heatdemandtemp": {
         "name": "Requested flow temperature (sent)"
@@ -1928,25 +3184,65 @@
         "name": "Request state"
       },
       "room_roomfrostprotectiontemp": {
-        "name": "Frost protection room temperature"
+        "name": "Frost protection room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomnormaltemp": {
-        "name": "Normal room temperature"
+        "name": "Normal room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomsetbacktemp": {
-        "name": "Setback room temperature"
+        "name": "Setback room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomsetpointtemp": {
         "name": "Room setpoint in effect"
       },
       "room_roomtemp": {
-        "name": "Room temperature"
+        "name": "Room temperature",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_roomthermostattemp": {
         "name": "Room-thermostat temperature"
       },
       "room_summertimeendday": {
-        "name": "Summer time end, day"
+        "name": "Summer time end, day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_summertimeendmonth": {
         "name": "Summer time end, month",
@@ -1963,10 +3259,26 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_summertimestartday": {
-        "name": "Summer time start, day"
+        "name": "Summer time start, day",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_summertimestartmonth": {
         "name": "Summer time start, month",
@@ -1983,6 +3295,14 @@
           "october": "October",
           "november": "November",
           "december": "December"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
         }
       },
       "room_summerwinterchangeovertemp": {
@@ -1998,13 +3318,37 @@
         "name": "Minimum flow temperature"
       },
       "room_switchonruntime": {
-        "name": "Optimised switch-on lead time"
+        "name": "Optimised switch-on lead time",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_versionmajor": {
-        "name": "Software version, major part"
+        "name": "Software version, major part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "room_versionminor": {
-        "name": "Software version, minor part"
+        "name": "Software version, minor part",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Vendor code"
+          },
+          "vendor_scheme": {
+            "name": "Vendor code scheme"
+          }
+        }
       },
       "system_kastatus_dhwtemp": {
         "name": "Hot water temperature"

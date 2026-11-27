@@ -81,15 +81,15 @@ def _field_renamed_beside(hass) -> None:
     """The shipped metadata as 0.6.1 beside the configuration, with the flow temperature field of the boiler's
     temperatures renamed `flowtemp`, `renamed_from` the former name (ebusd still has the former one)."""
     data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "1.3.1"
+    data["definitions"]["version"] = "1.4.2"
     for fld in data["messages"]["bc1/Temperatures"]["fields"]:
         if fld["name"] == "supplytemp":
             fld.update(name="flowtemp", renamed_from="supplytemp")
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-1.3.1.json").write_bytes(text)
-    (folder / "sha256sums-1.3.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.3.1.json\n")
+    (folder / "weishaupt-metadata-1.4.2.json").write_bytes(text)
+    (folder / "sha256sums-1.4.2.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.2.json\n")
 
 
 async def test_entity_of_a_renamed_field_keeps_its_registry_entry(hass, fake, entity_registry_enabled_by_default):
@@ -100,7 +100,7 @@ async def test_entity_of_a_renamed_field_keeps_its_registry_entry(hass, fake, en
     await setup(hass, entry)
     await settled(hass, entry)
     hub = entry.runtime_data
-    assert hub.model.version == "1.3.1" and hub.mismatches == []  # ebusd's former field name is no difference
+    assert hub.model.version == "1.4.2" and hub.mismatches == []  # ebusd's former field name is no difference
     assert registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_bc1/Temperatures/supplytemp") is None
     state = state_of(hass, entry, "bc1/Temperatures/flowtemp")
     assert state.entity_id == old and state.state == fake.reads["bc1/Temperatures"].split(";")[

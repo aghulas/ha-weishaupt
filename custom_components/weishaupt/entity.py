@@ -6,7 +6,7 @@ from homeassistant.helpers.entity import Entity
 
 from .const import DOMAIN, MANUFACTURER, MODELS
 from .hub import Hub
-from .model import Device
+from .model import Device, Field, Message
 
 TEXT_TYPES = ("HEX", "STR", "NTS", "TTM", "TTH", "TTQ", "BTI", "HTI", "VTI", "BTM", "HTM", "VTM", "BDA", "HDA", "BDZ")
 NOT_AVAILABLE = "-"  # what ebusd answers for the replacement value of a type
@@ -26,6 +26,13 @@ def _version(raw: str | None) -> str | None:
     if not raw or raw == NOT_AVAILABLE:
         return None
     return f"{raw[:2]}.{raw[2:]}" if len(raw) == 4 and raw.isdigit() else raw
+
+
+def code_attributes(hub: Hub, message: Message, fld: Field) -> dict[str, str]:
+    """`vendor_code` and `vendor_scheme` of the entity of a value that has a vendor code (definitions 1.4.0 and
+    later), the scheme labelled in the language of Home Assistant; empty otherwise. Neither name nor entity id
+    changes: the code is an attribute only."""
+    return hub.model.code_attributes(message, fld, hub.hass.config.language.split("-")[0])
 
 
 def parse_number(text: str | None) -> int | float | None:

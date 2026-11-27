@@ -24,7 +24,7 @@ def loaded(golden):
 
 
 def test_model_of_the_release(model):
-    assert model.version == "1.3.0"
+    assert model.version == "1.4.1"
     assert len(model.messages) == 687
     assert sorted(model.devices) == ["boiler1", "boiler2", "manager", "module2", "module3", "room1", "room2",
                                      "room3", "system"]
@@ -181,8 +181,8 @@ def test_fixtures_of_the_release(model, golden):
     readings = fixtures["readings"]
     read = {k for k, m in model.messages.items() if m.read or m.passive}  # the date and time broadcast has no read
     captured = {f"{r['circuit']}/{r['message']}" for r in readings}
-    assert len(readings) == 1017 and len(captured) == 683
-    assert read - captured == {"bc1/FanOperation", "em2/H1Status", "em3/H1Status"}
+    assert len(readings) == 1021 and len(captured) == 686
+    assert read - captured == set()
     texts: dict[str, set[str]] = {}
     for reading in readings:
         key = f"{reading['circuit']}/{reading['message']}"

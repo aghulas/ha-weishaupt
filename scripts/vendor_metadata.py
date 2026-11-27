@@ -13,8 +13,9 @@ https://github.com/aghulas/ebusd-configuration/releases (tag `weishaupt-<version
 `sha256sums-<version>.txt`, against which both files are verified before they are copied.
 
 The translation files are built from two sources: `scripts/translations/<lang>.json` (the texts of the
-integration itself: configuration, repair issues, day names) and the metadata (device names, entity names, value
-lists; the number entities of the writable settings take the names of their sensors). Only `scripts/translations/`
+integration itself: configuration, repair issues, day names, names of attributes) and the metadata (device names,
+entity names, value lists; the number entities of the writable settings take the names of their sensors; the names
+of the vendor-code attributes on the entities whose value has a code). Only `scripts/translations/`
 is edited by hand.
 """
 from __future__ import annotations
@@ -62,6 +63,7 @@ def translations(model_module, language: str) -> dict:
         raise SystemExit(f"the metadata has no language {language!r}")
     source = json.loads((SOURCES / f"{language}.json").read_text(encoding="utf-8"))
     weekdays, attributes = source.pop("weekdays"), source.pop("attributes")
+    code_names = {key: {"name": text} for key, text in source.pop("code_attributes").items()}
     switch_name = source.pop("switch_name")
     number_suffix = source.pop("number_suffix")
     clock_names = {"en": "Clock offset of the installation", "fr": "Écart de l'horloge de l'installation"}
@@ -70,10 +72,15 @@ def translations(model_module, language: str) -> dict:
     result["device"] = {key: {"name": device.label[language]} for key, device in sorted(model.devices.items())}
     entity: dict[str, dict] = {"binary_sensor": {}, "number": {}, "select": {}, "sensor": {},
                                "switch": {"writes": {"name": switch_name}}}
+    # the attributes of the vendor code on the entities of a translation key whose value has one on some device
+    coded = {(d.platform, d.translation_key) for d in (*model.value_entities, *model.setting_entities)
+             if model.vendor_codes(d.message, d.field)}
     for description in model.value_entities:
         item = {"name": description.name[language]}
         if description.options:
             item["state"] = description.option_labels(language)
+        if (description.platform, description.translation_key) in coded:
+            item["state_attributes"] = dict(code_names)
         entity[description.platform][description.translation_key] = item
     entity["text"] = {}
     for group in model.writable_programs:  # one text entity per program and day
@@ -86,6 +93,8 @@ def translations(model_module, language: str) -> dict:
         item = {"name": description.name[language] + number_suffix}
         if description.platform == "select":
             item["state"] = description.option_labels(language)
+        if (description.platform, description.translation_key) in coded:
+            item["state_attributes"] = dict(code_names)
         entity[description.platform][description.translation_key] = item
     for description in model.group_entities:
         item = {"name": description.name[language]}

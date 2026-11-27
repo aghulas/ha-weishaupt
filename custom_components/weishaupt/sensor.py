@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 
 from . import clock, faults
 from .ebusd import EbusdError
-from .entity import NOT_AVAILABLE, TEXT_TYPES, WeishauptEntity, parse_number
+from .entity import NOT_AVAILABLE, TEXT_TYPES, WeishauptEntity, code_attributes, parse_number
 from .hub import Hub, WeishauptConfigEntry
 from .model import WEEKDAYS, GroupEntity, ValueEntity
 
@@ -63,6 +63,7 @@ class ValueSensor(WeishauptEntity, SensorEntity):
         # the value the device sends when this sensor is not fitted, when the metadata marks it (definitions 0.5.12
         # and later): that exact value reads unknown, never as a temperature; no rule for unmarked fields
         self._absent = fld.absent
+        self._codes = code_attributes(hub, message, fld)
         self._attr_entity_registry_enabled_default = description.enabled_default
         if description.diagnostic:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -99,14 +100,15 @@ class ValueSensor(WeishauptEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """`no_sensor: true` while the device sends the value the definitions give for a sensor not fitted."""
-        if self._absent is None:
-            return None
-        values = self.hub.reading(self._key)
-        value = parse_number(values[self._index]) if values is not None else None
-        if value is not None and float(value) == float(self._absent):
-            return {"no_sensor": True}
-        return None
+        """The vendor code of the value and its scheme, when it has one; `no_sensor: true` while the device sends
+        the value the definitions give for a sensor not fitted."""
+        attributes: dict[str, Any] = dict(self._codes)
+        if self._absent is not None:
+            values = self.hub.reading(self._key)
+            value = parse_number(values[self._index]) if values is not None else None
+            if value is not None and float(value) == float(self._absent):
+                attributes["no_sensor"] = True
+        return attributes or None
 
 
 class GroupSensor(WeishauptEntity, SensorEntity):

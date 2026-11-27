@@ -446,6 +446,10 @@
     "entries": "Entries",
     "ordered": "Most recent first"
   },
+  "code_attributes": {
+    "vendor_code": "Vendor code",
+    "vendor_scheme": "Vendor code scheme"
+  },
   "switch_name": "Writes",
   "number_suffix": " (setting)",
   "services": {

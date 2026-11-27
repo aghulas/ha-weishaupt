@@ -664,7 +664,19 @@ def _row(hub: Hub, message: Message, fld: Field, links: dict[str, dict[str, str]
             "key": message.shared_with},
         "absent": fld.absent if fld.absent is not None else (ABSENT.get(device_type) if fld.unit == "°C" else None),
         "entity_id": next((entities[p] for p in LINK_ORDER if p in entities), None),
+        "vendor_codes": _vendor_codes(hub, message, fld, twins),
     }
+
+
+def _vendor_codes(hub: Hub, message: Message, fld: Field, twins: list[Message]) -> list[dict[str, Any]]:
+    """The codes the vendor's documents print for this value, each with the label of its scheme (a code means
+    something only in its scheme) and the scheme's document; empty before definitions 1.4.0."""
+    model = hub.model
+    codes = model.vendor_codes(message, fld) or next(
+        (found for twin in twins if (found := model.vendor_codes(twin, twin.field(fld.name) or fld))), ())
+    return [{"code": code.code, "scheme": code.scheme, "scheme_label": model.scheme_label(code.scheme),
+             "document": scheme.document if (scheme := model.vendor_schemes.get(code.scheme)) else None}
+            for code in codes]
 
 
 # ---- reads on demand for a menu, a device or the installation, and following entities --------------------------------

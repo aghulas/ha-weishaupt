@@ -47,13 +47,13 @@ add-on, the way used on the test installation: the add-on *Advanced SSH & Web Te
 add-on's documentation also offers a shell under its **Open Web UI**; that was not tried on the test installation. `ebusctl info` gives one line per device found, with the file it loaded:
 
 ```text
-address 08: slave #11, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kromschroeder/08.w.bc1.csv"
+address 08: slave #11, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kromschroeder/08.w.bc1.SW1104.csv"
 address 15: slave #2, scanned "MF=Kromschroeder;ID=W;SW=…;HW=…", loaded "kromschroeder/15.w.ka.csv"
 ```
 
 | Device | Address | File ebusd should load |
 |---|---|---|
-| Boiler 1, boiler 2 | 08, 18 | `08.w.bc1`, `18.w.bc2` |
+| Boiler 1, boiler 2 | 08, 18 | `08.w.bc1.SW1104`, `18.w.bc2.SW1104` (`08.w.bc1`, `18.w.bc2` up to definitions 1.3.x) |
 | System manager, and its own heating circuit | 15, 50 | `15.w.ka`, `50.w.em1` |
 | Heating module 2, heating module 3 | 51, 52 | `51.w.em2`, `52.w.em3` |
 | Room units 1, 2, 3 | 35, 75, f5 | `35.w.fs1`, `75.w.fs2`, `f5.w.fs3` |
@@ -62,7 +62,9 @@ The first line of `ebusctl info` names the ebusd build: `version: ebusd 26.1.p20
 run-time checksum (`v26.1-weishaupt.1`), another string for a stock 26.1 (`ebusd 26.1.26.1` in the official image).
 Only the devices of your installation appear. Then read one value, for example `ebusctl read -c bc1 SupplyTemp`
 (the flow temperature of boiler 1). A device that loaded another file, or none, does not answer as these
-definitions expect: do not go on with it, the integration will name its messages as missing.
+definitions expect: do not go on with it, the integration will name its messages as missing. From definitions 1.4.0
+the boiler files are those of the automat software the definitions were checked on, 11.04 (`SW=1104` in the scan):
+a boiler with another software version does not load them, and the integration names its messages as missing.
 
 ### 2. Let Home Assistant reach ebusd
 
@@ -305,6 +307,14 @@ Things to know:
 - States of value lists (operating phases, hot-water loading priority) are translated; in
   automations their values are keys in English (`burner_in_operation`, `priority`).
 
+**Vendor codes.** The vendor's documents number many values: parameter `535` on the system manager, `P112` on a
+room unit, `P31` or `i35` on a boiler (printed `P 31`, `i 35` in the boiler manual). The definitions give these
+codes from 1.4.0 on, taken from the manuals of the equipment (and the vendor's service tool where it prints them
+too). An entity whose value has one carries it as the attribute `vendor_code`, with `vendor_scheme`: the numbering
+it belongs to, as the device and its manual (*WTC-GB boiler automat*), since a code means something only there
+(601 is an information value on the system manager and the hot-water maximum on a room unit). The code changes
+no name and no entity id; values without a code, and definitions before 1.4.0, have neither attribute.
+
 ### Names, languages and entity ids
 
 The interface is in English and French; names of devices and entities come from the metadata of
@@ -367,15 +377,17 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   what the entities wait for, with the number of requests shown.
 - **Report and CSV**: *Printable report* opens every setting of the installation (device, menu,
   setting, value as read or why it is not, unit, range and step or the entries of a choice,
-  writable and its class) in a page the browser prints, with page margins and the table header
-  repeated on each page; *Export CSV* saves the same rows, comma-separated in English and semicolon-separated in
-  French. The definitions carry no factory values yet; a value not read when the report is made
+  writable and its class, vendor code) in a page the browser prints, with page margins and the table header
+  repeated on each page, and under each device the numbering its codes belong to; *Export CSV* saves the same
+  rows, comma-separated in English and semicolon-separated in French, with the vendor code and its numbering in
+  the last two columns. The definitions carry no factory values yet; a value not read when the report is made
   is empty.
 
 - **Devices and menus**: one node per device on the bus, with its bus address and software and
   hardware versions, and the menus of the definitions under it (*Info → Sensors*, *Process
   values*, *Statistics*, *Settings*, *Weekly programs*…).
-- **The table of a menu**: name and description, value with its unit (a value-list entry by its
+- **The table of a menu**: name and description, the vendor code (the numbering it belongs to as a tooltip; the
+  header sorts the table by code), value with its unit (a value-list entry by its
   label), when it was read, range and step, whether it is writable and its class (comfort,
   regulation), and a button to the entity. A value kept across a reload of the integration is
   shown with its age and marked as kept until it is read again. A register read by two messages
@@ -756,13 +768,14 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 1.2 | 1.3.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.5 | 1.4.1 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.2 – 1.4 | 1.3.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 1.0 – 1.1 | 1.0.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.13 | 0.8.0 | 0.6.0 to 0.8.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
-The integration ships the metadata file of definitions 1.3.0 (`weishaupt-metadata-1.3.0.json`: 687 messages, of
+The integration ships the metadata file of definitions 1.4.1 (`weishaupt-metadata-1.4.1.json`: 687 messages, of
 which 686 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
 integration compares, message by message, what ebusd loaded with that file:
 
@@ -857,6 +870,10 @@ The release notes on GitHub give each version in full; here only what changed wh
   *Weishaupt2MQTT (MQTT bridge)* or *ebusd (add-on or address)*; the first asks for the base topic and creates the
   entry once the bridge is found online on it, without any ebusd address (before, an entry had to be made against
   an ebusd and switched afterwards). The diagnostics download and the menus no longer assume an ebusd.
+  Definitions 1.4.1 shipped: the vendor codes of the manuals (`P112`, `535`, `i35`) as the attributes
+  `vendor_code` and `vendor_scheme` of 240 entities, a column of the panel (sortable, found by the search with or
+  without spaces: `p31`, `P 31`), in the printable report and the CSV; the boiler files are those of automat
+  software 1104 (`08.w.bc1.SW1104`, `18.w.bc2.SW1104`), nothing to change.
 - 1.2.0: definitions 1.3.0 shipped (687 messages, of which 686 can be read): boiler heating-specialist parameters
   (`InstallerParameters1`–`5`, new *Heating specialist parameters* menu), boiler fan speeds while firing
   (`FanOperation`), module H1 digital input (`H1Status`), 16-bit `FloorDryingTemp` / `RoomThermostatTemp`, and all

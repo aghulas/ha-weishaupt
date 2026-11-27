@@ -59,8 +59,11 @@ class Endpoint:
 
 
 def endpoints_of(data: dict[str, Any]) -> list[Endpoint]:
-    """The endpoints of an entry's data, the one in use always among them."""
+    """The endpoints of an entry's data, the one in use always among them. An entry made for the MQTT bridge has
+    no ebusd in use (no `host`): none, unless a list was stored."""
     found = [Endpoint.from_dict(item) for item in data.get(CONF_ENDPOINTS) or []]
+    if CONF_HOST not in data:
+        return found
     if not any(e.host == data[CONF_HOST] and e.port == data[CONF_PORT] for e in found):
         found.insert(0, Endpoint(data[CONF_HOST], int(data[CONF_PORT]), "ebusd"))
     return found

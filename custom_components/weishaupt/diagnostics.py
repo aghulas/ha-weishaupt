@@ -18,7 +18,7 @@ from homeassistant.core import HomeAssistant
 
 from . import endpoints
 from .hub import WeishauptConfigEntry
-from .const import DOMAIN
+from .const import CONF_TRANSPORT, DOMAIN, TRANSPORT_EBUSD, TRANSPORT_MQTT
 from .model import ACCEPTED_DEFINITIONS
 
 # keys redacted wherever they appear (async_redact_data walks nested dicts and lists)
@@ -29,7 +29,10 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: Weishau
     # the values behind the redacted keys also appear inside texts (an error naming ebusd's address, a path):
     # replaced wherever they are found
     candidates = endpoints.endpoints_of(dict(entry.data))
-    secrets = [str(v) for v in (entry.data.get(CONF_HOST), entry.options.get("telegram_db"), entry.unique_id,
+    # the unique id of an entry made for the MQTT bridge is `mqtt:<base topic>`: no address, and part of the topics
+    # the write journal names
+    unique_id = None if entry.data.get(CONF_TRANSPORT) == TRANSPORT_MQTT else entry.unique_id
+    secrets = [str(v) for v in (entry.data.get(CONF_HOST), entry.options.get("telegram_db"), unique_id,
                                 entry.entry_id, *(e.host for e in candidates), *(e.telegram_db for e in candidates))
                if v and len(str(v)) > 2]
     secrets += [user.id for user in await hass.auth.async_get_users()]
@@ -64,6 +67,8 @@ def _collect(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]
             "messages_usable": len(hub.usable),
             "mismatches": [asdict(m) for m in hub.mismatches],
         },
+        "transport": entry.data.get(CONF_TRANSPORT, TRANSPORT_EBUSD),
+        "bridge": getattr(hub, "bridge_info", None),  # what Weishaupt2MQTT announced (MQTT mode), else None
         "ebusd": {
             "version": info.version if info else None,
             "signal": info.signal if info else None,
@@ -71,7 +76,7 @@ def _collect(hass: HomeAssistant, entry: WeishauptConfigEntry) -> dict[str, Any]
                 {"address": a.address, "role": a.role, "own": a.own, "manufacturer": a.manufacturer,
                  "ident": a.ident, "software": a.software, "hardware": a.hardware, "files": list(a.files)}
                 for a in (info.addresses.values() if info else ())],
-            "commands_sent": dict(hub.client.requests),
+            "commands_sent": dict(hub.client.requests) if hub.client is not None else {},
             "run_time_checksum": hub.capability,
             "endpoint_in_use": hub.endpoint.label if hub.endpoint is not None else None,
             "mode": endpoints.mode_of(dict(entry.data)),

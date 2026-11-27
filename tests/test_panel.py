@@ -235,13 +235,13 @@ async def test_panel_rows_carry_the_codes(hass, fake, tmp_path):
 async def test_panel_rows_without_codes_in_the_metadata(hass, fake, tmp_path):
     """A metadata without codes (before definitions 1.4.0) beside the configuration: rows with an empty list."""
     data = _without_codes(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "1.4.1"
+    data["definitions"]["version"] = "1.4.2"
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-1.4.1.json").write_bytes(text)
-    (folder / "sha256sums-1.4.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.1.json\n")
+    (folder / "weishaupt-metadata-1.4.2.json").write_bytes(text)
+    (folder / "sha256sums-1.4.2.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.2.json\n")
     entry = await _loaded(hass, fake, tmp_path)
-    assert entry.runtime_data.model.version == "1.4.1"
+    assert entry.runtime_data.model.version == "1.4.2"
     tree = panel.tree(hass, entry.runtime_data)
     assert all(row["vendor_codes"] == [] for d in tree["devices"] for row in d["rows"])

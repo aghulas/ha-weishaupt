@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "1.4.0",
-  "commit": "b17e73c",
+  "version": "1.4.1",
+  "commit": "2745822",
   "messages": 687,
   "csv_lines": 1039,
   "loaded_by_ebusd": 1099,
-  "sidecar_sha256": "19eb7b12e31e2e62b739dc6f465dd61bfe0e13ddc259e45d5214d8ee16cfe5f1"
+  "sidecar_sha256": "6922326c41aa2779140a96b55d17069fa7dcabd9e91e121faeb22edf872b5400"
  },
  "languages": [
   "en",
@@ -1355,7 +1355,14 @@
       "en": "Pump speed",
       "fr": "Vitesse du circulateur"
      },
-     "kind": "live"
+     "kind": "live",
+     "vendor_codes": [
+      {
+       "code": "i22",
+       "scheme": "wtc-gb",
+       "source": "boiler manual 83251704, p. 46, menu Info"
+      }
+     ]
     }
    ]
   },
@@ -5470,7 +5477,15 @@
    "poll": "cyclic",
    "poll_basis": "record",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "602",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5540,7 +5555,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "601",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5576,7 +5599,15 @@
    "poll": "cyclic",
    "poll_basis": "record",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "604",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5612,7 +5643,15 @@
    "poll": "cyclic",
    "poll_basis": "record",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "605",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5677,7 +5716,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "601",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5712,7 +5759,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "609",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5741,7 +5796,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "609",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -5770,7 +5833,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "112",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 39, menu Setting #1 of the direct circuit"
+    }
    ],
    "fields": [
     {
@@ -5805,7 +5876,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "113",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 40, menu Setting #1 of the direct circuit"
+    }
    ],
    "fields": [
     {
@@ -5893,7 +5972,15 @@
    "poll": "cyclic",
    "poll_basis": "record",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "603",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -6130,7 +6217,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
    ],
    "write": {
     "source": "ff",
@@ -6139,6 +6227,13 @@
     "proof": "change-observed",
     "open": []
    },
+   "vendor_codes": [
+    {
+     "code": "342",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 53 and p. 57, installer menu Direct circuit #1"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -7305,7 +7400,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "533",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 65 and p. 82, menu Cascade"
+    }
    ],
    "fields": [
     {
@@ -7352,7 +7455,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "533",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 65 and p. 82, menu Cascade"
+    }
    ],
    "fields": [
     {
@@ -7399,7 +7510,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "534",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 65 and p. 83, menu Cascade"
+    }
    ],
    "fields": [
     {
@@ -7446,7 +7565,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "534",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 65 and p. 83, menu Cascade"
+    }
    ],
    "fields": [
     {
@@ -7573,7 +7700,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "604",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 109, menu System info"
+    }
    ],
    "fields": [
     {
@@ -8487,7 +8622,14 @@
       "en": "Pump speed",
       "fr": "Vitesse du circulateur"
      },
-     "kind": "live"
+     "kind": "live",
+     "vendor_codes": [
+      {
+       "code": "i22",
+       "scheme": "wtc-gb",
+       "source": "boiler manual 83251704, p. 46, menu Info"
+      }
+     ]
     }
    ]
   },
@@ -11631,7 +11773,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -11666,7 +11816,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -11701,7 +11859,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P522",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 39, installer menu Heating circuit info"
+    }
    ],
    "fields": [
     {
@@ -11841,7 +12007,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -11944,7 +12118,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -11973,7 +12155,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -12623,7 +12813,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12652,7 +12850,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12681,7 +12887,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12710,7 +12924,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12739,7 +12961,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12768,7 +12998,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12797,7 +13035,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -12894,7 +13140,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -25312,7 +25566,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "same_as": "ka/RoomNormalTemp",
    "write": {
@@ -25323,6 +25578,13 @@
     "open": [],
     "above": "RoomSetbackTemp"
    },
+   "vendor_codes": [
+    {
+     "code": "112",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 39, menu Setting #1 of the direct circuit"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25360,7 +25622,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "same_as": "ka/RoomSetbackTemp",
    "write": {
@@ -25375,6 +25638,13 @@
     "range_source": "room unit user manual 83277702, p. 29, section 4.7.10; evidence settings-writes",
     "below": "RoomNormalTemp"
    },
+   "vendor_codes": [
+    {
+     "code": "113",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 40, menu Setting #1 of the direct circuit"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25409,7 +25679,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "write": {
     "source": "ff",
@@ -25418,6 +25689,13 @@
     "proof": "change-observed",
     "open": []
    },
+   "vendor_codes": [
+    {
+     "code": "117",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 45, menu Setting #1 of the direct circuit"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25455,7 +25733,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "write": {
     "source": "ff",
@@ -25468,6 +25747,13 @@
     "step": 0.5,
     "range_source": "room unit user manual 83277702, p. 31, section 4.7.14 (type Universal; narrower per type of heating circuit); evidence settings-writes"
    },
+   "vendor_codes": [
+    {
+     "code": "116",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 44, menu Setting #1 of the direct circuit"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25497,7 +25783,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "write": {
     "source": "ff",
@@ -25506,6 +25793,13 @@
     "proof": "change-observed",
     "open": []
    },
+   "vendor_codes": [
+    {
+     "code": "118",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 37 and p. 46, menu Setting #1 of the direct circuit"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25543,7 +25837,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "same_as": "ka/SupplyMaxTemp",
    "write": {
@@ -25554,6 +25849,13 @@
     "open": [],
     "above": "SupplyMinTemp"
    },
+   "vendor_codes": [
+    {
+     "code": "342",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 53 and p. 57, installer menu Direct circuit #1"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -25591,7 +25893,8 @@
    "poll_basis": "default",
    "evidence": [
     "settings-writes",
-    "heating-modules-reads"
+    "heating-modules-reads",
+    "vendor-codes"
    ],
    "write": {
     "source": "ff",
@@ -25601,6 +25904,13 @@
     "open": [],
     "below": "SupplyMaxTemp"
    },
+   "vendor_codes": [
+    {
+     "code": "341",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 53 and p. 57, installer menu Direct circuit #1"
+    }
+   ],
    "fields": [
     {
      "name": "value",
@@ -30423,7 +30733,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30452,7 +30770,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30481,7 +30807,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30510,7 +30844,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30539,7 +30881,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30568,7 +30918,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30597,7 +30955,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -30694,7 +31060,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "em1-fault-log"
+    "em1-fault-log",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "608",
+     "scheme": "wcm-ka-3",
+     "source": "system manager manual 83258404, p. 67 and p. 110, menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -31442,7 +31816,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P341",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info of the room unit"
+    }
    ],
    "fields": [
     {
@@ -31471,7 +31853,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P341",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info of the room unit"
+    }
    ],
    "fields": [
     {
@@ -32843,7 +33233,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P341",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info of the room unit"
+    }
    ],
    "fields": [
     {
@@ -32872,7 +33270,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P341",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info of the room unit"
+    }
    ],
    "fields": [
     {
@@ -33071,7 +33477,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -33106,7 +33520,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -33141,7 +33563,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P522",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 39, installer menu Heating circuit info"
+    }
    ],
    "fields": [
     {
@@ -33211,7 +33641,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -33314,7 +33752,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -33343,7 +33789,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -33993,7 +34447,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34022,7 +34484,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34051,7 +34521,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34080,7 +34558,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34109,7 +34595,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34138,7 +34632,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34167,7 +34669,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -34264,7 +34774,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -45728,7 +46246,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -45763,7 +46289,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -45798,7 +46332,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "room-units-reads"
+    "room-units-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P522",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 39, installer menu Heating circuit info"
+    }
    ],
    "fields": [
     {
@@ -45868,7 +46410,15 @@
    "poll": "cyclic",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P331",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -45971,7 +46521,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -46000,7 +46558,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P339",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52, installer menu System info"
+    }
    ],
    "fields": [
     {
@@ -46650,7 +47216,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46679,7 +47253,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46708,7 +47290,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46737,7 +47327,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46766,7 +47364,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46795,7 +47401,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46824,7 +47438,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -46921,7 +47543,15 @@
    "poll": "on_demand",
    "poll_basis": "default",
    "evidence": [
-    "survey-reads"
+    "survey-reads",
+    "vendor-codes"
+   ],
+   "vendor_codes": [
+    {
+     "code": "P338",
+     "scheme": "wcm-fs-2",
+     "source": "room unit and module manual 83277504, p. 36 and p. 52-53, installer menu System info, fault history"
+    }
    ],
    "fields": [
     {
@@ -60232,82 +60862,23 @@
   ],
   "value_labels": [],
   "vendor_codes": [
-   "bc1/EventCounters",
    "bc1/FanOperation",
-   "ka/ErrorStatus",
-   "ka/HeatDemandTemp",
-   "ka/DHWSetValue",
-   "ka/OutsideTemp",
-   "ka/DeCoupleTemp",
-   "ka/DHWTemp",
    "ka/ConfigStatus",
-   "ka/OutsideWeightedTemp",
-   "ka/VersionMajor",
-   "ka/VersionMinor",
-   "ka/RoomNormalTemp",
-   "ka/RoomSetbackTemp",
    "ka/DHWLoadingPriority",
-   "ka/ModulationStatus",
-   "ka/SupplyMaxTemp",
-   "ka/BoilerSequence1First",
-   "ka/BoilerSequence1Second",
-   "ka/BoilerSequence2First",
-   "ka/BoilerSequence2Second",
-   "ka/PlateExchangerPrimaryTemp",
-   "bc2/EventCounters",
    "bc2/FanOperation",
    "fs1/HeatDemandTemp",
    "fs1/SupplyHCSetTemp",
-   "fs1/OutsideTemp",
-   "fs1/OutsideWeightedTemp",
-   "fs1/RoomTemp",
-   "fs1/FloorDryingTemp",
-   "fs1/RoomThermostatTemp",
-   "fs1/RoomSetpointTemp",
-   "fs1/OutsideMixedTemp",
    "fs1/HeatingCircuitType",
-   "fs1/VersionMajor",
-   "fs1/VersionMinor",
    "fs1/DHWLoadingPriority",
-   "fs1/ErrorCode",
-   "fs1/ErrorType",
-   "fs1/ErrorDevice",
-   "fs1/ErrorMinute",
-   "fs1/ErrorHour",
-   "fs1/ErrorDay",
-   "fs1/ErrorMonth",
-   "fs1/ErrorYear",
    "fs1/GradientCurve",
    "fs1/SummerWinterChangeOverTemp",
    "fs1/SupplyMaxTemp",
    "fs1/SupplyMinTemp",
    "fs1/BoilerMCBoostTemp",
-   "em1/RoomNormalTemp",
-   "em1/RoomSetbackTemp",
-   "em1/RoomFrostProtectionTemp",
-   "em1/GradientCurve",
-   "em1/SummerWinterChangeOverTemp",
-   "em1/SupplyMaxTemp",
-   "em1/SupplyMinTemp",
-   "em1/BoilerMCBoostTemp",
-   "em1/ErrorCode",
-   "em1/ErrorType",
-   "em1/ErrorDevice",
-   "em1/ErrorMinute",
-   "em1/ErrorHour",
-   "em1/ErrorDay",
-   "em1/ErrorMonth",
-   "em1/ErrorYear",
    "em2/SupplyHCSetTemp",
    "em2/SupplyHCTemp",
    "em2/BoilerMCBoostTemp",
    "em2/MixerParameter",
-   "em2/MixerPump",
-   "em2/H1Status",
-   "em2/FloorDryingTemp",
-   "em2/RoomThermostatTemp",
-   "em2/VersionMajor",
-   "em2/VersionMinor",
    "em2/GradientCurve",
    "em2/SummerWinterChangeOverTemp",
    "em2/SupplyMaxTemp",
@@ -60320,29 +60891,10 @@
    "em3/SupplyHCTemp",
    "em3/BoilerMCBoostTemp",
    "em3/MixerParameter",
-   "em3/MixerPump",
-   "em3/H1Status",
-   "em3/VersionMajor",
-   "em3/VersionMinor",
    "fs2/HeatDemandTemp",
    "fs2/SupplyHCSetTemp",
-   "fs2/OutsideTemp",
-   "fs2/OutsideWeightedTemp",
-   "fs2/RoomTemp",
-   "fs2/RoomSetpointTemp",
-   "fs2/OutsideMixedTemp",
    "fs2/HeatingCircuitType",
-   "fs2/VersionMajor",
-   "fs2/VersionMinor",
    "fs2/DHWLoadingPriority",
-   "fs2/ErrorCode",
-   "fs2/ErrorType",
-   "fs2/ErrorDevice",
-   "fs2/ErrorMinute",
-   "fs2/ErrorHour",
-   "fs2/ErrorDay",
-   "fs2/ErrorMonth",
-   "fs2/ErrorYear",
    "fs2/GradientCurve",
    "fs2/SummerWinterChangeOverTemp",
    "fs2/SupplyMaxTemp",
@@ -60351,23 +60903,8 @@
    "fs2/ControlVariation",
    "fs3/HeatDemandTemp",
    "fs3/SupplyHCSetTemp",
-   "fs3/OutsideTemp",
-   "fs3/OutsideWeightedTemp",
-   "fs3/RoomTemp",
-   "fs3/RoomSetpointTemp",
-   "fs3/OutsideMixedTemp",
    "fs3/HeatingCircuitType",
-   "fs3/VersionMajor",
-   "fs3/VersionMinor",
    "fs3/DHWLoadingPriority",
-   "fs3/ErrorCode",
-   "fs3/ErrorType",
-   "fs3/ErrorDevice",
-   "fs3/ErrorMinute",
-   "fs3/ErrorHour",
-   "fs3/ErrorDay",
-   "fs3/ErrorMonth",
-   "fs3/ErrorYear",
    "fs3/GradientCurve",
    "fs3/SummerWinterChangeOverTemp",
    "fs3/SupplyMaxTemp",

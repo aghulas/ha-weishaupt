@@ -768,14 +768,14 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 1.5 | 1.4.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.5 | 1.4.1 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 1.2 – 1.4 | 1.3.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 1.0 – 1.1 | 1.0.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.13 | 0.8.0 | 0.6.0 to 0.8.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
-The integration ships the metadata file of definitions 1.4.0 (`weishaupt-metadata-1.4.0.json`: 687 messages, of
+The integration ships the metadata file of definitions 1.4.1 (`weishaupt-metadata-1.4.1.json`: 687 messages, of
 which 686 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
 integration compares, message by message, what ebusd loaded with that file:
 
@@ -870,8 +870,8 @@ The release notes on GitHub give each version in full; here only what changed wh
   *Weishaupt2MQTT (MQTT bridge)* or *ebusd (add-on or address)*; the first asks for the base topic and creates the
   entry once the bridge is found online on it, without any ebusd address (before, an entry had to be made against
   an ebusd and switched afterwards). The diagnostics download and the menus no longer assume an ebusd.
-  Definitions 1.4.0 shipped: the vendor codes of the manuals (`P112`, `535`, `i35`) as the attributes
-  `vendor_code` and `vendor_scheme` of 164 entities, a column of the panel (sortable, found by the search with or
+  Definitions 1.4.1 shipped: the vendor codes of the manuals (`P112`, `535`, `i35`) as the attributes
+  `vendor_code` and `vendor_scheme` of 240 entities, a column of the panel (sortable, found by the search with or
   without spaces: `p31`, `P 31`), in the printable report and the CSV; the boiler files are those of automat
   software 1104 (`08.w.bc1.SW1104`, `18.w.bc2.SW1104`), nothing to change.
 - 1.2.0: definitions 1.3.0 shipped (687 messages, of which 686 can be read): boiler heating-specialist parameters

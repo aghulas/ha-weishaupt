@@ -40,7 +40,7 @@ def test_codes_of_the_release():
     assert model.vendor_codes(counters, counters.field("operatinghours")) == ()
     on_messages = [m for m in model.messages.values() if m.vendor_codes]
     on_fields = [(m, f) for m in model.messages.values() for f in m.fields if f.vendor_codes]
-    assert (len(on_messages), len(on_fields)) == (120, 44)
+    assert (len(on_messages), len(on_fields)) == (197, 46)
     assert not any(m.vendor_codes and any(f.vendor_codes for f in m.fields) for m in model.messages.values())
     # every code names a scheme of the release
     assert {c.scheme for m in on_messages for c in m.vendor_codes} | {
@@ -108,7 +108,12 @@ def test_unknown_scheme_and_malformed_entries():
 
 
 def test_several_codes_and_a_register_read_by_two_messages():
+    shipped = Model.load()
+    em1 = shipped.messages["em1/RoomNormalTemp"]
+    # from 1.4.1 the direct circuit has its own code: it wins over the message whose register it reads
+    assert [c.code for c in shipped.vendor_codes(em1, em1.fields[0])] == ["112"]
     data = _data()
+    data["messages"]["em1/RoomNormalTemp"].pop("vendor_codes", None)
     data["messages"]["ka/RoomNormalTemp"]["vendor_codes"] = [
         {"code": "501", "scheme": "wcm-ka-3", "source": "s"}, {"code": "P112", "scheme": "wcm-fs-2", "source": "s"},
         {"code": "502", "scheme": "wcm-ka-3", "source": "s"}]

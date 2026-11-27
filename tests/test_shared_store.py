@@ -22,15 +22,15 @@ from test_ha_programs import device_id, log  # noqa: F401  (log is a fixture)
 
 
 def _metadata_beside(hass, change) -> None:
-    """The shipped metadata as 1.4.1 beside the configuration, changed by `change`."""
+    """The shipped metadata as 1.4.2 beside the configuration, changed by `change`."""
     data = copy.deepcopy(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "1.4.1"
+    data["definitions"]["version"] = "1.4.2"
     change(data["messages"])
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-1.4.1.json").write_bytes(text)
-    (folder / "sha256sums-1.4.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.1.json\n")
+    (folder / "weishaupt-metadata-1.4.2.json").write_bytes(text)
+    (folder / "sha256sums-1.4.2.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.2.json\n")
 
 
 def _metadata_with_shared_store(hass) -> None:
@@ -52,7 +52,7 @@ async def test_a_shared_program_is_never_written_and_says_where_to_change_it(has
     await setup(hass, entry)
     hub = entry.runtime_data
     writer = hub.writer
-    assert hub.model.version == "1.4.1"
+    assert hub.model.version == "1.4.2"
     # not offered, whatever its write conditions
     assert "fs2/heating1" not in writer.programs and "fs1/heating1" in writer.programs
     assert not any(key.startswith("fs2/HCProgram1") for key in writer.slot_specs)
@@ -116,7 +116,7 @@ async def test_without_the_marker_room_unit_2_stays_read_only(hass, fake, log):
     entry = make_entry(hass, fake, writes_enabled=True, telegram_db=log)
     await setup(hass, entry)
     hub = entry.runtime_data
-    assert hub.model.version == "1.4.1"
+    assert hub.model.version == "1.4.2"
     assert not any(key.startswith("fs2/") for key in hub.writer.programs)
     assert "fs2/RoomSetbackTemp" not in hub.writer.specs and "fs2/RoomFrostProtectionTemp" not in hub.writer.specs
     assert "fs2/RoomNormalTemp" in hub.writer.specs  # its own register

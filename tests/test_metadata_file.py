@@ -35,34 +35,34 @@ def test_without_a_folder_the_bundled_copy(tmp_path):
 
 def test_a_newer_verified_file_is_used(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1")
+    release(folder, "1.4.2")
     choice = choose(folder)
-    assert (choice.source, choice.model.version, choice.refused) == ("weishaupt-metadata-1.4.1.json", "1.4.1", {})
+    assert (choice.source, choice.model.version, choice.refused) == ("weishaupt-metadata-1.4.2.json", "1.4.2", {})
 
 
 def test_a_bad_checksum_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1", sums="0" * 64)
+    release(folder, "1.4.2", sums="0" * 64)
     choice = choose(folder)
-    assert choice.source == "bundled" and "sha256" in choice.refused["weishaupt-metadata-1.4.1.json"]
+    assert choice.source == "bundled" and "sha256" in choice.refused["weishaupt-metadata-1.4.2.json"]
 
 
 def test_no_sums_file_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1")
-    (folder / "sha256sums-1.4.1.txt").unlink()
-    assert "sha256sums-1.4.1.txt" in choose(folder).refused["weishaupt-metadata-1.4.1.json"]
+    release(folder, "1.4.2")
+    (folder / "sha256sums-1.4.2.txt").unlink()
+    assert "sha256sums-1.4.2.txt" in choose(folder).refused["weishaupt-metadata-1.4.2.json"]
 
 
 def test_a_newer_schema_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1", schema=2)
+    release(folder, "1.4.2", schema=2)
     choice = choose(folder)
-    assert choice.source == "bundled" and "schema 2" in choice.refused["weishaupt-metadata-1.4.1.json"]
+    assert choice.source == "bundled" and "schema 2" in choice.refused["weishaupt-metadata-1.4.2.json"]
 
 
 @pytest.mark.parametrize("version,why", [("2.0.0", "outside the range"), ("0.5.15", "outside the range"),
-                                         ("1.4.0", "not newer")])
+                                         ("1.4.1", "not newer")])
 def test_a_version_out_of_range_or_not_newer_is_refused(tmp_path, version, why):
     folder = tmp_path / "weishaupt"
     release(folder, version)
@@ -72,24 +72,24 @@ def test_a_version_out_of_range_or_not_newer_is_refused(tmp_path, version, why):
 
 def test_a_file_whose_name_and_content_disagree_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1", change=lambda d: d["definitions"].update(version="0.5.10"))
-    assert "it says definitions 0.5.10" in choose(folder).refused["weishaupt-metadata-1.4.1.json"]
+    release(folder, "1.4.2", change=lambda d: d["definitions"].update(version="0.5.10"))
+    assert "it says definitions 0.5.10" in choose(folder).refused["weishaupt-metadata-1.4.2.json"]
 
 
 def test_a_content_that_builds_no_model_is_refused(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1", change=lambda d: d.pop("devices"))
-    assert "does not build a model" in choose(folder).refused["weishaupt-metadata-1.4.1.json"]
+    release(folder, "1.4.2", change=lambda d: d.pop("devices"))
+    assert "does not build a model" in choose(folder).refused["weishaupt-metadata-1.4.2.json"]
 
 
 def test_the_newest_valid_file_wins(tmp_path):
     folder = tmp_path / "weishaupt"
-    release(folder, "1.4.1")
-    release(folder, "1.4.2", sums="1" * 64)
-    release(folder, "1.4.3", schema=3)
+    release(folder, "1.4.2")
+    release(folder, "1.4.3", sums="1" * 64)
+    release(folder, "1.4.4", schema=3)
     choice = choose(folder)
-    assert choice.model.version == "1.4.1"
-    assert set(choice.refused) == {"weishaupt-metadata-1.4.2.json", "weishaupt-metadata-1.4.3.json"}
+    assert choice.model.version == "1.4.2"
+    assert set(choice.refused) == {"weishaupt-metadata-1.4.3.json", "weishaupt-metadata-1.4.4.json"}
 
 
 def test_accepted():

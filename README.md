@@ -117,6 +117,48 @@ services → Weishaupt → ⋮ → Reconfigure*. The entry, its devices, entitie
 
 To remove it: delete the integration entry in *Devices & services*, then uninstall it in HACS.
 
+## With Weishaupt2MQTT (MQTT)
+
+From 1.4.0 the integration can use the bridge [weishaupt2mqtt](https://github.com/aghulas/weishaupt2mqtt)
+instead of talking to ebusd itself. The bridge (a Home Assistant add-on, or a container) holds ebusd, the
+definitions and the write guards, and publishes the heating system on MQTT; the integration then reads and
+writes through Home Assistant's MQTT integration only. This is the setup of the test installation since
+2026-11-25. The rest of this README describes the ebusd mode; what differs is below.
+
+1. Have an entry working in the ebusd mode (the steps above, with the latest definitions, 1.3.1, where they
+   still name 0.6.x). Version 1.4.1 cannot create an entry over MQTT alone: the first step asks for an ebusd
+   it can reach, and the bridge keeps its ebusd to itself. Whether an ebusd without the definitions is enough
+   for that first step was not tried.
+2. Install and start the bridge as its README says, the ebusd add-on stopped (one adapter, one ebusd), and
+   check that `weishaupt/bridge/state` reads `online`. Home Assistant's MQTT integration must be set up on
+   the same broker.
+3. On the entry: *⋮ → Reconfigure → Weishaupt2MQTT (MQTT bridge)*, give the base topic of the bridge
+   (`weishaupt` unless you changed it) and submit. The entry reloads; devices, entities, history and
+   options are kept.
+
+In this mode:
+
+- The switch **Writes** switches the bridge's user-level writes on and off. Switching it off also switches
+  the bridge's installer level off.
+- The option *Enable writes of the proven settings* (*Reconfigure → Bus load and writes*) is still needed
+  before the switch **Writes** acts.
+- Regulation settings still wait for a confirmation, and are then sent to the bridge's installer level,
+  which the integration never switches on: publish `{"installer_writes_enabled": true}` on
+  `weishaupt/bridge/config/set` (*Developer tools → Actions → `mqtt.publish`*), and again after each time
+  **Writes** was switched off, or they are refused (`installer_writes_disabled`). The add-on option of the
+  same name only counts until the bridge's switches are first changed at run time.
+- Of [What writing needs](#what-writing-needs), the ebusd build and the telegram log do not apply: the
+  bridge runs its own ebusd, with the checksum, and the integration reads no telegram log in this mode.
+- Write the room unit's copy of a circuit setting: on the test installation the regulation follows it, not
+  the heating module's (notice of the definitions 1.3.1, *Known limits*; the item *Two copies of a setting*
+  further down predates that test).
+- The clock is not offered.
+- The limits of the bridge apply, in particular: `online` does not prove that values are fresh (its README,
+  *Known limits*).
+
+To go back: stop the bridge, start the ebusd add-on, then *⋮ → Reconfigure → ebusd (the list, and which one
+to use)*.
+
 ## Which ebusd
 
 There is one eBUS adapter, so one ebusd uses it at a time. On Home Assistant OS an installation may have several
@@ -399,7 +441,7 @@ every write while one is missing.
    restart of Home Assistant and every reload of the integration, whatever it was before, so it is never left on by
    a restart.
 
-This integration does not use MQTT. If the ebusd add-on's MQTT discovery is on (its default), ebusd publishes
+In its ebusd mode this integration does not use MQTT. If the ebusd add-on's MQTT discovery is on (its default), ebusd publishes
 entities of its own; with the file the add-on seeds (`mqtt-hassio.cfg`, `filter-direction = r|u`) they are read
 only, and writable messages become entities only if that filter is changed (definitions notice). Such entities do
 not pass through this guard: do not change the filter with a stock ebusd.

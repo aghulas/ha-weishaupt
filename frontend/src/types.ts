@@ -55,6 +55,15 @@ export interface Row {
   entity_id: string | null;
   follow: Follow | null; // the sensor that keeps this row up to date, enabled or not
   listened: boolean; // an enabled entity reads it
+  vendor_codes?: VendorCode[]; // definitions 1.4.0 and later
+}
+
+/** The number a vendor document prints for a value (P112, 535, i35): meaningful only with its scheme. */
+export interface VendorCode {
+  code: string;
+  scheme: string;
+  scheme_label: Labels;
+  document: string | null; // the vendor document number of the scheme
 }
 
 /** The sensor behind a row or a program, as the entity registry has it. */

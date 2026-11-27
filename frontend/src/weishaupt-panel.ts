@@ -21,6 +21,9 @@ import {
   languageOf,
   addDragged,
   matchesRow,
+  codeText,
+  codeTitle,
+  sortByCode,
   queuedText,
   reportHtml,
   reportRows,
@@ -35,6 +38,7 @@ import {
   redundant,
   t,
   WEEKDAYS,
+  type CodeSort,
   type RowFilter,
 } from "./format.ts";
 import type {
@@ -98,6 +102,7 @@ export class WeishauptPanel extends LitElement {
     _hideZeroFaults: { state: true },
     _query: { state: true },
     _filter: { state: true },
+    _codeSort: { state: true },
     _dragPreview: { state: true },
     _dragError: { state: true },
   };
@@ -130,6 +135,7 @@ export class WeishauptPanel extends LitElement {
   declare _hideZeroFaults: boolean;
   declare _query: string;
   declare _filter: RowFilter;
+  declare _codeSort: CodeSort; // the tables ordered by vendor code, or in the order of the menus
   declare _dragPreview: { program: string; day: string; start: number; end: number } | undefined;
   declare _dragError: Record<string, string>; // `${program}|${day}` -> i18n error key
   private _faultTimer?: number;
@@ -158,6 +164,7 @@ export class WeishauptPanel extends LitElement {
     this._hideZeroFaults = true;
     this._query = "";
     this._filter = "all";
+    this._codeSort = "";
     this._dragError = {};
   }
 
@@ -1293,14 +1300,34 @@ export class WeishauptPanel extends LitElement {
       )}`;
   }
 
+  private _codeHeader(): TemplateResult {
+    const lang = this._lang;
+    const next: Record<CodeSort, CodeSort> = { "": "asc", asc: "desc", desc: "" };
+    const sort = this._codeSort;
+    return html`<th scope="col" aria-sort=${sort === "asc" ? "ascending" : sort === "desc" ? "descending" : "none"}>
+      <button type="button" class="sort" title=${t(lang, "sort_by_code")} @click=${() => (this._codeSort = next[sort])}>
+        ${t(lang, "code")}<span aria-hidden="true">${sort === "asc" ? " ▲" : sort === "desc" ? " ▼" : " ↕"}</span>
+      </button>
+    </th>`;
+  }
+
+  private _codeCell(row: Row): TemplateResult {
+    const text = codeText(row);
+    if (!text) return html`<td></td>`;
+    const title = codeTitle(row, this._lang);
+    return html`<td class="nowrap code"><abbr title=${title} aria-label=${`${text} (${title})`}>${text}</abbr></td>`;
+  }
+
   private _table(rows: Row[]): TemplateResult {
     const lang = this._lang;
     void this._tick;
+    rows = sortByCode(rows, this._codeSort);
     return html`<div class="scroll">
         <table>
           <thead>
             <tr>
               <th scope="col">${t(lang, "name")}</th>
+              ${this._codeHeader()}
               <th scope="col">${t(lang, "value")}</th>
               <th scope="col">${t(lang, "age")}</th>
               <th scope="col">${t(lang, "range")}</th>
@@ -1321,6 +1348,7 @@ export class WeishauptPanel extends LitElement {
                   ${label(row.label, lang)}
                   ${description ? html`<div class="description">${description}</div>` : nothing}
                 </th>
+                ${this._codeCell(row)}
                 <td class="nowrap num">${value ?? html`<span class="secondary">${t(lang, missingReason(row))}</span>`}</td>
                 <td class="secondary nowrap">
                   ${reading ? this._age(reading) : ""}${reading?.kept
@@ -1338,7 +1366,7 @@ export class WeishauptPanel extends LitElement {
                 </td>
                 <td class="follow-cell">${this._followCell(row.follow, false, label(row.label, lang))}</td>
               </tr>${this._editing === row.key
-                ? html`<tr class="edit-row"><td colspan="7">${this._editForm(row)}</td></tr>`
+                ? html`<tr class="edit-row"><td colspan="8">${this._editForm(row)}</td></tr>`
                 : nothing}`;
             })}
           </tbody>
@@ -1696,6 +1724,23 @@ export class WeishauptPanel extends LitElement {
     }
     .num {
       font-variant-numeric: tabular-nums;
+    }
+    td.code abbr {
+      text-decoration: underline dotted;
+      cursor: help;
+    }
+    th button.sort {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    th button.sort:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
     }
     .follow-cell {
       text-align: center;

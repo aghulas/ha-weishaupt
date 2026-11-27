@@ -1,7 +1,7 @@
 // Pure functions of the panel: the words of the interface, values, ages, ranges, the week grid.
 // No Lit and no DOM here, so that `node --test` runs them as they are.
 
-import type { Days, Estimate, Follow, JobProgress, Labels, Reading, RegistryEntry, Row, Tree } from "./types.ts";
+import type { Days, Estimate, Follow, JobProgress, Labels, Reading, RegistryEntry, Row, Tree, VendorCode } from "./types.ts";
 
 export const NOT_AVAILABLE = "-"; // what ebusd answers for the replacement value of a type
 
@@ -130,6 +130,12 @@ export const STRINGS: Record<string, Record<string, string>> = {
     col_unit: "Unit",
     col_range: "Range (step) or choices",
     col_writable: "Writable",
+    col_code: "Vendor code",
+    col_scheme: "Code scheme",
+    code: "Code",
+    code_title: "{scheme}, document {document}",
+    sort_by_code: "Sort by vendor code",
+    report_codes: "Vendor codes: {schemes}.",
     report: "Printable report",
     export_csv: "Export CSV",
     report_title: "Settings of the installation",
@@ -219,7 +225,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     copy_all: "every day",
     copy_weekdays: "Monday – Friday",
     copy_weekend: "Saturday, Sunday",
-    search_placeholder: "Search settings, sensors, keys…",
+    search_placeholder: "Search settings, sensors, codes, keys…",
     search_clear: "Clear",
     filter_all: "All",
     filter_writable: "Writable",
@@ -356,6 +362,12 @@ export const STRINGS: Record<string, Record<string, string>> = {
     col_unit: "Unité",
     col_range: "Plage (pas) ou choix",
     col_writable: "Inscriptible",
+    col_code: "Code constructeur",
+    col_scheme: "Numérotation du code",
+    code: "Code",
+    code_title: "{scheme}, document {document}",
+    sort_by_code: "Trier par code constructeur",
+    report_codes: "Codes constructeur : {schemes}.",
     report: "Rapport imprimable",
     export_csv: "Exporter en CSV",
     report_title: "Réglages de l'installation",
@@ -445,7 +457,7 @@ export const STRINGS: Record<string, Record<string, string>> = {
     copy_all: "tous les jours",
     copy_weekdays: "lundi – vendredi",
     copy_weekend: "samedi, dimanche",
-    search_placeholder: "Rechercher un réglage, une sonde, une clé…",
+    search_placeholder: "Rechercher un réglage, une sonde, un code, une clé…",
     search_clear: "Effacer",
     filter_all: "Tout",
     filter_writable: "Modifiables",
@@ -683,6 +695,8 @@ export interface ReportRow {
   unit: string;
   range: string;
   writable: string;
+  code: string; // the vendor codes, ", " between them
+  scheme: string; // the labels of their schemes, in the same order, each once
 }
 
 /** Every setting of the installation, device by device in the order of the menus: device, menu (with its parent
@@ -726,13 +740,18 @@ export function reportRows(tree: Tree, readings: Record<string, Reading | null>,
         unit: row.values ? "" : (row.unit ?? ""),
         range: choice ? allowed : rangeText(range, null, language),
         writable: row.writable ? t(language, row.writable.risk) : t(language, "read_only"),
+        code: codeText(row),
+        scheme: [...new Set((row.vendor_codes ?? []).map((c) => schemeText(c, language)))].join(", "),
       });
     }
   }
   return out;
 }
 
-const COLUMNS: (keyof ReportRow)[] = ["device", "menu", "label", "value", "unit", "range", "writable"];
+// the CSV keeps its first seven columns as before the codes; the code and its scheme come last
+const COLUMNS: (keyof ReportRow)[] = ["device", "menu", "label", "value", "unit", "range", "writable", "code", "scheme"];
+// the printed report: the code beside the setting, its scheme in a note under each device
+const PRINTED: (keyof ReportRow)[] = ["menu", "label", "code", "value", "unit", "range", "writable"];
 
 export function reportHeaders(language: string): string[] {
   return COLUMNS.map((c) => t(language, `col_${c}`));
@@ -757,12 +776,17 @@ function escapeHtml(text: string): string {
  * printed page, no colour needed. */
 export function reportHtml(rows: ReportRow[], language: string, heading: { title: string; subtitle: string }): string {
   const devices = [...new Set(rows.map((r) => r.device))];
-  const columns = COLUMNS.filter((c) => c !== "device");
-  const headers = reportHeaders(language).slice(1);
-  const tables = devices.map((device) => `<section><h2>${escapeHtml(device)}</h2><table><thead><tr>${headers
-    .map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>${rows
-    .filter((r) => r.device === device)
-    .map((r) => `<tr>${columns.map((c) => `<td>${escapeHtml(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></section>`);
+  const headers = PRINTED.map((c) => t(language, `col_${c}`));
+  const tables = devices.map((device) => {
+    const own = rows.filter((r) => r.device === device);
+    const schemes = [...new Set(own.flatMap((r) => (r.scheme ? r.scheme.split(", ") : [])))];
+    const note = schemes.length
+      ? `<p>${escapeHtml(t(language, "report_codes", { schemes: schemes.join(", ") }))}</p>`
+      : "";
+    return `<section><h2>${escapeHtml(device)}</h2><table><thead><tr>${headers
+      .map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>${own
+      .map((r) => `<tr>${PRINTED.map((c) => `<td>${escapeHtml(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table>${note}</section>`;
+  });
   return `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><title>${escapeHtml(heading.title)}</title>
 <style>
 @page{size:A4;margin:15mm 12mm}
@@ -926,7 +950,48 @@ function fold(text: string): string {
   return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
-/** Whether a row matches a free-text query (accent- and case-insensitive) and a quick filter. */
+/** A vendor code as compared: without case and spaces ("P 31", "p31" and "P31" are one code). */
+export function codeKey(text: string): string {
+  return text.replace(/\s+/g, "").toLowerCase();
+}
+
+/** The vendor codes of a row as shown: "P112", or "P141, 593" for several; empty without. */
+export function codeText(row: Row): string {
+  return (row.vendor_codes ?? []).map((c) => c.code).join(", ");
+}
+
+/** A scheme in words: its label, and the vendor document it numbers. */
+export function schemeText(code: VendorCode, language: string): string {
+  const name = label(code.scheme_label, language) || code.scheme;
+  return code.document ? t(language, "code_title", { scheme: name, document: code.document }) : name;
+}
+
+/** The tooltip of a code cell: the scheme of each code (a code means something only in its scheme). */
+export function codeTitle(row: Row, language: string): string {
+  const codes = row.vendor_codes ?? [];
+  const schemes = [...new Set(codes.map((c) => schemeText(c, language)))];
+  return schemes.length === 1 ? schemes[0] : codes.map((c) => `${c.code}: ${schemeText(c, language)}`).join("\n");
+}
+
+export type CodeSort = "" | "asc" | "desc";
+
+/** Rows ordered by their first vendor code (case- and space-insensitive, numbers in order: P9 before P31), rows
+ * without a code last in both directions; "" keeps the order of the menus. The sort is stable. */
+export function sortByCode(rows: Row[], direction: CodeSort): Row[] {
+  if (!direction) return rows;
+  const key = (row: Row): string => codeKey(row.vendor_codes?.[0]?.code ?? "");
+  const sign = direction === "asc" ? 1 : -1;
+  return rows
+    .map((row, i) => ({ row, i, k: key(row) }))
+    .sort((a, b) => {
+      if (!a.k || !b.k) return (a.k ? 0 : 1) - (b.k ? 0 : 1) || a.i - b.i;
+      return sign * a.k.localeCompare(b.k, "en", { numeric: true }) || a.i - b.i;
+    })
+    .map((x) => x.row);
+}
+
+/** Whether a row matches a free-text query (accent- and case-insensitive) and a quick filter. A query that is a
+ * vendor code, spaces or not ("P 31", "p31"), finds the rows of that code. */
 export function matchesRow(
   row: Row,
   query: string,
@@ -939,12 +1004,15 @@ export function matchesRow(
   if (filter === "unread" && readingOf(row, readings) !== null) return false;
   const terms = fold(query).trim().split(/\s+/).filter(Boolean);
   if (!terms.length) return true;
+  const wanted = codeKey(fold(query));
+  if ((row.vendor_codes ?? []).some((c) => codeKey(fold(c.code)).includes(wanted))) return true;
   const haystack = fold([
     label(row.label, language),
     label(row.description, language),
     row.key,
     row.message,
     row.writable?.register ?? "",
+    ...(row.vendor_codes ?? []).map((c) => c.code),
   ].join(" "));
   return terms.every((term) => haystack.includes(term));
 }

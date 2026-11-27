@@ -593,7 +593,15 @@
         "name": "État de la chaudière 2 – Entretien"
       },
       "manager_circwithlegionella": {
-        "name": "Circulation ECS pendant la fonction anti-légionelle"
+        "name": "Circulation ECS pendant la fonction anti-légionelle",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_hcmode_dhw": {
         "name": "ECS"
@@ -667,46 +675,150 @@
     },
     "number": {
       "manager_blockingtime": {
-        "name": "Temps de blocage (réglage)"
+        "name": "Temps de blocage (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_calorifierswitchdiff": {
-        "name": "Différentiel de commutation du stock tampon (réglage)"
+        "name": "Différentiel de commutation du stock tampon (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_changeovertime": {
-        "name": "Temps de marche avant changement de l'ordre des chaudières (réglage)"
+        "name": "Temps de marche avant changement de l'ordre des chaudières (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_decouplemintemp": {
-        "name": "Température minimale de bouteille casse-pression (réglage)"
+        "name": "Température minimale de bouteille casse-pression (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwloadtime": {
-        "name": "Temps de charge maximal ECS (réglage)"
+        "name": "Temps de charge maximal ECS (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwsetpoint": {
-        "name": "Consigne de température ECS (réglage)"
+        "name": "Consigne de température ECS (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwswitchdiff": {
-        "name": "Différentiel de commutation ECS (réglage)"
+        "name": "Différentiel de commutation ECS (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_gradientcurve": {
         "name": "Pente de la courbe de chauffe (réglage)"
       },
       "manager_legionellacirculationtime": {
-        "name": "Temps de circulation anti-légionelle (réglage)"
+        "name": "Temps de circulation anti-légionelle (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_legionellasetpoint": {
-        "name": "Consigne de température anti-légionelle (réglage)"
+        "name": "Consigne de température anti-légionelle (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationmax": {
-        "name": "Modulation maximale (plage optimale) (réglage)"
+        "name": "Modulation maximale (plage optimale) (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationmin": {
-        "name": "Modulation minimale (plage optimale) (réglage)"
+        "name": "Modulation minimale (plage optimale) (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_regulationi": {
-        "name": "Régulateur de puissance, facteur I (réglage)"
+        "name": "Régulateur de puissance, facteur I (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_regulationp": {
-        "name": "Régulateur de puissance, facteur 1/P (réglage)"
+        "name": "Régulateur de puissance, facteur 1/P (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel (réglage)"
@@ -730,13 +842,37 @@
         "name": "Pente de la courbe de chauffe (réglage)"
       },
       "module_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel (réglage)"
+        "name": "Température ambiante hors-gel (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_roomnormaltemp": {
-        "name": "Température ambiante normale (réglage)"
+        "name": "Température ambiante normale (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_roomsetbacktemp": {
-        "name": "Température ambiante réduite (réglage)"
+        "name": "Température ambiante réduite (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_summerwinterchangeovertemp": {
         "name": "Commutation été/hiver (réglage)"
@@ -751,43 +887,139 @@
         "name": "Surélévation de température chaudière (réglage)"
       },
       "room_controlvariation": {
-        "name": "Variante de régulation (réglage)"
+        "name": "Variante de régulation (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_dhwsetpoint": {
-        "name": "Consigne de température ECS (réglage)"
+        "name": "Consigne de température ECS (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_frostprotectionlimittemp": {
-        "name": "Température limite hors-gel (réglage)"
+        "name": "Température limite hors-gel (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_gradientcurve": {
         "name": "Pente de la courbe de chauffe (réglage)"
       },
       "room_holidayendday": {
-        "name": "Jour de fin des vacances (réglage)"
+        "name": "Jour de fin des vacances (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidayendmonth": {
-        "name": "Mois de fin des vacances (réglage)"
+        "name": "Mois de fin des vacances (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidayendthird": {
-        "name": "Fin des vacances, troisième registre (réglage)"
+        "name": "Fin des vacances, troisième registre (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartday": {
-        "name": "Jour de début des vacances (réglage)"
+        "name": "Jour de début des vacances (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartmonth": {
-        "name": "Mois de début des vacances (réglage)"
+        "name": "Mois de début des vacances (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartthird": {
-        "name": "Début des vacances, troisième registre (réglage)"
+        "name": "Début des vacances, troisième registre (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel (réglage)"
+        "name": "Température ambiante hors-gel (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomnormaltemp": {
-        "name": "Température ambiante normale (réglage)"
+        "name": "Température ambiante normale (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomsetbacktemp": {
-        "name": "Température ambiante réduite (réglage)"
+        "name": "Température ambiante réduite (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_summerwinterchangeovertemp": {
         "name": "Commutation été/hiver (réglage)"
@@ -799,7 +1031,15 @@
         "name": "Température de départ minimale (réglage)"
       },
       "room_switchonruntime": {
-        "name": "Durée d'anticipation de l'optimisation au démarrage (réglage)"
+        "name": "Durée d'anticipation de l'optimisation au démarrage (réglage)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       }
     },
     "select": {
@@ -808,6 +1048,14 @@
         "state": {
           "off": "Arrêt",
           "on": "Marche"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "manager_dhwlegionelladay": {
@@ -821,6 +1069,14 @@
           "friday": "Vendredi",
           "saturday": "Samedi",
           "sunday": "Dimanche"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "room_holidaytemplevel": {
@@ -828,24 +1084,64 @@
         "state": {
           "antifreeze": "Hors-gel",
           "setback": "Réduit"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       }
     },
     "sensor": {
       "boiler_burnerservicehours": {
-        "name": "Heures brûleur depuis le dernier entretien (i46)"
+        "name": "Heures brûleur depuis le dernier entretien (i46)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_counters_burnerhours": {
-        "name": "Heures de fonctionnement du brûleur"
+        "name": "Heures de fonctionnement du brûleur",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_counters_burnerstarts": {
-        "name": "Démarrages brûleur"
+        "name": "Démarrages brûleur",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_counters_operatinghours": {
         "name": "Heures de fonctionnement"
       },
       "boiler_dhwtemp": {
-        "name": "Température ECS (i34)"
+        "name": "Température ECS (i34)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_eventcounters_burnerhourstoday": {
         "name": "Heures brûleur du jour (selon le symbole)"
@@ -985,73 +1281,249 @@
         "name": "Mémoire de défauts, pointeur d'écriture"
       },
       "boiler_fluegastemp": {
-        "name": "Température des fumées (i31)"
+        "name": "Température des fumées (i31)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_hydraulicseparatortemp": {
-        "name": "Température de la bouteille casse-pression (i39)"
+        "name": "Température de la bouteille casse-pression (i39)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters1_ignitionload": {
-        "name": "Puissance d'allumage (P35)"
+        "name": "Puissance d'allumage (P35)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters1_serviceinterval": {
-        "name": "Intervalle d'entretien (P70)"
+        "name": "Intervalle d'entretien (P70)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters1_specialleveltemp": {
-        "name": "Niveau spécial, chauffage (P18)"
+        "name": "Niveau spécial, chauffage (P18)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters1_supplymaxtemp": {
-        "name": "Température de départ maximale (P31)"
+        "name": "Température de départ maximale (P31)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters1_supplymintemp": {
-        "name": "Température de départ minimale (P30)"
+        "name": "Température de départ minimale (P30)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters2_fluegassafetytemp": {
-        "name": "Température de coupure des fumées (P33)"
+        "name": "Température de coupure des fumées (P33)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters2_loadmaxheating": {
-        "name": "Puissance maximale, chauffage (P37)"
+        "name": "Puissance maximale, chauffage (P37)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters2_loadmin": {
-        "name": "Puissance minimale chaudière (P36)"
+        "name": "Puissance minimale chaudière (P36)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters2_pumploadmax": {
-        "name": "Puissance maximale circulateur, chauffage (P45)"
+        "name": "Puissance maximale circulateur, chauffage (P45)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters2_pumploadmin": {
-        "name": "Puissance minimale circulateur, chauffage (P44)"
+        "name": "Puissance minimale circulateur, chauffage (P44)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters3_dhwboosttemp": {
-        "name": "Surélévation ECS (P50)"
+        "name": "Surélévation ECS (P50)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters3_flowreturndifftemp": {
-        "name": "Écart départ-retour (P48)"
+        "name": "Écart départ-retour (P48)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters3_pumprunonheating": {
-        "name": "Post-fonctionnement circulateur, chauffage (P41)"
+        "name": "Post-fonctionnement circulateur, chauffage (P41)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters4_loadmaxdhw": {
-        "name": "Puissance maximale, ECS (P38)"
+        "name": "Puissance maximale, ECS (P38)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters4_pumploaddhw": {
-        "name": "Puissance circulateur, ECS (P46)"
+        "name": "Puissance circulateur, ECS (P46)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters4_pumprunondhw": {
-        "name": "Post-fonctionnement circulateur, ECS (P42)"
+        "name": "Post-fonctionnement circulateur, ECS (P42)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_installerparameters5": {
-        "name": "Adresse chaudière"
+        "name": "Adresse chaudière",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_operation_ionisation": {
-        "name": "Signal d'ionisation"
+        "name": "Signal d'ionisation",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_operation_load": {
-        "name": "Puissance du brûleur"
+        "name": "Puissance du brûleur",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_operation_pumpspeed": {
         "name": "Vitesse du circulateur"
       },
       "boiler_outsidetemp": {
-        "name": "Température extérieure (i33)"
+        "name": "Température extérieure (i33)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_powerdemand_dhwsettemp": {
         "name": "Consigne de température ECS"
@@ -1066,19 +1538,59 @@
         "name": "État de la demande"
       },
       "boiler_returntemp": {
-        "name": "Température retour (i37)"
+        "name": "Température retour (i37)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_softwareversioncpu": {
-        "name": "Version du logiciel WCM-CPU (i44)"
+        "name": "Version du logiciel WCM-CPU (i44)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_softwareversioncui": {
-        "name": "Version du logiciel WCM-CUI (i45)"
+        "name": "Version du logiciel WCM-CUI (i45)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_supplytemp": {
-        "name": "Température de départ (i35)"
+        "name": "Température de départ (i35)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_temperatures_fluegastemp": {
-        "name": "Température des fumées"
+        "name": "Température des fumées",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "boiler_temperatures_outsidetemp": {
         "name": "Température extérieure"
@@ -1093,7 +1605,15 @@
         "name": "Écart de l'horloge de l'installation"
       },
       "manager_blockingtime": {
-        "name": "Temps de blocage"
+        "name": "Temps de blocage",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_boiler1power_currentload": {
         "name": "Puissance de la chaudière 1 – Puissance actuelle du brûleur"
@@ -1223,31 +1743,87 @@
         }
       },
       "manager_calorifierexcesstemp": {
-        "name": "Surélévation stock tampon"
+        "name": "Surélévation stock tampon",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_calorifierswitchdiff": {
-        "name": "Différentiel de commutation du stock tampon"
+        "name": "Différentiel de commutation du stock tampon",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_changeovertime": {
-        "name": "Temps de marche avant changement de l'ordre des chaudières"
+        "name": "Temps de marche avant changement de l'ordre des chaudières",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_configstatus": {
         "name": "État de la configuration"
       },
       "manager_decoupleexcesstemp": {
-        "name": "Surélévation casse-pression"
+        "name": "Surélévation casse-pression",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_decouplemaxtemp": {
-        "name": "Température maximale casse-pression"
+        "name": "Température maximale casse-pression",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_decouplemintemp": {
-        "name": "Température minimale de bouteille casse-pression"
+        "name": "Température minimale de bouteille casse-pression",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_decoupletemp": {
         "name": "Sonde de bouteille casse-pression B22"
       },
       "manager_dhwexcesstemp": {
-        "name": "Surélévation de température ECS"
+        "name": "Surélévation de température ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwlegionelladay": {
         "name": "Jour de la fonction anti-légionelle",
@@ -1260,6 +1836,14 @@
           "friday": "Vendredi",
           "saturday": "Samedi",
           "sunday": "Dimanche"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "manager_dhwloadingpriority": {
@@ -1271,19 +1855,51 @@
         }
       },
       "manager_dhwloadtime": {
-        "name": "Temps de charge maximal ECS"
+        "name": "Temps de charge maximal ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwsetbacktemp": {
-        "name": "Consigne ECS réduite"
+        "name": "Consigne ECS réduite",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwsetpoint": {
-        "name": "Consigne de température ECS"
+        "name": "Consigne de température ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwsetvalue": {
         "name": "Consigne de température ECS actuelle"
       },
       "manager_dhwswitchdiff": {
-        "name": "Différentiel de commutation ECS"
+        "name": "Différentiel de commutation ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_dhwtemp": {
         "name": "Température ECS"
@@ -1363,22 +1979,70 @@
         "name": "Demande de chaleur"
       },
       "manager_legionellacirculationtime": {
-        "name": "Temps de circulation anti-légionelle"
+        "name": "Temps de circulation anti-légionelle",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_legionellasetpoint": {
-        "name": "Consigne de température anti-légionelle"
+        "name": "Consigne de température anti-légionelle",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_legionellastarttime": {
-        "name": "Heure anti-légionelle"
+        "name": "Heure anti-légionelle",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationdifftemp": {
-        "name": "Différentiel de modulation"
+        "name": "Différentiel de modulation",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationmax": {
-        "name": "Modulation maximale (plage optimale)"
+        "name": "Modulation maximale (plage optimale)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationmin": {
-        "name": "Modulation minimale (plage optimale)"
+        "name": "Modulation minimale (plage optimale)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_modulationstatus": {
         "name": "Degré de modulation"
@@ -1393,10 +2057,26 @@
         "name": "Échangeur à plaques, primaire B24"
       },
       "manager_regulationi": {
-        "name": "Régulateur de puissance, facteur I"
+        "name": "Régulateur de puissance, facteur I",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_regulationp": {
-        "name": "Régulateur de puissance, facteur 1/P"
+        "name": "Régulateur de puissance, facteur 1/P",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel"
@@ -1408,7 +2088,15 @@
         "name": "Température ambiante réduite"
       },
       "manager_summertimeendday": {
-        "name": "Fin heure d'été, jour"
+        "name": "Fin heure d'été, jour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_summertimeendmonth": {
         "name": "Fin heure d'été, mois",
@@ -1425,10 +2113,26 @@
           "october": "Octobre",
           "november": "Novembre",
           "december": "Décembre"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "manager_summertimestartday": {
-        "name": "Début heure d'été, jour"
+        "name": "Début heure d'été, jour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "manager_summertimestartmonth": {
         "name": "Début heure d'été, mois",
@@ -1445,6 +2149,14 @@
           "october": "Octobre",
           "november": "Novembre",
           "december": "Décembre"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "manager_summerwinterchangeovertemp": {
@@ -1510,7 +2222,15 @@
         "name": "Surélévation de température chaudière"
       },
       "module_circulationreturnsettemp": {
-        "name": "Consigne retour circulation ECS"
+        "name": "Consigne retour circulation ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_floordryingtemp": {
         "name": "Température de séchage de chape"
@@ -1546,13 +2266,37 @@
         "name": "Paramètre de la vanne mélangeuse"
       },
       "module_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel"
+        "name": "Température ambiante hors-gel",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_roomnormaltemp": {
-        "name": "Température ambiante normale"
+        "name": "Température ambiante normale",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_roomsetbacktemp": {
-        "name": "Température ambiante réduite"
+        "name": "Température ambiante réduite",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "module_roomthermostattemp": {
         "name": "Température du thermostat d'ambiance"
@@ -1785,7 +2529,15 @@
         "name": "Surélévation de température chaudière"
       },
       "room_controlvariation": {
-        "name": "Variante de régulation"
+        "name": "Variante de régulation",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_dhwlegionelladay": {
         "name": "Jour anti-légionelle (mémorisé)",
@@ -1798,6 +2550,14 @@
           "friday": "Vendredi",
           "saturday": "Samedi",
           "sunday": "Dimanche"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "room_dhwloadingpriority": {
@@ -1809,13 +2569,37 @@
         }
       },
       "room_dhwmaxtemp": {
-        "name": "Température ECS maximale (mémorisée)"
+        "name": "Température ECS maximale (mémorisée)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_dhwsetbacktemp": {
-        "name": "Consigne ECS réduite (mémorisée)"
+        "name": "Consigne ECS réduite (mémorisée)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_dhwsetpoint": {
-        "name": "Consigne de température ECS"
+        "name": "Consigne de température ECS",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_errorcode": {
         "name": "Code défaut de l'entrée"
@@ -1862,7 +2646,15 @@
         "name": "Température de séchage de chape"
       },
       "room_frostprotectionlimittemp": {
-        "name": "Température limite hors-gel"
+        "name": "Température limite hors-gel",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_gradientcurve": {
         "name": "Pente de la courbe de chauffe"
@@ -1882,35 +2674,107 @@
         }
       },
       "room_holidayendday": {
-        "name": "Jour de fin des vacances"
+        "name": "Jour de fin des vacances",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidayendmonth": {
-        "name": "Mois de fin des vacances"
+        "name": "Mois de fin des vacances",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidayendthird": {
-        "name": "Fin des vacances, troisième registre"
+        "name": "Fin des vacances, troisième registre",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartday": {
-        "name": "Jour de début des vacances"
+        "name": "Jour de début des vacances",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartmonth": {
-        "name": "Mois de début des vacances"
+        "name": "Mois de début des vacances",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaystartthird": {
-        "name": "Début des vacances, troisième registre"
+        "name": "Début des vacances, troisième registre",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_holidaytemplevel": {
         "name": "Niveau de température pendant les vacances",
         "state": {
           "antifreeze": "Hors-gel",
           "setback": "Réduit"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "room_legionellacirculationtime": {
-        "name": "Temps de circulation anti-légionelle (mémorisé)"
+        "name": "Temps de circulation anti-légionelle (mémorisé)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_legionellasetpoint": {
-        "name": "Consigne anti-légionelle (mémorisée)"
+        "name": "Consigne anti-légionelle (mémorisée)",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_outsidemixedtemp": {
         "name": "Température extérieure mélangée"
@@ -1928,13 +2792,37 @@
         "name": "État de la demande"
       },
       "room_roomfrostprotectiontemp": {
-        "name": "Température ambiante hors-gel"
+        "name": "Température ambiante hors-gel",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomnormaltemp": {
-        "name": "Température ambiante normale"
+        "name": "Température ambiante normale",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomsetbacktemp": {
-        "name": "Température ambiante réduite"
+        "name": "Température ambiante réduite",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_roomsetpointtemp": {
         "name": "Consigne d'ambiance en vigueur"
@@ -1946,7 +2834,15 @@
         "name": "Température du thermostat d'ambiance"
       },
       "room_summertimeendday": {
-        "name": "Fin heure d'été, jour"
+        "name": "Fin heure d'été, jour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_summertimeendmonth": {
         "name": "Fin heure d'été, mois",
@@ -1963,10 +2859,26 @@
           "october": "Octobre",
           "november": "Novembre",
           "december": "Décembre"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "room_summertimestartday": {
-        "name": "Début heure d'été, jour"
+        "name": "Début heure d'été, jour",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_summertimestartmonth": {
         "name": "Début heure d'été, mois",
@@ -1983,6 +2895,14 @@
           "october": "Octobre",
           "november": "Novembre",
           "december": "Décembre"
+        },
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
         }
       },
       "room_summerwinterchangeovertemp": {
@@ -1998,7 +2918,15 @@
         "name": "Température de départ minimale"
       },
       "room_switchonruntime": {
-        "name": "Durée d'anticipation de l'optimisation au démarrage"
+        "name": "Durée d'anticipation de l'optimisation au démarrage",
+        "state_attributes": {
+          "vendor_code": {
+            "name": "Code constructeur"
+          },
+          "vendor_scheme": {
+            "name": "Numérotation du code constructeur"
+          }
+        }
       },
       "room_versionmajor": {
         "name": "Version du logiciel, partie majeure"

@@ -6,7 +6,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import WeishauptEntity
+from .entity import WeishauptEntity, code_attributes
 from .hub import Hub, WeishauptConfigEntry
 from .model import ValueEntity
 
@@ -30,6 +30,7 @@ class ValueBinarySensor(WeishauptEntity, BinarySensorEntity):
                          (message.key,), description.name)
         self._key, self._index = message.key, description.field.index
         self._attr_entity_registry_enabled_default = description.enabled_default
+        self._attr_extra_state_attributes = code_attributes(hub, message, description.field) or None
         if description.diagnostic:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
 

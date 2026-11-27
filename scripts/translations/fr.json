@@ -446,6 +446,10 @@
     "entries": "Entrées",
     "ordered": "Plus récente en premier"
   },
+  "code_attributes": {
+    "vendor_code": "Code constructeur",
+    "vendor_scheme": "Numérotation du code constructeur"
+  },
   "switch_name": "Écritures",
   "number_suffix": " (réglage)",
   "services": {

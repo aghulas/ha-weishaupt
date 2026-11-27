@@ -132,3 +132,15 @@ def test_a_field_code_wins_over_the_message():
     fld = Field("value", "SIN", 0, "live", vendor_codes=(VendorCode("i99", "wtc-gb"),))
     assert [c.code for c in model.vendor_codes(message, fld)] == ["i99"]
 
+
+def test_translations_name_the_code_attributes():
+    root = METADATA_FILE.parent / "translations"
+    model = Model.load()
+    for language, names in (("en", ("Vendor code", "Vendor code scheme")),
+                            ("fr", ("Code constructeur", "Numérotation du code constructeur"))):
+        entity = json.loads((root / f"{language}.json").read_text(encoding="utf-8"))["entity"]
+        for description in (*model.value_entities, *model.setting_entities):
+            item = entity[description.platform][description.translation_key]
+            if model.vendor_codes(description.message, description.field):
+                assert (item["state_attributes"]["vendor_code"]["name"],
+                        item["state_attributes"]["vendor_scheme"]["name"]) == names, description.key

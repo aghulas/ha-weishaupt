@@ -20,7 +20,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
-from .entity import WeishauptEntity, parse_number
+from .entity import WeishauptEntity, code_attributes, parse_number
 from .guard import WriteRefused
 from .hub import SETTING_PRIORITY, Hub, WeishauptConfigEntry
 from .model import NumberDescription
@@ -59,6 +59,7 @@ class SettingEntity(WeishauptEntity):
         super().__init__(hub, hub.model.device_of(message), description.key, description.translation_key,
                          (message.key,), description.name)
         self._spec = spec
+        self._codes = code_attributes(hub, message, description.field)
 
     def _name_suffix(self, hub: Hub) -> str:
         return hub.label(SETTING_SUFFIX)
@@ -80,7 +81,8 @@ class SettingEntity(WeishauptEntity):
                 "last_write": None if last is None else {
                     "time": dt_util.as_local(dt_util.utc_from_timestamp(last["time"])).isoformat(timespec="seconds"),
                     "before": last["before"], "requested": last["requested"], "read_back": last["read_back"],
-                    "frame": last["frame"], "result": last["result"]}}
+                    "frame": last["frame"], "result": last["result"]},
+                **self._codes}
 
     async def _async_write(self, value: float) -> None:
         writer = self.hub.writer

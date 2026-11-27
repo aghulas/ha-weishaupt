@@ -92,7 +92,8 @@ configuration and restart.
 
 ### 4. Add the entry
 
-*Settings → Devices & services → Add integration → Weishaupt*. On Home Assistant OS: tick the ebusd add-ons (the
+*Settings → Devices & services → Add integration → Weishaupt*, then *ebusd (add-on or address)* (the other
+choice, the MQTT bridge, is [With Weishaupt2MQTT](#with-weishaupt2mqtt-mqtt)). On Home Assistant OS: tick the ebusd add-ons (the
 running ones are ticked), and, if ebusd also runs elsewhere, its host and port. Otherwise: host and port from
 step 2. The connection is tested (`info` only) before the entry is created; *No ebusd answers at this address*
 means none of them could be reached. A stopped add-on is kept without being tested.
@@ -125,18 +126,44 @@ definitions and the write guards, and publishes the heating system on MQTT; the 
 writes through Home Assistant's MQTT integration only. This is the setup of the test installation since
 2026-11-25. The rest of this README describes the ebusd mode; what differs is below.
 
-1. Have an entry working in the ebusd mode (the steps above, with the latest definitions, 1.3.1, where they
-   still name 0.6.x). Version 1.4.1 cannot create an entry over MQTT alone: the first step asks for an ebusd
-   it can reach, and the bridge keeps its ebusd to itself. Whether an ebusd without the definitions is enough
-   for that first step was not tried.
-2. Install and start the bridge as its README says, the ebusd add-on stopped (one adapter, one ebusd), and
+### A new installation, with the bridge alone
+
+From 1.5.0 the entry is created against the bridge: no ebusd add-on and no ebusd address are needed, and
+steps 1 and 2 of [First installation](#first-installation-reading) do not apply (the bridge ships the
+definitions and keeps its ebusd to itself).
+
+1. Have an MQTT broker and Home Assistant's MQTT integration set up on it (*Settings → Devices & services →
+   Add integration → MQTT*; on Home Assistant OS the Mosquitto add-on is found by itself).
+2. Install and start the bridge as its README says, on the same broker, with no other ebusd running on the
+   adapter (one adapter, one ebusd). `weishaupt/bridge/state` then reads `online`.
+3. Install this integration ([step 3](#3-install-the-integration-through-hacs) above) and restart Home
+   Assistant.
+4. *Settings → Devices & services → Add integration → Weishaupt → Weishaupt2MQTT (MQTT bridge)*, and give the
+   base topic of the bridge (`weishaupt` unless you changed it). The integration looks for the bridge on that
+   topic before it creates the entry: it subscribes to `bridge/state` and `bridge/info` (both retained),
+   waits up to 5 seconds and publishes nothing. What it may answer:
+   - *Home Assistant's MQTT integration is not set up*: step 1.
+   - *No Weishaupt2MQTT bridge was found on this base topic*: the bridge is not started, has another base
+     topic, or publishes to another broker than the one Home Assistant uses.
+   - *The Weishaupt2MQTT bridge on this base topic is offline*: it ran and stopped (its last will reads
+     `offline`). Start it and submit again.
+   - *The bridge on this base topic is already configured*: an entry exists for it.
+
+What you then see is as in [step 5](#5-what-you-then-see), with a device **Weishaupt2MQTT** in place of
+**ebusd**. Such an entry knows no ebusd: its *Reconfigure* menu has no *Telegram log of each ebusd*, and its
+diagnostics download holds what the bridge announced (`bridge`) with an empty list of ebusd.
+
+### An existing entry in the ebusd mode
+
+1. Install and start the bridge as its README says, the ebusd add-on stopped (one adapter, one ebusd), and
    check that `weishaupt/bridge/state` reads `online`. Home Assistant's MQTT integration must be set up on
    the same broker.
-3. On the entry: *⋮ → Reconfigure → Weishaupt2MQTT (MQTT bridge)*, give the base topic of the bridge
+2. On the entry: *⋮ → Reconfigure → Weishaupt2MQTT (MQTT bridge)*, give the base topic of the bridge
    (`weishaupt` unless you changed it) and submit. The entry reloads; devices, entities, history and
-   options are kept.
+   options are kept. This step does not look for the bridge: with a wrong topic the entry waits (*No
+   weishaupt2mqtt bridge info received*) until the topic is corrected the same way.
 
-In this mode:
+### In this mode
 
 - The switch **Writes** switches the bridge's user-level writes on and off. Switching it off also switches
   the bridge's installer level off.
@@ -156,8 +183,8 @@ In this mode:
 - The limits of the bridge apply, in particular: `online` does not prove that values are fresh (its README,
   *Known limits*).
 
-To go back: stop the bridge, start the ebusd add-on, then *⋮ → Reconfigure → ebusd (the list, and which one
-to use)*.
+To go back, or to move an entry made for the bridge to an ebusd: stop the bridge, start the ebusd add-on,
+then *⋮ → Reconfigure → ebusd (the list, and which one to use)*.
 
 ## Which ebusd
 
@@ -826,6 +853,10 @@ under the same name. After the update:
 
 The release notes on GitHub give each version in full; here only what changed what you install or see.
 
+- 1.5.0: a first installation with the bridge Weishaupt2MQTT alone. *Add integration* now starts with a choice,
+  *Weishaupt2MQTT (MQTT bridge)* or *ebusd (add-on or address)*; the first asks for the base topic and creates the
+  entry once the bridge is found online on it, without any ebusd address (before, an entry had to be made against
+  an ebusd and switched afterwards). The diagnostics download and the menus no longer assume an ebusd.
 - 1.2.0: definitions 1.3.0 shipped (687 messages, of which 686 can be read): boiler heating-specialist parameters
   (`InstallerParameters1`–`5`, new *Heating specialist parameters* menu), boiler fan speeds while firing
   (`FanOperation`), module H1 digital input (`H1Status`), 16-bit `FloorDryingTemp` / `RoomThermostatTemp`, and all

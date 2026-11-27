@@ -2,6 +2,24 @@
   "config": {
     "step": {
       "user": {
+        "title": "Weishaupt",
+        "description": "Comment ce Home Assistant atteint-il l'installation de chauffage ? Par le pont Weishaupt2MQTT (un module complémentaire qui contient ebusd, les définitions Weishaupt et les garde-fous d'écriture, et publie sur MQTT), ou par un ebusd que vous faites tourner vous-même.",
+        "menu_options": {
+          "bridge": "Weishaupt2MQTT (pont MQTT)",
+          "ebusd": "ebusd (module complémentaire ou adresse)"
+        }
+      },
+      "bridge": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Topic de base du pont Weishaupt2MQTT. Le pont doit être démarré et l'intégration MQTT de Home Assistant configurée sur le même broker : le pont est cherché sur ce topic avant la création de l'entrée. Rien n'est publié, et rien n'est écrit vers l'installation de chauffage tant que les écritures ne sont pas activées dans les options.",
+        "data": {
+          "base_topic": "Topic MQTT de base"
+        },
+        "data_description": {
+          "base_topic": "Topic de base configuré dans Weishaupt2MQTT (par défaut : weishaupt)."
+        }
+      },
+      "manual": {
         "title": "ebusd",
         "description": "Adresse de l'ebusd relié à l'installation de chauffage. ebusd doit avoir chargé une version des définitions Weishaupt. Rien n'est écrit vers l'installation de chauffage tant que les écritures ne sont pas activées dans les options.",
         "data": {
@@ -115,10 +133,15 @@
     },
     "error": {
       "cannot_connect": "Aucun ebusd ne répond à cette adresse.",
-      "no_endpoint": "Choisissez au moins un ebusd."
+      "no_endpoint": "Choisissez au moins un ebusd.",
+      "mqtt_not_available": "L'intégration MQTT de Home Assistant n'est pas configurée. Ajoutez-la (Paramètres > Appareils et services > Ajouter une intégration > MQTT) sur le broker où publie le pont, puis réessayez.",
+      "no_bridge": "Aucun pont Weishaupt2MQTT trouvé sur ce topic de base : bridge/state n'indique pas online, ou bridge/info n'est pas arrivé en 5 secondes. Vérifiez que le pont est démarré, son topic de base, et qu'il utilise le même broker que Home Assistant.",
+      "bridge_offline": "Le pont Weishaupt2MQTT de ce topic de base est hors ligne (bridge/state indique offline). Démarrez-le, puis réessayez.",
+      "invalid_topic": "Ce n'est pas un topic de base : ni +, ni #, ni niveau vide."
     },
     "abort": {
-      "already_configured": "Cet ebusd est déjà configuré."
+      "already_configured": "Cet ebusd est déjà configuré.",
+      "bridge_already_configured": "Le pont de ce topic de base est déjà configuré."
     }
   },
   "options": {

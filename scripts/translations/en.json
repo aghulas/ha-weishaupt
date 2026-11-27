@@ -2,6 +2,24 @@
   "config": {
     "step": {
       "user": {
+        "title": "Weishaupt",
+        "description": "How does this Home Assistant reach the heating system? Through the bridge Weishaupt2MQTT (an add-on that holds ebusd, the Weishaupt definitions and the write guards, and publishes on MQTT), or through an ebusd you run yourself.",
+        "menu_options": {
+          "bridge": "Weishaupt2MQTT (MQTT bridge)",
+          "ebusd": "ebusd (add-on or address)"
+        }
+      },
+      "bridge": {
+        "title": "Weishaupt2MQTT (MQTT)",
+        "description": "Base topic of the bridge Weishaupt2MQTT. The bridge must be running and Home Assistant's MQTT integration must be set up on the same broker: the bridge is looked for on this topic before the entry is created. Nothing is published, and nothing is written to the heating system unless writes are enabled later in the options.",
+        "data": {
+          "base_topic": "Base MQTT topic"
+        },
+        "data_description": {
+          "base_topic": "Base topic configured in Weishaupt2MQTT (default: weishaupt)."
+        }
+      },
+      "manual": {
         "title": "ebusd",
         "description": "Address of the ebusd that is connected to the heating system. ebusd must have loaded a release of the Weishaupt definitions. Nothing is written to the heating system unless writes are enabled later in the options.",
         "data": {
@@ -115,10 +133,15 @@
     },
     "error": {
       "cannot_connect": "No ebusd answers at this address.",
-      "no_endpoint": "Choose at least one ebusd."
+      "no_endpoint": "Choose at least one ebusd.",
+      "mqtt_not_available": "Home Assistant's MQTT integration is not set up. Add it (Settings > Devices & services > Add integration > MQTT) on the broker the bridge publishes to, then try again.",
+      "no_bridge": "No Weishaupt2MQTT bridge was found on this base topic: bridge/state did not read online, or bridge/info did not arrive within 5 seconds. Check that the bridge is started, its base topic, and that it uses the same broker as Home Assistant.",
+      "bridge_offline": "The Weishaupt2MQTT bridge on this base topic is offline (bridge/state reads offline). Start it, then try again.",
+      "invalid_topic": "Not a base topic: no +, no # and no empty level."
     },
     "abort": {
-      "already_configured": "This ebusd is already configured."
+      "already_configured": "This ebusd is already configured.",
+      "bridge_already_configured": "The bridge on this base topic is already configured."
     }
   },
   "options": {

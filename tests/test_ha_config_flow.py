@@ -9,9 +9,17 @@ from custom_components.weishaupt.const import CONF_CYCLIC_INTERVAL, CONF_REQUEST
 from ha_common import make_entry, setup
 
 
-async def test_user_flow(hass, fake):
+async def _start_ebusd(hass):
+    """The first step is a menu (the MQTT bridge, or ebusd): take ebusd."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
-    assert result["type"] is FlowResultType.FORM and result["step_id"] == "user"
+    assert result["type"] is FlowResultType.MENU and result["step_id"] == "user"
+    assert result["menu_options"] == ["bridge", "ebusd"]
+    return await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "ebusd"})
+
+
+async def test_user_flow(hass, fake):
+    result = await _start_ebusd(hass)
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == "manual"
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
     await hass.async_block_till_done()
@@ -29,7 +37,7 @@ async def test_user_flow(hass, fake):
 async def test_user_flow_cannot_connect_then_recovers(hass, fake):
     port = fake.port
     await fake.stop()
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    result = await _start_ebusd(hass)
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: port})
     assert result["type"] is FlowResultType.FORM and result["errors"] == {"base": "cannot_connect"}
     await fake.start()
@@ -41,7 +49,7 @@ async def test_user_flow_cannot_connect_then_recovers(hass, fake):
 
 async def test_something_that_is_not_ebusd(hass, fake):
     fake.info = "hello"
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    result = await _start_ebusd(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
     assert result["errors"] == {"base": "cannot_connect"}
@@ -50,7 +58,7 @@ async def test_something_that_is_not_ebusd(hass, fake):
 async def test_same_ebusd_twice(hass, fake):
     entry = make_entry(hass, fake)
     await setup(hass, entry)
-    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    result = await _start_ebusd(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_HOST: "127.0.0.1", CONF_PORT: fake.port})
     assert result["type"] is FlowResultType.ABORT and result["reason"] == "already_configured"
@@ -201,7 +209,7 @@ async def test_user_flow_with_add_ons(hass, fake, golden):
     running = LocalAddon("abc_ebusd", "eBUSd (Weishaupt CRC)", "started", fake.port)
     idle = LocalAddon("def_ebusd", "eBUSd", "stopped", stopped.port)
     with addons(running, idle):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        result = await _start_ebusd(hass)
         assert result["type"] is FlowResultType.FORM and result["step_id"] == "addons"
         assert result["data_schema"]({})["addons"] == ["abc_ebusd"]  # the started ones by default
         bad = await hass.config_entries.flow.async_configure(result["flow_id"], {"addons": []})
@@ -224,7 +232,7 @@ async def test_user_flow_with_add_ons_none_running(hass, fake):
     port = fake.port
     await fake.stop()
     with addons(LocalAddon("abc_ebusd", "eBUSd", "started", port)):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        result = await _start_ebusd(hass)
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"addons": ["abc_ebusd"]})
     assert result["errors"] == {"base": "cannot_connect"}
 
@@ -265,7 +273,7 @@ async def test_endpoint_of_another_entry_refused(hass, fake):
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     with addons(LocalAddon("abc_ebusd", "eBUSd", "started", fake.port)):
-        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        result = await _start_ebusd(hass)
         result = await hass.config_entries.flow.async_configure(result["flow_id"], {"addons": ["abc_ebusd"]})
     assert result["type"] is FlowResultType.ABORT and result["reason"] == "already_configured"
     await hass.config_entries.async_unload(entry.entry_id)

@@ -1,4 +1,7 @@
-"""Configuration: the ebusd endpoints (on Home Assistant OS, the ebusd add-ons from the Supervisor's list, and one
+"""Configuration. The first step asks how the heating system is reached: through the bridge Weishaupt2MQTT (an MQTT
+base topic, checked for a bridge that is online) or through ebusd directly.
+
+The ebusd endpoints (on Home Assistant OS, the ebusd add-ons from the Supervisor's list, and one
 typed by hand), with a connection test (`info` only), and how to pick among them (follow the running one, or pin
 one); options: the load put on the bus, writes (off unless enabled here; the write switch then turns them on and
 off), which ebusd to use, and the telegram log of each ebusd.
@@ -41,6 +44,7 @@ from .const import (
     TRANSPORT_MQTT,
 )
 from .ebusd import DEFAULT_PORT, EbusdClient, EbusdError
+from .mqtt_bridge import async_probe_bridge, valid_base_topic
 from .endpoints import (
     CONF_ENDPOINTS,
     MODE_FOLLOW,
@@ -92,6 +96,20 @@ def _telegram_db_data(data: dict[str, Any], endpoint_key: str, path: str) -> dic
     path = path.strip() or DEFAULT_TELEGRAM_DB
     changed = [Endpoint(e.host, e.port, e.label, e.addon, path) if e.key == endpoint_key else e for e in known]
     return {**data, CONF_ENDPOINTS: [e.as_dict() for e in changed]}
+
+
+def _topic_schema(default: str) -> vol.Schema:
+    return vol.Schema({vol.Required(CONF_BASE_TOPIC, default=default): str})
+
+
+def _topic_of(user_input: dict[str, Any]) -> str:
+    """The base topic a submitted form holds, without leading or trailing slash; the default when empty."""
+    return str(user_input.get(CONF_BASE_TOPIC) or "").strip().strip("/") or DEFAULT_BASE_TOPIC
+
+
+def _has_ebusd(data: Any) -> bool:
+    """Whether the entry knows an ebusd endpoint. An entry made for the MQTT bridge has none."""
+    return CONF_HOST in data
 
 
 def _schema(defaults: dict[str, Any]) -> vol.Schema:
@@ -175,9 +193,38 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
     _log_endpoint: str | None = None  # the endpoint a reconfigure telegram-log step chose, carried to its path step
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """How the heating system is reached: the bridge Weishaupt2MQTT over MQTT, or ebusd directly."""
+        return self.async_show_menu(step_id="user", menu_options=["bridge", "ebusd"])
+
+    async def async_step_bridge(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """An entry for the bridge `weishaupt2mqtt` alone: its base topic, checked through Home Assistant's MQTT
+        integration (`bridge/state` reads `online` and `bridge/info` arrives). Nothing is published."""
+        errors = {}
+        if user_input is not None:
+            topic = _topic_of(user_input)
+            if not valid_base_topic(topic):
+                errors[CONF_BASE_TOPIC] = "invalid_topic"
+            else:
+                await self.async_set_unique_id(f"mqtt:{topic}")
+                self._abort_if_unique_id_configured(error="bridge_already_configured")
+                error = await async_probe_bridge(self.hass, topic)
+                if error is None:
+                    return self.async_create_entry(
+                        title="Weishaupt", data={CONF_TRANSPORT: TRANSPORT_MQTT, CONF_BASE_TOPIC: topic})
+                errors["base"] = error
+        default = _topic_of(user_input or {})
+        return self.async_show_form(step_id="bridge", data_schema=_topic_schema(default), errors=errors)
+
+    async def async_step_ebusd(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """ebusd directly: its add-ons on Home Assistant OS, one address elsewhere."""
+        if ebusd_addons(self.hass):
+            return await self.async_step_addons()
+        return await self.async_step_manual()
+
+    async def async_step_addons(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         addons = ebusd_addons(self.hass)
-        if not addons:
-            return await self._step_manual(user_input)
+        if not addons:  # gone since the form was shown
+            return await self.async_step_manual()
         errors = {}
         if user_input is not None:
             candidates = _endpoints_from_form(user_input, addons, [])
@@ -198,10 +245,7 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
         chosen = (user_input or {}).get(CONF_ADDONS, [a.slug for a in addons if a.started])
         return self.async_show_form(step_id="addons", data_schema=_addon_schema(addons, chosen, None), errors=errors)
 
-    async def async_step_addons(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await self.async_step_user(user_input)
-
-    async def _step_manual(self, user_input: dict[str, Any] | None) -> ConfigFlowResult:
+    async def async_step_manual(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors = {}
         if user_input is not None:
             await self.async_set_unique_id(f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}")
@@ -213,25 +257,25 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title="Weishaupt", data=use(
                     {**user_input, CONF_ENDPOINTS: [endpoint.as_dict()]}, endpoint, MODE_FOLLOW))
             errors["base"] = "cannot_connect"
-        return self.async_show_form(step_id="user", data_schema=_schema(user_input or {}), errors=errors)
+        return self.async_show_form(step_id="manual", data_schema=_schema(user_input or {}), errors=errors)
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """The entry's menu, the UI path to the options the panel does not expose: MQTT bridge, the endpoints
         and their mode, the bus load and writes, the telegram log of each ebusd."""
-        return self.async_show_menu(
-            step_id="reconfigure", menu_options=["mqtt", "endpoints", "settings", "telegram_log"]
-        )
+        options = ["mqtt", "endpoints", "settings", "telegram_log"]
+        if not _has_ebusd(self._get_reconfigure_entry().data):  # made for the bridge: no ebusd, no telegram log
+            options.remove("telegram_log")
+        return self.async_show_menu(step_id="reconfigure", menu_options=options)
 
     async def async_step_mqtt(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Configure or switch the entry to use `weishaupt2mqtt` over Home Assistant's MQTT integration."""
         entry = self._get_reconfigure_entry()
         if user_input is not None:
-            topic = str(user_input.get(CONF_BASE_TOPIC) or DEFAULT_BASE_TOPIC).strip("/") or DEFAULT_BASE_TOPIC
+            topic = _topic_of(user_input)
             new_data = {**entry.data, CONF_TRANSPORT: TRANSPORT_MQTT, CONF_BASE_TOPIC: topic}
             return self.async_update_reload_and_abort(entry, unique_id=f"mqtt:{topic}", data=new_data)
         default_topic = entry.data.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC)
-        schema = vol.Schema({vol.Required(CONF_BASE_TOPIC, default=default_topic): str})
-        return self.async_show_form(step_id="mqtt", data_schema=schema)
+        return self.async_show_form(step_id="mqtt", data_schema=_topic_schema(default_topic))
 
     async def async_step_endpoints(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         entry = self._get_reconfigure_entry()
@@ -246,10 +290,13 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
                 if _taken(self.hass, {key}, entry.entry_id):  # another entry has it; keeping the own address (to
                     return self.async_abort(reason="already_configured")  # change only the mode) is allowed
                 if await _answers(user_input):
-                    old = current(data)
-                    moved = Endpoint(user_input[CONF_HOST], int(user_input[CONF_PORT]), old.label, old.addon,
-                                     old.telegram_db)
-                    rest = [e for e in previous if e.key not in (old.key, moved.key)]
+                    host, port = user_input[CONF_HOST], int(user_input[CONF_PORT])
+                    if _has_ebusd(data):
+                        old = current(data)
+                        moved = Endpoint(host, port, old.label, old.addon, old.telegram_db)
+                    else:  # an entry made for the bridge gets its first ebusd
+                        old, moved = None, Endpoint(host, port, "ebusd")
+                    rest = [e for e in previous if e.key not in (old.key if old else None, moved.key)]
                     self._candidates = [moved, *rest]
                     return await self.async_step_reconfigure_use()
                 errors["base"] = "cannot_connect"
@@ -278,12 +325,13 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
         entry = self._get_reconfigure_entry()
         data = dict(entry.data)
         candidates = self._candidates
+        in_use_key = current(data).key if _has_ebusd(data) else None  # None: an entry made for the bridge
         errors = {}
         if user_input is not None:
             base = {**data, CONF_ENDPOINTS: [e.as_dict() for e in candidates]}
             if user_input[CONF_USE] == MODE_FOLLOW:
                 stopped = {a.slug for a in ebusd_addons(self.hass) if not a.started}
-                in_use = next((e for e in candidates if e.key == current(data).key), None)
+                in_use = next((e for e in candidates if e.key == in_use_key), None)
                 chosen, _ = await _pick(candidates, in_use, stopped)
                 if chosen is not None:
                     new = use({**base, CONF_TRANSPORT: TRANSPORT_EBUSD, CONF_HOST: chosen.host, CONF_PORT: chosen.port},
@@ -296,7 +344,7 @@ class WeishauptConfigFlow(ConfigFlow, domain=DOMAIN):
                           pinned, MODE_PINNED)
                 return self.async_update_reload_and_abort(entry, unique_id=pinned.key, data=new)
         keys = {e.key for e in candidates}
-        default = MODE_FOLLOW if mode_of(data) == MODE_FOLLOW or current(data).key not in keys else current(data).key
+        default = MODE_FOLLOW if mode_of(data) == MODE_FOLLOW or in_use_key not in keys else in_use_key
         options = [selector.SelectOptionDict(value=MODE_FOLLOW, label="follow")] + [
             selector.SelectOptionDict(value=e.key, label=f"{e.label} ({e.key})") for e in candidates]
         schema = vol.Schema({vol.Required(CONF_USE, default=default): selector.SelectSelector(
@@ -351,18 +399,20 @@ class WeishauptOptionsFlow(OptionsFlow):
     _log_endpoint: str | None = None
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return self.async_show_menu(step_id="init", menu_options=["settings", "mqtt", "ebusd", "telegram_log"])
+        options = ["settings", "mqtt", "ebusd", "telegram_log"]
+        if not _has_ebusd(self.config_entry.data):  # made for the bridge: no ebusd to choose, no telegram log
+            options = ["settings", "mqtt"]
+        return self.async_show_menu(step_id="init", menu_options=options)
 
     async def async_step_mqtt(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Switch this entry to `weishaupt2mqtt` over MQTT, or change its base topic."""
         if user_input is not None:
-            topic = str(user_input.get(CONF_BASE_TOPIC) or DEFAULT_BASE_TOPIC).strip("/") or DEFAULT_BASE_TOPIC
+            topic = _topic_of(user_input)
             new_data = {**self.config_entry.data, CONF_TRANSPORT: TRANSPORT_MQTT, CONF_BASE_TOPIC: topic}
             self.hass.config_entries.async_update_entry(self.config_entry, unique_id=f"mqtt:{topic}", data=new_data)
             return self.async_create_entry(data=dict(self.config_entry.options))
         default_topic = self.config_entry.data.get(CONF_BASE_TOPIC, DEFAULT_BASE_TOPIC)
-        schema = vol.Schema({vol.Required(CONF_BASE_TOPIC, default=default_topic): str})
-        return self.async_show_form(step_id="mqtt", data_schema=schema)
+        return self.async_show_form(step_id="mqtt", data_schema=_topic_schema(default_topic))
 
     async def async_step_settings(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:

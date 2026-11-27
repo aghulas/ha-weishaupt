@@ -8,6 +8,8 @@ import time
 import uuid
 from typing import Any
 
+import voluptuous as vol
+
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
@@ -33,6 +35,61 @@ from .writes import RISKS, TYPES, WriteSpec, linked
 _LOGGER = logging.getLogger(__name__)
 MQTT_STARTUP_TIMEOUT = 8.0
 MQTT_WRITE_TIMEOUT = 20.0
+BRIDGE_PROBE_TIMEOUT = 5.0  # seconds the config flow waits for the retained `bridge/state` and `bridge/info`
+
+
+def valid_base_topic(topic: str) -> bool:
+    """Whether `topic` can be the base topic of a bridge: a topic to publish under, so without wildcard."""
+    try:
+        mqtt.valid_publish_topic(topic)
+    except vol.Invalid:
+        return False
+    return True
+
+
+async def async_probe_bridge(hass: HomeAssistant, base_topic: str) -> str | None:
+    """Whether a `weishaupt2mqtt` bridge is online on this base topic: None, or the error to show in the flow.
+
+    `mqtt_not_available`: Home Assistant's MQTT integration is not set up; `bridge_offline`: `bridge/state` reads
+    `offline` (the last will of a bridge that stopped); `no_bridge`: `bridge/state` did not read `online` or no
+    `bridge/info` arrived in time. Both topics are retained: a running bridge answers at once. Subscribes only;
+    nothing is published."""
+    if not await mqtt.async_wait_for_mqtt_client(hass):
+        return "mqtt_not_available"
+    seen: dict[str, Any] = {}
+    done = asyncio.Event()
+
+    @callback
+    def on_state(msg: mqtt.ReceiveMessage) -> None:
+        seen["state"] = str(msg.payload).strip().lower()
+        if "info" in seen:
+            done.set()
+
+    @callback
+    def on_info(msg: mqtt.ReceiveMessage) -> None:
+        try:
+            data = json.loads(msg.payload)
+        except (ValueError, TypeError):
+            return
+        if isinstance(data, dict):
+            seen["info"] = data
+            if "state" in seen:
+                done.set()
+
+    unsubs = [await mqtt.async_subscribe(hass, f"{base_topic}/bridge/state", on_state, qos=1),
+              await mqtt.async_subscribe(hass, f"{base_topic}/bridge/info", on_info, qos=1)]
+    try:
+        await asyncio.wait_for(done.wait(), timeout=BRIDGE_PROBE_TIMEOUT)
+    except TimeoutError:
+        pass
+    finally:
+        for unsub in unsubs:
+            unsub()
+    if seen.get("state") == "offline":
+        return "bridge_offline"
+    if seen.get("state") != "online" or "info" not in seen:
+        return "no_bridge"
+    return None
 
 
 def _decode_mqtt_message(message: Message, val: Any) -> tuple[str, ...]:

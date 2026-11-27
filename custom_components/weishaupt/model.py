@@ -39,6 +39,44 @@ NAME_SEPARATOR = " – "
 WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 
 
+def code_key(text: str) -> str:
+    """A vendor code as compared: without case and spaces (`P 31`, `p31` and `P31` are one code)."""
+    return "".join(text.split()).casefold()
+
+
+@dataclass(frozen=True)
+class VendorScheme:
+    """A numbering of the vendor's documents (definitions 1.4.0 and later): a code means something only in its
+    scheme (601 is not the same value on the system manager and on a room unit)."""
+
+    id: str
+    label: dict[str, str]
+    document: str | None = None  # the vendor document number
+
+
+@dataclass(frozen=True)
+class VendorCode:
+    """The number a vendor document prints for a value (`535`, `P112`, `i35`), and where it is printed."""
+
+    code: str
+    scheme: str  # key of `Model.vendor_schemes`; may be one this version does not know
+    source: str = ""
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (self.scheme, code_key(self.code))
+
+
+def _vendor_codes(raw: Any) -> tuple[VendorCode, ...]:
+    """`vendor_codes` of a message or a field; absent before definitions 1.4.0. Malformed entries are left out."""
+    if not isinstance(raw, list):
+        return ()
+    return tuple(VendorCode(item["code"].strip(), item["scheme"], str(item.get("source") or ""))
+                 for item in raw
+                 if isinstance(item, dict) and isinstance(item.get("code"), str) and item["code"].strip()
+                 and isinstance(item.get("scheme"), str) and item["scheme"])
+
+
 def slug(text: str) -> str:
     """`BurnerInOperation` -> `burner_in_operation`: a translation key for a value-list entry."""
     words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", text)
@@ -64,6 +102,7 @@ class Field:
     description: dict[str, str] | None = None  # the translated comment of the definitions (shown by the panel)
     absent: float | None = None  # the value the device sends when the sensor is not fitted, when the metadata says
     renamed_from: str | None = None  # the field's former name, when a release renamed it (definitions 0.6.0 and later)
+    vendor_codes: tuple[VendorCode, ...] = ()  # codes of this field of a message of several values (1.4.0 and later)
 
     @property
     def shown(self) -> bool:
@@ -115,6 +154,7 @@ class Message:
     # key of the message on another device whose store this one reads (definitions 0.5.15 and later): a write here
     # is acknowledged and not kept; the value is changed there
     shared_with: str | None = None
+    vendor_codes: tuple[VendorCode, ...] = ()  # codes of a message of one value (definitions 1.4.0 and later)
 
     @property
     def writable(self) -> bool:
@@ -327,6 +367,7 @@ class Model:
         return self.groups.get(key)
     _by_circuit: dict[str, Device] = field(default_factory=dict)
     menus: dict[str, tuple[Menu, ...]] = field(default_factory=dict)  # device type -> its menus, in order
+    vendor_schemes: dict[str, VendorScheme] = field(default_factory=dict)  # definitions 1.4.0 and later
 
     @classmethod
     def load(cls, path: Path = METADATA_FILE) -> Model:
@@ -352,10 +393,38 @@ class Model:
         model._by_circuit = {c.circuit: d for d in devices.values() for c in d.circuits}
         model.menus = {kind: tuple(Menu(m["id"], m.get("parent") or "", m["label"]) for m in items)
                        for kind, items in data.get("menus", {}).items()}
+        model.vendor_schemes = {
+            key: VendorScheme(key, s["label"], s.get("document"))
+            for key, s in (data.get("vendor_schemes") or {}).items()
+            if isinstance(s, dict) and isinstance(s.get("label"), dict) and s["label"].get("en")}
         model.value_entities = _value_entities(model)
         model.group_entities = _group_entities(model)
         model.setting_entities = _setting_entities(model)
         return model
+
+    def vendor_codes(self, message: Message, fld: Field) -> tuple[VendorCode, ...]:
+        """The codes of one value: those of its field, else those of its message (a message of one value carries
+        them itself); for a message reading the register of another (`same_as`), those of the other."""
+        found = fld.vendor_codes or message.vendor_codes
+        if not found and message.same_as in self.messages:
+            other = self.messages[message.same_as]
+            twin = other.field(fld.name)
+            found = (twin.vendor_codes if twin else ()) or other.vendor_codes
+        return found
+
+    def scheme_label(self, scheme: str) -> dict[str, str]:
+        """The label of a scheme in each language; its key when this version does not know it."""
+        known = self.vendor_schemes.get(scheme)
+        return known.label if known else {"en": scheme}
+
+    def code_attributes(self, message: Message, fld: Field, language: str) -> dict[str, str]:
+        """`vendor_code` and `vendor_scheme` (its label in `language`) of an entity, nothing for a value without a
+        code. Several codes are joined by ", ", their schemes in the same order (each once)."""
+        codes = self.vendor_codes(message, fld)
+        if not codes:
+            return {}
+        labels = dict.fromkeys(_in(self.scheme_label(c.scheme), language) for c in codes)
+        return {"vendor_code": ", ".join(c.code for c in codes), "vendor_scheme": ", ".join(labels)}
 
     def device_of(self, message: Message) -> Device:
         return self.devices[message.device]
@@ -392,7 +461,8 @@ def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
               f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
-              f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"), f.get("renamed_from"))
+              f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"), f.get("renamed_from"),
+              _vendor_codes(f.get("vendor_codes")))
         for index, f in enumerate(data["fields"]))
     write = data.get("write")
     conditions = None if write is None else WriteConditions(
@@ -403,7 +473,11 @@ def _message(key: str, data: dict[str, Any]) -> Message:
                    data["label"], bool(data["passive"]), data.get("poll"), fields, bool(data.get("compose")),
                    data.get("family"), data.get("group"), data.get("position"), data.get("same_as"),
                    conditions, data.get("renamed_from"), bool(data.get("read", True)), data.get("description"),
-                   data.get("shared_with"))
+                   data.get("shared_with"), _vendor_codes(data.get("vendor_codes")))
+
+
+def _in(labels: dict[str, str], language: str) -> str:
+    return labels.get(language) or labels.get("en") or next(iter(labels.values()), "")
 
 
 def _base_type(name: str) -> str:

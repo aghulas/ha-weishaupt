@@ -1,8 +1,8 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "1.3.0",
-  "commit": "7462afb",
+  "version": "1.4.0",
+  "commit": "b17e73c",
   "messages": 687
  },
  "verified": {
@@ -12,12 +12,12 @@
  },
  "coverage": {
   "messages": 687,
-  "covered": 683,
-  "readings": 1025,
+  "covered": 686,
+  "readings": 1029,
   "by_kind": {
    "live": {
     "messages": 62,
-    "covered": 61
+    "covered": 62
    },
    "counter": {
     "messages": 20,
@@ -33,7 +33,7 @@
    },
    "state": {
     "messages": 11,
-    "covered": 9
+    "covered": 11
    },
    "program_slot": {
     "messages": 357,
@@ -43,7 +43,7 @@
   "by_device": {
    "boiler1": {
     "messages": 34,
-    "covered": 33
+    "covered": 34
    },
    "manager": {
     "messages": 117,
@@ -59,11 +59,11 @@
    },
    "module2": {
     "messages": 19,
-    "covered": 18
+    "covered": 19
    },
    "module3": {
     "messages": 17,
-    "covered": 16
+    "covered": 17
    },
    "room2": {
     "messages": 154,
@@ -79,9 +79,6 @@
    }
   },
   "not_covered": [
-   "bc1/FanOperation",
-   "em2/H1Status",
-   "em3/H1Status",
    "broadcast/Datetime"
   ],
   "refused_by_ebusd": []
@@ -24338,6 +24335,102 @@
    "text": "0",
    "evidence": "remaining-reads",
    "date": "2026-11-22"
+  },
+  {
+   "circuit": "bc1",
+   "message": "FanOperation",
+   "type": "read",
+   "qq": "31",
+   "zz": "08",
+   "pbsb": "5000",
+   "master": "56 03 de 01 77 01 7e",
+   "slave": "00 00 00 00",
+   "telegram": "31085000075603de0177017e/0400000000",
+   "device": "boiler1",
+   "expect": {
+    "firstbyte": 0,
+    "fanspeedset": 0,
+    "fanspeedactual": 0,
+    "fanpwm": 0
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fanspeedset": 0,
+    "fanspeedactual": 0,
+    "fanpwm": 0
+   },
+   "text": "0;0;0;0",
+   "evidence": "boiler-firing-values",
+   "date": "2026-11-24"
+  },
+  {
+   "circuit": "bc2",
+   "message": "FanOperation",
+   "type": "read",
+   "qq": "31",
+   "zz": "18",
+   "pbsb": "5000",
+   "master": "56 03 de 01 77 01 7e",
+   "slave": "00 25 25 33",
+   "telegram": "31185000075603de0177017e/0400252533",
+   "device": "boiler2",
+   "expect": {
+    "firstbyte": 0,
+    "fanspeedset": 37,
+    "fanspeedactual": 37,
+    "fanpwm": 51
+   },
+   "decoded": {
+    "firstbyte": 0,
+    "fanspeedset": 37,
+    "fanspeedactual": 37,
+    "fanpwm": 51
+   },
+   "text": "0;37;37;51",
+   "evidence": "boiler-firing-values",
+   "date": "2026-11-24"
+  },
+  {
+   "circuit": "em2",
+   "message": "H1Status",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "32 29 0a",
+   "slave": "00 00",
+   "telegram": "315150220332290a/020000",
+   "device": "module2",
+   "expect": {
+    "value": "off"
+   },
+   "decoded": {
+    "value": "off"
+   },
+   "text": "off",
+   "evidence": "register-survey-findings",
+   "date": "2026-11-24"
+  },
+  {
+   "circuit": "em3",
+   "message": "H1Status",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "32 29 0a",
+   "slave": "00 00",
+   "telegram": "315250220332290a/020000",
+   "device": "module3",
+   "expect": {
+    "value": "off"
+   },
+   "decoded": {
+    "value": "off"
+   },
+   "text": "off",
+   "evidence": "register-survey-findings",
+   "date": "2026-11-24"
   }
  ]
 }

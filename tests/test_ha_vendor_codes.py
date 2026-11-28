@@ -59,16 +59,16 @@ async def test_settings_carry_the_code(hass, fake, tmp_path):
 async def test_without_codes_in_the_metadata_nothing_changes(hass, fake, entity_registry_enabled_by_default):
     """A metadata without codes (before definitions 1.4.0) beside the configuration: no code attribute."""
     data = _without_codes(json.loads(METADATA_FILE.read_text()))
-    data["definitions"]["version"] = "1.4.2"
+    data["definitions"]["version"] = "1.6.1"
     folder = Path(hass.config.path("weishaupt"))
     folder.mkdir(exist_ok=True)
     text = json.dumps(data).encode()
-    (folder / "weishaupt-metadata-1.4.2.json").write_bytes(text)
-    (folder / "sha256sums-1.4.2.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.4.2.json\n")
+    (folder / "weishaupt-metadata-1.6.1.json").write_bytes(text)
+    (folder / "sha256sums-1.6.1.txt").write_text(f"{hashlib.sha256(text).hexdigest()}  weishaupt-metadata-1.6.1.json\n")
     entry = make_entry(hass, fake)
     await setup(hass, entry)
     await settled(hass, entry)
-    assert entry.runtime_data.model.version == "1.4.2"
+    assert entry.runtime_data.model.version == "1.6.1"
     flow = state_of(hass, entry, "bc1/SupplyTemp/value")
     assert flow.entity_id == "sensor.boiler_1_flow_temperature_i35"
     assert not set(CODES) & set(flow.attributes)

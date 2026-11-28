@@ -2530,7 +2530,7 @@
         "name": "Échange commande à distance / module d'extension – Surélévation de température chaudière"
       },
       "module_hcmode_opmode": {
-        "name": "Mode de fonctionnement"
+        "name": "Échange commande à distance / module d'extension – Mode de fonctionnement"
       },
       "module_hcmode_outsidetemp": {
         "name": "Température extérieure"
@@ -2552,6 +2552,18 @@
       },
       "module_mixerparameter": {
         "name": "Paramètre de la vanne mélangeuse"
+      },
+      "module_operatingmode": {
+        "name": "Mode de fonctionnement",
+        "state": {
+          "standby": "Standby",
+          "heating_operation": "Fonctionnement chauffage",
+          "setback_operation": "Fonctionnement réduit",
+          "holiday_summer": "Vacances / Été",
+          "heating_program1": "Programme de chauffage 1",
+          "heating_program2": "Programme de chauffage 2",
+          "heating_program3": "Programme de chauffage 3"
+        }
       },
       "module_roomfrostprotectiontemp": {
         "name": "Température ambiante hors-gel",
@@ -3142,6 +3154,18 @@
           "vendor_scheme": {
             "name": "Numérotation du code constructeur"
           }
+        }
+      },
+      "room_operatingmode": {
+        "name": "Mode de fonctionnement",
+        "state": {
+          "standby": "Standby",
+          "heating_operation": "Fonctionnement chauffage",
+          "setback_operation": "Fonctionnement réduit",
+          "holiday_summer": "Vacances / Été",
+          "heating_program1": "Programme de chauffage 1",
+          "heating_program2": "Programme de chauffage 2",
+          "heating_program3": "Programme de chauffage 3"
         }
       },
       "room_outsidemixedtemp": {

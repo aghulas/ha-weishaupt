@@ -1,12 +1,12 @@
 {
  "schema": 1,
  "definitions": {
-  "version": "1.4.1",
-  "commit": "2745822",
-  "messages": 687,
-  "csv_lines": 1039,
-  "loaded_by_ebusd": 1099,
-  "sidecar_sha256": "6922326c41aa2779140a96b55d17069fa7dcabd9e91e121faeb22edf872b5400"
+  "version": "1.6.0",
+  "commit": "cece980",
+  "messages": 692,
+  "csv_lines": 1044,
+  "loaded_by_ebusd": 1104,
+  "sidecar_sha256": "f3837b47d567e744f900019c6a156608b8d41687912b8cf729eec4561cd60479"
  },
  "languages": [
   "en",
@@ -454,6 +454,762 @@
     "fr": "Automate de la chaudière WTC-GB"
    },
    "document": "83251704"
+  },
+  "wcm": {
+   "label": {
+    "en": "WCM controllers: system manager, room unit, heating module",
+    "fr": "Régulations WCM : manager de cascade, commande à distance, module d'extension"
+   },
+   "document": "83277504"
+  }
+ },
+ "vendor_code_lists": {
+  "wtc-gb-faults": {
+   "scheme": "wtc-gb",
+   "label": {
+    "en": "WTC-GB boiler warning and fault codes",
+    "fr": "Codes d'alarme et de défaut de la chaudière WTC-GB"
+   },
+   "source": "boiler manual 83251704 (1/2025-01), pp. 84-85 (warnings W), pp. 86-87 (faults F)",
+   "status": "accepted",
+   "entries": {
+    "11": {
+     "codes": [
+      "F11"
+     ],
+     "label": {
+      "en": "Safety limiter above 105 °C",
+      "fr": "Limiteur de sécurité au-dessus de 105 °C"
+     }
+    },
+    "12": {
+     "codes": [
+      "W12"
+     ],
+     "label": {
+      "en": "Limiter, flow or return above 95 °C",
+      "fr": "Limiteur, départ ou retour au-dessus de 95 °C"
+     }
+    },
+    "14": {
+     "codes": [
+      "W14"
+     ],
+     "label": {
+      "en": "Limiter temperature rising too fast",
+      "fr": "Température du limiteur en hausse trop rapide"
+     }
+    },
+    "15": {
+     "codes": [
+      "W15",
+      "F15"
+     ],
+     "label": {
+      "en": "Flow/return difference too large",
+      "fr": "Écart départ/retour trop élevé"
+     }
+    },
+    "16": {
+     "codes": [
+      "W16"
+     ],
+     "label": {
+      "en": "Flue gas temperature too high",
+      "fr": "Température des fumées trop élevée"
+     }
+    },
+    "18": {
+     "codes": [
+      "W18",
+      "F18"
+     ],
+     "label": {
+      "en": "Limiter/flow difference too large",
+      "fr": "Écart limiteur/départ trop élevé"
+     }
+    },
+    "21": {
+     "codes": [
+      "W21",
+      "F21"
+     ],
+     "label": {
+      "en": "No flame at burner start",
+      "fr": "Pas de flamme au démarrage du brûleur"
+     }
+    },
+    "22": {
+     "codes": [
+      "W22"
+     ],
+     "label": {
+      "en": "Flame lost in operation",
+      "fr": "Perte de flamme en fonctionnement"
+     }
+    },
+    "23": {
+     "codes": [
+      "F23"
+     ],
+     "label": {
+      "en": "Flame signal without a flame",
+      "fr": "Flamme parasite"
+     }
+    },
+    "24": {
+     "codes": [
+      "W24"
+     ],
+     "label": {
+      "en": "Input H2 closed, burner lockout",
+      "fr": "Entrée H2 fermée, verrouillage du brûleur"
+     }
+    },
+    "30": {
+     "codes": [
+      "F30"
+     ],
+     "label": {
+      "en": "Safety limiter sensor fault",
+      "fr": "Défaut de la sonde du limiteur de sécurité"
+     }
+    },
+    "31": {
+     "codes": [
+      "F31"
+     ],
+     "label": {
+      "en": "Flue gas sensor fault",
+      "fr": "Défaut de la sonde fumées"
+     }
+    },
+    "32": {
+     "codes": [
+      "F32"
+     ],
+     "label": {
+      "en": "Air pressure switch not at rest",
+      "fr": "Pressostat d'air pas en position de repos"
+     }
+    },
+    "33": {
+     "codes": [
+      "W33"
+     ],
+     "label": {
+      "en": "Outside sensor fault",
+      "fr": "Défaut de la sonde extérieure"
+     }
+    },
+    "34": {
+     "codes": [
+      "W34"
+     ],
+     "label": {
+      "en": "Hot-water sensor fault",
+      "fr": "Défaut de la sonde ECS"
+     }
+    },
+    "35": {
+     "codes": [
+      "F35"
+     ],
+     "label": {
+      "en": "Flow sensor fault",
+      "fr": "Défaut de la sonde de départ"
+     }
+    },
+    "36": {
+     "codes": [
+      "F36"
+     ],
+     "label": {
+      "en": "System water pressure too low",
+      "fr": "Pression de l'installation trop faible"
+     }
+    },
+    "37": {
+     "codes": [
+      "F37"
+     ],
+     "label": {
+      "en": "Return sensor fault",
+      "fr": "Défaut de la sonde de retour"
+     }
+    },
+    "38": {
+     "codes": [
+      "F38"
+     ],
+     "label": {
+      "en": "Flue gas pressure switch does not switch at fan check",
+      "fr": "Pressostat fumées sans commutation au contrôle du ventilateur"
+     }
+    },
+    "39": {
+     "codes": [
+      "W39"
+     ],
+     "label": {
+      "en": "Hydraulic separator sensor fault",
+      "fr": "Défaut de la sonde de bouteille de découplage"
+     }
+    },
+    "41": {
+     "codes": [
+      "F41"
+     ],
+     "label": {
+      "en": "Gas valve leaking",
+      "fr": "Multibloc gaz non étanche"
+     }
+    },
+    "43": {
+     "codes": [
+      "F43"
+     ],
+     "label": {
+      "en": "Fan speed not reached",
+      "fr": "Vitesse du ventilateur non atteinte"
+     }
+    },
+    "44": {
+     "codes": [
+      "F44"
+     ],
+     "label": {
+      "en": "Fan rest position faulty",
+      "fr": "Position de repos du ventilateur défectueuse"
+     }
+    },
+    "45": {
+     "codes": [
+      "F45"
+     ],
+     "label": {
+      "en": "Air pressure switch does not switch on",
+      "fr": "Pressostat d'air ne s'enclenche pas"
+     }
+    },
+    "46": {
+     "codes": [
+      "F46"
+     ],
+     "label": {
+      "en": "Flue gas side pressure too high",
+      "fr": "Pression trop élevée côté fumées"
+     }
+    },
+    "47": {
+     "codes": [
+      "W47"
+     ],
+     "label": {
+      "en": "Gas pressure too low",
+      "fr": "Pression gaz trop faible"
+     }
+    },
+    "48": {
+     "codes": [
+      "W48",
+      "F48"
+     ],
+     "label": {
+      "en": "Flue gas damper run time exceeded",
+      "fr": "Durée d'enclenchement du clapet de fumées dépassée"
+     }
+    },
+    "49": {
+     "codes": [
+      "F49"
+     ],
+     "label": {
+      "en": "Input H2 closed, condensate lifting unit",
+      "fr": "Entrée H2 fermée, relevage des condensats"
+     }
+    },
+    "51": {
+     "codes": [
+      "F51"
+     ],
+     "label": {
+      "en": "Boiler data error",
+      "fr": "Erreur de données de la chaudière"
+     }
+    },
+    "52": {
+     "codes": [
+      "F52"
+     ],
+     "label": {
+      "en": "Burner data error",
+      "fr": "Erreur de données du brûleur"
+     }
+    },
+    "53": {
+     "codes": [
+      "F53"
+     ],
+     "label": {
+      "en": "Supply voltage out of tolerance",
+      "fr": "Alimentation électrique hors tolérances"
+     }
+    },
+    "54": {
+     "codes": [
+      "F54"
+     ],
+     "label": {
+      "en": "Electronic fault",
+      "fr": "Défaut électronique"
+     }
+    },
+    "55": {
+     "codes": [
+      "F55"
+     ],
+     "label": {
+      "en": "Reset too often",
+      "fr": "Déverrouillages trop fréquents"
+     }
+    },
+    "57": {
+     "codes": [
+      "W57",
+      "F57"
+     ],
+     "label": {
+      "en": "Automat/control panel communication",
+      "fr": "Communication automate/tableau de commande"
+     }
+    },
+    "80": {
+     "codes": [
+      "W80"
+     ],
+     "label": {
+      "en": "No communication with the system manager",
+      "fr": "Pas de communication avec le manager de cascade"
+     }
+    },
+    "81": {
+     "codes": [
+      "W81"
+     ],
+     "label": {
+      "en": "No communication with the room unit",
+      "fr": "Pas de communication avec la commande à distance"
+     }
+    },
+    "82": {
+     "codes": [
+      "W82"
+     ],
+     "label": {
+      "en": "No communication with module EM#2",
+      "fr": "Pas de communication avec le module EM#2"
+     }
+    },
+    "83": {
+     "codes": [
+      "W83"
+     ],
+     "label": {
+      "en": "No communication with module EM#3",
+      "fr": "Pas de communication avec le module EM#3"
+     }
+    },
+    "84": {
+     "codes": [
+      "W84"
+     ],
+     "label": {
+      "en": "No communication with module EM#4",
+      "fr": "Pas de communication avec le module EM#4"
+     }
+    },
+    "85": {
+     "codes": [
+      "W85"
+     ],
+     "label": {
+      "en": "No communication with module EM#5",
+      "fr": "Pas de communication avec le module EM#5"
+     }
+    },
+    "86": {
+     "codes": [
+      "W86"
+     ],
+     "label": {
+      "en": "No communication with module EM#6",
+      "fr": "Pas de communication avec le module EM#6"
+     }
+    },
+    "87": {
+     "codes": [
+      "W87"
+     ],
+     "label": {
+      "en": "No communication with module EM#7",
+      "fr": "Pas de communication avec le module EM#7"
+     }
+    },
+    "88": {
+     "codes": [
+      "W88"
+     ],
+     "label": {
+      "en": "No communication with module EM#8",
+      "fr": "Pas de communication avec le module EM#8"
+     }
+    },
+    "89": {
+     "codes": [
+      "W89"
+     ],
+     "label": {
+      "en": "Remote setpoint (input N1) failed",
+      "fr": "Consigne à distance (entrée N1) défaillante"
+     }
+    }
+   }
+  },
+  "wcm-faults": {
+   "scheme": "wcm",
+   "label": {
+    "en": "WCM controller fault codes",
+    "fr": "Codes défauts des régulations WCM"
+   },
+   "source": "system manager manual 83258404, p. 119; room unit and module manual 83277504, pp. 106-108",
+   "status": "accepted",
+   "entries": {
+    "130": {
+     "codes": [
+      "130"
+     ],
+     "label": {
+      "en": "Flow sensor fault",
+      "fr": "Défaut de la sonde de départ"
+     }
+    },
+    "131": {
+     "codes": [
+      "131"
+     ],
+     "label": {
+      "en": "Plate exchanger primary sensor fault",
+      "fr": "Défaut de la sonde primaire de l'échangeur à plaques"
+     }
+    },
+    "132": {
+     "codes": [
+      "132"
+     ],
+     "label": {
+      "en": "Hydraulic separator sensor fault",
+      "fr": "Défaut de la sonde de bouteille casse-pression"
+     }
+    },
+    "133": {
+     "codes": [
+      "133"
+     ],
+     "label": {
+      "en": "Outside sensor fault",
+      "fr": "Défaut de la sonde extérieure"
+     }
+    },
+    "134": {
+     "codes": [
+      "134"
+     ],
+     "label": {
+      "en": "Hot-water sensor fault",
+      "fr": "Défaut de la sonde ECS"
+     }
+    },
+    "135": {
+     "codes": [
+      "135"
+     ],
+     "label": {
+      "en": "Hot-water circulation sensor fault",
+      "fr": "Défaut de la sonde de circulation ECS"
+     }
+    },
+    "136": {
+     "codes": [
+      "136"
+     ],
+     "label": {
+      "en": "External room sensor fault",
+      "fr": "Défaut de la sonde d'ambiance externe"
+     }
+    },
+    "137": {
+     "codes": [
+      "137"
+     ],
+     "label": {
+      "en": "Internal room sensor fault",
+      "fr": "Défaut de la sonde d'ambiance interne"
+     }
+    },
+    "138": {
+     "codes": [
+      "138"
+     ],
+     "label": {
+      "en": "Buffer sensor top fault",
+      "fr": "Défaut de la sonde haute du tampon"
+     }
+    },
+    "139": {
+     "codes": [
+      "139"
+     ],
+     "label": {
+      "en": "Buffer sensor bottom fault",
+      "fr": "Défaut de la sonde basse du tampon"
+     }
+    },
+    "142": {
+     "codes": [
+      "142"
+     ],
+     "label": {
+      "en": "PWM pump fault",
+      "fr": "Défaut de la pompe PWM"
+     }
+    },
+    "149": {
+     "codes": [
+      "149"
+     ],
+     "label": {
+      "en": "Condensate lifting unit safety switch (input H1)",
+      "fr": "Sécurité du relevage des condensats (entrée H1)"
+     }
+    },
+    "154": {
+     "codes": [
+      "154"
+     ],
+     "label": {
+      "en": "Internal EEPROM fault",
+      "fr": "Défaut interne EEPROM"
+     }
+    },
+    "180": {
+     "codes": [
+      "180"
+     ],
+     "label": {
+      "en": "No communication with the system manager",
+      "fr": "Pas de communication avec le manager de cascade"
+     }
+    },
+    "181": {
+     "codes": [
+      "181"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "182": {
+     "codes": [
+      "182"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "183": {
+     "codes": [
+      "183"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "184": {
+     "codes": [
+      "184"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "185": {
+     "codes": [
+      "185"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "186": {
+     "codes": [
+      "186"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "187": {
+     "codes": [
+      "187"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "188": {
+     "codes": [
+      "188"
+     ],
+     "label": {
+      "en": "No communication with a room unit",
+      "fr": "Pas de communication avec une commande à distance"
+     }
+    },
+    "189": {
+     "codes": [
+      "189"
+     ],
+     "label": {
+      "en": "Input N1 fault",
+      "fr": "Défaut de l'entrée N1"
+     }
+    },
+    "190": {
+     "codes": [
+      "190"
+     ],
+     "label": {
+      "en": "No communication with a heating module",
+      "fr": "Pas de communication avec un module d'extension"
+     }
+    },
+    "191": {
+     "codes": [
+      "191"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "192": {
+     "codes": [
+      "192"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "193": {
+     "codes": [
+      "193"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "194": {
+     "codes": [
+      "194"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "195": {
+     "codes": [
+      "195"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "196": {
+     "codes": [
+      "196"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "197": {
+     "codes": [
+      "197"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "198": {
+     "codes": [
+      "198"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "199": {
+     "codes": [
+      "199"
+     ],
+     "label": {
+      "en": "No communication with a boiler automat",
+      "fr": "Pas de communication avec un automate de chaudière"
+     }
+    },
+    "200": {
+     "codes": [
+      "200"
+     ],
+     "label": {
+      "en": "Bus address already taken",
+      "fr": "Adresse eBUS déjà occupée"
+     }
+    },
+    "201": {
+     "codes": [
+      "201"
+     ],
+     "label": {
+      "en": "Device address inside the cascade system",
+      "fr": "Adresse de l'appareil dans le système de cascade"
+     }
+    },
+    "202": {
+     "codes": [
+      "202"
+     ],
+     "label": {
+      "en": "Room unit address assigned to a hot-water loading circuit",
+      "fr": "Adresse de commande à distance affectée à un circuit de charge ECS"
+     }
+    }
+   }
   }
  },
  "messages": {
@@ -2920,7 +3676,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -2954,7 +3711,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -3156,7 +3916,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -3190,7 +3951,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -3392,7 +4156,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -3426,7 +4191,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -3628,7 +4396,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -3662,7 +4431,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -3864,7 +4636,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -3898,7 +4671,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -4100,7 +4876,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -4134,7 +4911,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -5448,12 +6228,17 @@
    "poll": "cyclic",
    "poll_basis": "record",
    "evidence": [
-    "ka-reads"
+    "ka-reads",
+    "vendor-codes"
    ],
    "fields": [
     {
      "name": "value",
-     "type": "UIN"
+     "type": "UIN",
+     "code_lists": [
+      "wtc-gb-faults",
+      "wcm-faults"
+     ]
     }
    ]
   },
@@ -10187,7 +10972,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -10221,7 +11007,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -10423,7 +11212,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -10457,7 +11247,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -10659,7 +11452,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -10693,7 +11487,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -10895,7 +11692,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -10929,7 +11727,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -11131,7 +11932,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -11165,7 +11967,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -11367,7 +12172,8 @@
    "poll": "on_demand",
    "poll_basis": "record",
    "evidence": [
-    "bc-fault-history"
+    "bc-fault-history",
+    "vendor-codes"
    ],
    "compose": true,
    "family": "fault_history",
@@ -11401,7 +12207,10 @@
       "en": "Fault number",
       "fr": "Numéro de défaut"
      },
-     "kind": "diagnostic"
+     "kind": "diagnostic",
+     "code_lists": [
+      "wtc-gb-faults"
+     ]
     },
     {
      "name": "kind",
@@ -12094,6 +12903,79 @@
      "description": {
       "en": "heating circuit type",
       "fr": "type de circuit de chauffage"
+     }
+    }
+   ]
+  },
+  "fs1/OperatingMode": {
+   "circuit": "fs1",
+   "name": "OperatingMode",
+   "address": "35",
+   "device": "room1",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Operating mode",
+    "fr": "Mode de fonctionnement"
+   },
+   "description": {
+    "en": "operating mode",
+    "fr": "mode de fonctionnement"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "operating-mode",
+    "modules-programs"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "Standby",
+      "3": "HeatingOperation",
+      "4": "SetbackOperation",
+      "5": "HolidaySummer",
+      "11": "HeatingProgram1",
+      "12": "HeatingProgram2",
+      "13": "HeatingProgram3"
+     },
+     "value_labels": {
+      "1": {
+       "en": "Standby",
+       "fr": "Standby"
+      },
+      "3": {
+       "en": "Heating",
+       "fr": "Fonctionnement chauffage"
+      },
+      "4": {
+       "en": "Setback",
+       "fr": "Fonctionnement réduit"
+      },
+      "5": {
+       "en": "Holiday / summer",
+       "fr": "Vacances / Été"
+      },
+      "11": {
+       "en": "Heating program 1",
+       "fr": "Programme de chauffage 1"
+      },
+      "12": {
+       "en": "Heating program 2",
+       "fr": "Programme de chauffage 2"
+      },
+      "13": {
+       "en": "Heating program 3",
+       "fr": "Programme de chauffage 3"
+      }
+     },
+     "description": {
+      "en": "operating mode of a heating circuit",
+      "fr": "mode de fonctionnement d'un circuit de chauffage"
      }
     }
    ]
@@ -12826,7 +13708,11 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN"
+     "type": "UIN",
+     "code_lists": [
+      "wtc-gb-faults",
+      "wcm-faults"
+     ]
     }
    ]
   },
@@ -30746,7 +31632,11 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN"
+     "type": "UIN",
+     "code_lists": [
+      "wtc-gb-faults",
+      "wcm-faults"
+     ]
     }
    ]
   },
@@ -31679,6 +32569,79 @@
      "description": {
       "en": "off or on",
       "fr": "arrêt ou marche"
+     }
+    }
+   ]
+  },
+  "em2/OperatingMode": {
+   "circuit": "em2",
+   "name": "OperatingMode",
+   "address": "51",
+   "device": "module2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Operating mode",
+    "fr": "Mode de fonctionnement"
+   },
+   "description": {
+    "en": "operating mode",
+    "fr": "mode de fonctionnement"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "operating-mode",
+    "modules-programs"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "Standby",
+      "3": "HeatingOperation",
+      "4": "SetbackOperation",
+      "5": "HolidaySummer",
+      "11": "HeatingProgram1",
+      "12": "HeatingProgram2",
+      "13": "HeatingProgram3"
+     },
+     "value_labels": {
+      "1": {
+       "en": "Standby",
+       "fr": "Standby"
+      },
+      "3": {
+       "en": "Heating",
+       "fr": "Fonctionnement chauffage"
+      },
+      "4": {
+       "en": "Setback",
+       "fr": "Fonctionnement réduit"
+      },
+      "5": {
+       "en": "Holiday / summer",
+       "fr": "Vacances / Été"
+      },
+      "11": {
+       "en": "Heating program 1",
+       "fr": "Programme de chauffage 1"
+      },
+      "12": {
+       "en": "Heating program 2",
+       "fr": "Programme de chauffage 2"
+      },
+      "13": {
+       "en": "Heating program 3",
+       "fr": "Programme de chauffage 3"
+      }
+     },
+     "description": {
+      "en": "operating mode of a heating circuit",
+      "fr": "mode de fonctionnement d'un circuit de chauffage"
      }
     }
    ]
@@ -33170,6 +34133,79 @@
     }
    ]
   },
+  "em3/OperatingMode": {
+   "circuit": "em3",
+   "name": "OperatingMode",
+   "address": "52",
+   "device": "module3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Operating mode",
+    "fr": "Mode de fonctionnement"
+   },
+   "description": {
+    "en": "operating mode",
+    "fr": "mode de fonctionnement"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "operating-mode",
+    "modules-programs"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "Standby",
+      "3": "HeatingOperation",
+      "4": "SetbackOperation",
+      "5": "HolidaySummer",
+      "11": "HeatingProgram1",
+      "12": "HeatingProgram2",
+      "13": "HeatingProgram3"
+     },
+     "value_labels": {
+      "1": {
+       "en": "Standby",
+       "fr": "Standby"
+      },
+      "3": {
+       "en": "Heating",
+       "fr": "Fonctionnement chauffage"
+      },
+      "4": {
+       "en": "Setback",
+       "fr": "Fonctionnement réduit"
+      },
+      "5": {
+       "en": "Holiday / summer",
+       "fr": "Vacances / Été"
+      },
+      "11": {
+       "en": "Heating program 1",
+       "fr": "Programme de chauffage 1"
+      },
+      "12": {
+       "en": "Heating program 2",
+       "fr": "Programme de chauffage 2"
+      },
+      "13": {
+       "en": "Heating program 3",
+       "fr": "Programme de chauffage 3"
+      }
+     },
+     "description": {
+      "en": "operating mode of a heating circuit",
+      "fr": "mode de fonctionnement d'un circuit de chauffage"
+     }
+    }
+   ]
+  },
   "em3/CirculationReturnSetTemp": {
    "circuit": "em3",
    "name": "CirculationReturnSetTemp",
@@ -33728,6 +34764,79 @@
      "description": {
       "en": "heating circuit type",
       "fr": "type de circuit de chauffage"
+     }
+    }
+   ]
+  },
+  "fs2/OperatingMode": {
+   "circuit": "fs2",
+   "name": "OperatingMode",
+   "address": "75",
+   "device": "room2",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Operating mode",
+    "fr": "Mode de fonctionnement"
+   },
+   "description": {
+    "en": "operating mode",
+    "fr": "mode de fonctionnement"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "operating-mode",
+    "modules-programs"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "Standby",
+      "3": "HeatingOperation",
+      "4": "SetbackOperation",
+      "5": "HolidaySummer",
+      "11": "HeatingProgram1",
+      "12": "HeatingProgram2",
+      "13": "HeatingProgram3"
+     },
+     "value_labels": {
+      "1": {
+       "en": "Standby",
+       "fr": "Standby"
+      },
+      "3": {
+       "en": "Heating",
+       "fr": "Fonctionnement chauffage"
+      },
+      "4": {
+       "en": "Setback",
+       "fr": "Fonctionnement réduit"
+      },
+      "5": {
+       "en": "Holiday / summer",
+       "fr": "Vacances / Été"
+      },
+      "11": {
+       "en": "Heating program 1",
+       "fr": "Programme de chauffage 1"
+      },
+      "12": {
+       "en": "Heating program 2",
+       "fr": "Programme de chauffage 2"
+      },
+      "13": {
+       "en": "Heating program 3",
+       "fr": "Programme de chauffage 3"
+      }
+     },
+     "description": {
+      "en": "operating mode of a heating circuit",
+      "fr": "mode de fonctionnement d'un circuit de chauffage"
      }
     }
    ]
@@ -34460,7 +35569,11 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN"
+     "type": "UIN",
+     "code_lists": [
+      "wtc-gb-faults",
+      "wcm-faults"
+     ]
     }
    ]
   },
@@ -46501,6 +47614,79 @@
     }
    ]
   },
+  "fs3/OperatingMode": {
+   "circuit": "fs3",
+   "name": "OperatingMode",
+   "address": "f5",
+   "device": "room3",
+   "menu": "settings",
+   "kind": "setting",
+   "label": {
+    "en": "Operating mode",
+    "fr": "Mode de fonctionnement"
+   },
+   "description": {
+    "en": "operating mode",
+    "fr": "mode de fonctionnement"
+   },
+   "read": true,
+   "passive": false,
+   "poll": "on_demand",
+   "poll_basis": "default",
+   "evidence": [
+    "operating-mode",
+    "modules-programs"
+   ],
+   "fields": [
+    {
+     "name": "value",
+     "type": "UIN",
+     "values": {
+      "1": "Standby",
+      "3": "HeatingOperation",
+      "4": "SetbackOperation",
+      "5": "HolidaySummer",
+      "11": "HeatingProgram1",
+      "12": "HeatingProgram2",
+      "13": "HeatingProgram3"
+     },
+     "value_labels": {
+      "1": {
+       "en": "Standby",
+       "fr": "Standby"
+      },
+      "3": {
+       "en": "Heating",
+       "fr": "Fonctionnement chauffage"
+      },
+      "4": {
+       "en": "Setback",
+       "fr": "Fonctionnement réduit"
+      },
+      "5": {
+       "en": "Holiday / summer",
+       "fr": "Vacances / Été"
+      },
+      "11": {
+       "en": "Heating program 1",
+       "fr": "Programme de chauffage 1"
+      },
+      "12": {
+       "en": "Heating program 2",
+       "fr": "Programme de chauffage 2"
+      },
+      "13": {
+       "en": "Heating program 3",
+       "fr": "Programme de chauffage 3"
+      }
+     },
+     "description": {
+      "en": "operating mode of a heating circuit",
+      "fr": "mode de fonctionnement d'un circuit de chauffage"
+     }
+    }
+   ]
+  },
   "fs3/VersionMajor": {
    "circuit": "fs3",
    "name": "VersionMajor",
@@ -47229,7 +48415,11 @@
    "fields": [
     {
      "name": "value",
-     "type": "UIN"
+     "type": "UIN",
+     "code_lists": [
+      "wtc-gb-faults",
+      "wcm-faults"
+     ]
     }
    ]
   },
@@ -60869,6 +62059,7 @@
    "fs1/HeatDemandTemp",
    "fs1/SupplyHCSetTemp",
    "fs1/HeatingCircuitType",
+   "fs1/OperatingMode",
    "fs1/DHWLoadingPriority",
    "fs1/GradientCurve",
    "fs1/SummerWinterChangeOverTemp",
@@ -60879,6 +62070,7 @@
    "em2/SupplyHCTemp",
    "em2/BoilerMCBoostTemp",
    "em2/MixerParameter",
+   "em2/OperatingMode",
    "em2/GradientCurve",
    "em2/SummerWinterChangeOverTemp",
    "em2/SupplyMaxTemp",
@@ -60891,9 +62083,11 @@
    "em3/SupplyHCTemp",
    "em3/BoilerMCBoostTemp",
    "em3/MixerParameter",
+   "em3/OperatingMode",
    "fs2/HeatDemandTemp",
    "fs2/SupplyHCSetTemp",
    "fs2/HeatingCircuitType",
+   "fs2/OperatingMode",
    "fs2/DHWLoadingPriority",
    "fs2/GradientCurve",
    "fs2/SummerWinterChangeOverTemp",
@@ -60904,6 +62098,7 @@
    "fs3/HeatDemandTemp",
    "fs3/SupplyHCSetTemp",
    "fs3/HeatingCircuitType",
+   "fs3/OperatingMode",
    "fs3/DHWLoadingPriority",
    "fs3/GradientCurve",
    "fs3/SummerWinterChangeOverTemp",

@@ -397,8 +397,9 @@ def fault_tables(hub: Hub) -> list[dict[str, Any]]:
 
 
 def _fault_entry(entry: dict[str, Any], fields: dict[str, Field], known: dict[int, dict[str, str]]) -> dict[str, Any]:
-    """An entry of a fault memory for the panel: code, text, and each value the automat stored with its label,
-    unit and, for a value list, the labels of its entry."""
+    """An entry of a fault memory for the panel: code, text (the label of the code list of the definitions, else
+    the text of the fault counter of that number), and each value the automat stored with its label, unit and, for
+    a value list, the labels of its entry."""
     values = []
     for name, value in entry.items():
         fld = fields.get(name)
@@ -408,7 +409,7 @@ def _fault_entry(entry: dict[str, Any], fields: dict[str, Field], known: dict[in
         values.append({"label": fld.label or {"en": name}, "value": None if value is None else str(value),
                        "value_labels": labels, "unit": fld.unit})
     return {"slot": entry["slot"], "code": entry["code"], "number": entry["number"],
-            "text": known.get(entry["number"]), "values": values}
+            "text": entry.get("label") or known.get(entry["number"]), "values": values}
 
 
 @websocket_api.require_admin

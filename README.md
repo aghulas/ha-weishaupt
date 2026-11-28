@@ -289,8 +289,16 @@ broadcast. On each of them, only entities:
 | Operating counters (hours, burner starts, hours since service) | diagnostic sensors | yes |
 | Settings (setpoints, heating curve, limits, cascade and hot-water settings) | diagnostic sensors, read-only; with writes enabled, also a number entity for each proven setting | no (the numbers: yes) |
 | Weekly programs | one diagnostic sensor per program: the state is today's switch times (`06:30-18:00, 19:00-21:00`), one attribute per day | no |
-| Fault memory of a boiler | one diagnostic sensor: the state is the most recent entry (`W12`, `F11`), the attribute `entries` lists all of them with the values the boiler stored | yes |
+| Fault memory of a boiler | one diagnostic sensor: the state is the most recent entry (`W12`, `F11`), the attribute `entries` lists all of them with the values the boiler stored and the label of the code, `fault` the most recent with its label | yes |
 | One counter per fault number, software versions, clock, system fault log, raw status bytes | diagnostic sensors | no |
+
+**Fault codes.** A value that reads a fault number (the pending fault of the system manager, the code of a
+fault-log entry of the system manager or a room unit, the number of a boiler's fault memory) keeps the number as
+its state; when the definitions' code lists (1.6.0 and later) know the number, the attributes `fault_code`
+(`F36`) and `fault` (`F36 – System water pressure too low`, in the language of Home Assistant) say what it is. A
+system fault log does not store whether a boiler number was a warning or a fault: a number that is both shows
+both codes (`W15/F15`). 0 (no fault) and numbers the lists do not hold have no such attribute. The boiler list
+is the one of the WTC-GB.
 
 Settings and weekly programs are created disabled to keep the list short: enable those you want
 on the device page (*entities not shown*), they are then read like the others. Home Assistant
@@ -369,11 +377,12 @@ ranges and steps, source addresses of the metadata, read-back). *Open* still sho
   dashboards or automations that use it no longer find it. An entity disabled by its device or its config entry is
   left as it is. Administrators only, checked by Home Assistant for each command.
 - **Faults** (read only), per device that has them: the boilers' fault memory, most recent first
-  when its pointer is read, each entry with its code, the text of the manual's fault list as the
-  definitions give it, and the values the automat stored with it (the automat stores no time);
-  the boilers' fault counters with their texts; the fault-log entry the system manager's operating
-  unit has selected, with its time (selecting another entry is a write, which the panel does not
-  do). Messages no enabled entity reads have *Read now*: read once, at the pace of the bus, after
+  when its pointer is read, each entry with its code, the label of the definitions' code list (the
+  text of the fault counter of that number with definitions before 1.6.0), and the values the
+  automat stored with it (the automat stores no time); the boilers' fault counters with their
+  texts; the fault-log entry the system manager's operating unit has selected, with its time and
+  the code and label of its fault number (selecting another entry is a write, which the panel does
+  not do). Messages no enabled entity reads have *Read now*: read once, at the pace of the bus, after
   what the entities wait for, with the number of requests shown.
 - **Report and CSV**: *Printable report* opens every setting of the installation (device, menu,
   setting, value as read or why it is not, unit, range and step or the entries of a choice,
@@ -873,7 +882,10 @@ The release notes on GitHub give each version in full; here only what changed wh
   Definitions 1.4.1 shipped: the vendor codes of the manuals (`P112`, `535`, `i35`) as the attributes
   `vendor_code` and `vendor_scheme` of 240 entities, a column of the panel (sortable, found by the search with or
   without spaces: `p31`, `P 31`), in the printable report and the CSV; the boiler files are those of automat
-  software 1104 (`08.w.bc1.SW1104`, `18.w.bc2.SW1104`), nothing to change.
+  software 1104 (`08.w.bc1.SW1104`, `18.w.bc2.SW1104`), nothing to change. Definitions 1.6.0 shipped: the
+  operating mode of the room units and modules (five sensors, disabled by default), and the fault codes of the
+  manuals with their labels on the fault values (attributes `fault_code` and `fault`, the fault memory's entries,
+  the panel's fault tables).
 - 1.2.0: definitions 1.3.0 shipped (687 messages, of which 686 can be read): boiler heating-specialist parameters
   (`InstallerParameters1`–`5`, new *Heating specialist parameters* menu), boiler fan speeds while firing
   (`FanOperation`), module H1 digital input (`H1Status`), 16-bit `FloorDryingTemp` / `RoomThermostatTemp`, and all

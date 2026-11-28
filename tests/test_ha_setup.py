@@ -146,8 +146,10 @@ async def test_weekly_program_and_fault_history(hass, fake, monkeypatch, entity_
     # the pointer reads 0x0231: slot 6 is the most recent entry, as the vendor tool lists them
     assert [e["slot"] for e in entries] == [6, 5, 4, 3, 2, 1]
     assert [e["code"] for e in entries] == ["W12", "F11", "W12", "W12", "W12", "W12"]
-    assert entries[0] == {"slot": 6, "code": "W12", "operatingphase": "PostPurge", "load": 44, "pumpspeed": 100,
+    assert entries[0] == {"slot": 6, "code": "W12", "label": "Limiter, flow or return above 95 °C",
+                          "operatingphase": "PostPurge", "load": 44, "pumpspeed": 100,
                           "boilertemp": 94, "fluegastemp": 49, "ionisation": 0.0, "returntemp": 40}
+    assert faults.attributes["fault"] == "W12 – Limiter, flow or return above 95 °C"
     # the per-slot messages have no entity of their own
     registry = er.async_get(hass)
     assert not [e for e in er.async_entries_for_config_entry(registry, entry.entry_id) if "Slot" in e.unique_id]

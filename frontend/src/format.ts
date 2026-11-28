@@ -955,6 +955,17 @@ export function codeKey(text: string): string {
   return text.replace(/\s+/g, "").toLowerCase();
 }
 
+/** A fault number of the fault log as shown: the number, and what the code list of the definitions says it is,
+ * "36 (F36 – System water pressure too low)", "181 – Room unit…" when the code is the number; the number alone
+ * when no list knows it, "-" while unread. */
+export function faultCode(code: number | null | undefined, fault: { codes: string; label: Labels } | null | undefined,
+                          language: string): string {
+  if (code === null || code === undefined) return "-";
+  if (!fault) return String(code);
+  const text = label(fault.label, language);
+  return fault.codes === String(code) ? `${code} – ${text}` : `${code} (${fault.codes} – ${text})`;
+}
+
 /** The vendor codes of a row as shown: "P112", or "P141, 593" for several; empty without. */
 export function codeText(row: Row): string {
   return (row.vendor_codes ?? []).map((c) => c.code).join(", ");

@@ -6,13 +6,15 @@ Boiler fault history: six slots of 8 bytes; the pointer is the address of the la
 Fault counters: one field `code<n>` per fault number, whose description in the definitions is the text of the
 manual's fault list ("W57/F57: …"); that text names the faults of the history too.
 System manager: the fault log entry its operating unit has selected (`em1/Error*`), with its time. Selecting
-another entry is a write: the panel shows the selected one only."""
+another entry is a write: the panel shows the selected one only.
+Code lists (definitions 1.6.0 and later): what a fault number means, looked up in the lists the field names
+(`Model.fault_code`); a number in no list, and every number with an older metadata, has no label."""
 from __future__ import annotations
 
 from collections.abc import Callable
 from typing import Any
 
-from .model import Group, Message, Model
+from .model import Group, Message, Model, fault_codes
 
 FAULT_SLOT_BASE, FAULT_SLOT_SIZE = 0x0201, 8
 NOT_AVAILABLE = "-"
@@ -39,7 +41,8 @@ def _fields(model: Model, reading: Reading, key: str) -> dict[str, str] | None:
 
 def history(model: Model, reading: Reading, group: Group, pointer: str | None) -> list[dict[str, Any]] | None:
     """The entries of a fault memory, most recent first when the pointer was read; None while a slot is unread.
-    Each entry: slot, code (`F11`, `W12`), and the values the automat stored with it."""
+    Each entry: slot, code (`F11`, `W12`), the label of its code list (`label`, per language) when the list knows
+    the number, and the values the automat stored with it."""
     slots = []
     for key in group.members:
         fields = _fields(model, reading, key)
@@ -51,6 +54,10 @@ def history(model: Model, reading: Reading, group: Group, pointer: str | None) -
         if value:  # an empty slot reads 0
             entry["code"] = f"{'W' if fields.get('kind') == 'warning' else 'F'}{value}"
             entry["number"] = value
+            number_field = message.field("number")
+            known = model.fault_code(number_field, value) if number_field else None
+            if known is not None:
+                entry["label"] = known.label
             for fld in message.fields:
                 if fld.shown and fld.name not in ("number", "kind"):
                     text = fields[fld.name]
@@ -111,8 +118,9 @@ def log_keys(model: Model, circuit: str) -> list[str]:
 
 
 def log_entry(model: Model, reading: Reading, circuit: str) -> dict[str, Any] | None:
-    """The fault-log entry selected on the system manager: id, code, type, origin, time; None while unread or
-    when the definitions have no fault log."""
+    """The fault-log entry selected on the system manager: id, code, type, origin, time, and `fault` (its codes,
+    `W15/F15`, and label per language) when a code list knows the code; None while unread or when the definitions
+    have no fault log."""
     keys = log_keys(model, circuit)
     if not keys:
         return None
@@ -127,5 +135,9 @@ def log_entry(model: Model, reading: Reading, circuit: str) -> dict[str, Any] | 
     when = None
     if None not in (day, month, year, hour, minute):
         when = f"{int(year):04d}-{int(month):02d}-{int(day):02d} {int(hour):02d}:{int(minute):02d}"  # type: ignore[arg-type]
+    fault = None
+    if (message := model.messages.get(f"{circuit}/ErrorCode")) is not None and message.fields:
+        if (known := model.fault_code(message.fields[0], values.get("code"))) is not None:
+            fault = {"codes": fault_codes(known), "label": known.label}
     return {"id": values.get("id"), "code": values.get("code"), "type": values.get("type"),
-            "device": values.get("device"), "time": when}
+            "device": values.get("device"), "time": when, "fault": fault}

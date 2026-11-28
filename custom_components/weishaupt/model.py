@@ -77,6 +77,55 @@ def _vendor_codes(raw: Any) -> tuple[VendorCode, ...]:
                  and isinstance(item.get("scheme"), str) and item["scheme"])
 
 
+@dataclass(frozen=True)
+class CodeEntry:
+    """What a fault number means: every code the manual prints for it (`F36`; `W15` and `F15` when the number is
+    both a warning and a fault) and a label per language."""
+
+    codes: tuple[str, ...]
+    label: dict[str, str]
+
+
+@dataclass(frozen=True)
+class CodeList:
+    """A list of fault numbers of a vendor manual (definitions 1.6.0 and later), keyed by the raw value."""
+
+    id: str
+    scheme: str  # key of `Model.vendor_schemes`
+    label: dict[str, str]
+    entries: dict[int, CodeEntry]
+    source: str = ""
+    status: str = ""  # "proposed" (labels may still change) or "accepted"
+
+
+def _code_lists(raw: Any) -> dict[str, CodeList]:
+    """`vendor_code_lists` of the metadata; absent before definitions 1.6.0. Malformed lists and entries are left
+    out."""
+    if not isinstance(raw, dict):
+        return {}
+    lists = {}
+    for key, item in raw.items():
+        if not isinstance(item, dict) or not isinstance(item.get("entries"), dict):
+            continue
+        entries = {}
+        for number, entry in item["entries"].items():
+            if not (isinstance(number, str) and number.isdigit() and isinstance(entry, dict)):
+                continue
+            codes = tuple(c for c in entry.get("codes") or () if isinstance(c, str) and c)
+            label = entry.get("label")
+            if codes and isinstance(label, dict) and label.get("en"):
+                entries[int(number)] = CodeEntry(codes, label)
+        label = item.get("label") if isinstance(item.get("label"), dict) else {"en": key}
+        lists[key] = CodeList(key, str(item.get("scheme") or ""), label, entries, str(item.get("source") or ""),
+                              str(item.get("status") or ""))
+    return lists
+
+
+def _names(raw: Any) -> tuple[str, ...]:
+    """`code_lists` of a field: the ids of the lists its value is read in, in order."""
+    return tuple(name for name in raw if isinstance(name, str) and name) if isinstance(raw, list) else ()
+
+
 def slug(text: str) -> str:
     """`BurnerInOperation` -> `burner_in_operation`: a translation key for a value-list entry."""
     words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", text)
@@ -103,6 +152,7 @@ class Field:
     absent: float | None = None  # the value the device sends when the sensor is not fitted, when the metadata says
     renamed_from: str | None = None  # the field's former name, when a release renamed it (definitions 0.6.0 and later)
     vendor_codes: tuple[VendorCode, ...] = ()  # codes of this field of a message of several values (1.4.0 and later)
+    code_lists: tuple[str, ...] = ()  # lists the fault number this field reads is looked up in (1.6.0 and later)
 
     @property
     def shown(self) -> bool:
@@ -368,6 +418,7 @@ class Model:
     _by_circuit: dict[str, Device] = field(default_factory=dict)
     menus: dict[str, tuple[Menu, ...]] = field(default_factory=dict)  # device type -> its menus, in order
     vendor_schemes: dict[str, VendorScheme] = field(default_factory=dict)  # definitions 1.4.0 and later
+    code_lists: dict[str, CodeList] = field(default_factory=dict)  # fault code lists, definitions 1.6.0 and later
 
     @classmethod
     def load(cls, path: Path = METADATA_FILE) -> Model:
@@ -397,6 +448,7 @@ class Model:
             key: VendorScheme(key, s["label"], s.get("document"))
             for key, s in (data.get("vendor_schemes") or {}).items()
             if isinstance(s, dict) and isinstance(s.get("label"), dict) and s["label"].get("en")}
+        model.code_lists = _code_lists(data.get("vendor_code_lists"))
         model.value_entities = _value_entities(model)
         model.group_entities = _group_entities(model)
         model.setting_entities = _setting_entities(model)
@@ -425,6 +477,29 @@ class Model:
             return {}
         labels = dict.fromkeys(_in(self.scheme_label(c.scheme), language) for c in codes)
         return {"vendor_code": ", ".join(c.code for c in codes), "vendor_scheme": ", ".join(labels)}
+
+    def fault_code(self, fld: Field, value: Any) -> CodeEntry | None:
+        """What the fault number `value` of a field means: the entry of the first of the field's lists that holds
+        it (the lists of one field share no number). None for 0 (no fault), a number in no list, a field without
+        lists or a value that is not a whole number."""
+        if isinstance(value, bool) or not isinstance(value, int) or value == 0:
+            return None
+        for name in fld.code_lists:
+            known = self.code_lists.get(name)
+            if known is not None and value in known.entries:
+                return known.entries[value]
+        return None
+
+    def fault_attributes(self, fld: Field, value: Any, language: str, kind: str | None = None) -> dict[str, str]:
+        """`fault_code` (`F36`) and `fault` (`F36 – System water pressure too low`, the label in `language`) of a
+        fault number; nothing when it is in no list. `kind` is the letter a boiler's fault memory stores with the
+        number (`warning` or `fault`): of a number that is both, the code of that kind; without it, both codes
+        (`W15/F15`), since a WCM fault log does not store the letter."""
+        entry = self.fault_code(fld, value)
+        if entry is None:
+            return {}
+        return {"fault_code": (code := fault_codes(entry, kind)),
+                "fault": f"{code}{NAME_SEPARATOR}{_in(entry.label, language)}"}
 
     def device_of(self, message: Message) -> Device:
         return self.devices[message.device]
@@ -457,12 +532,20 @@ class Model:
         return mismatches
 
 
+def fault_codes(entry: CodeEntry, kind: str | None = None) -> str:
+    """The code shown for a fault number: of a number that is both a warning and a fault, the one of `kind`
+    (`warning` -> W, `fault` -> F) when given, else both, `W15/F15`."""
+    letter = {"warning": "W", "fault": "F"}.get(kind or "")
+    chosen = [c for c in entry.codes if letter and c[:1].upper() == letter]
+    return "/".join(chosen[:1] or entry.codes)
+
+
 def _message(key: str, data: dict[str, Any]) -> Message:
     fields = tuple(
         Field(f["name"], f["type"], index, f.get("kind", data["kind"]), f.get("label"), f.get("unit"),
               f.get("divisor"), f.get("values"), f.get("value_labels"), bool(f.get("skip")), bool(f.get("guard")),
               f.get("min"), f.get("max"), f.get("step"), f.get("description"), f.get("absent"), f.get("renamed_from"),
-              _vendor_codes(f.get("vendor_codes")))
+              _vendor_codes(f.get("vendor_codes")), _names(f.get("code_lists")))
         for index, f in enumerate(data["fields"]))
     write = data.get("write")
     conditions = None if write is None else WriteConditions(

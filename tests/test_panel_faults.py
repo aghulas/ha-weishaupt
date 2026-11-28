@@ -33,6 +33,8 @@ async def test_fault_tables_read_once_on_demand(hass, fake, hass_ws_client):
     entries = boiler["history"]["entries"]
     assert boiler["history"]["ordered"] and entries[0]["slot"] == 6  # pointer 561: slot 6 written last
     assert all(e["code"][0] in "FW" for e in entries) and entries[0]["text"]["en"]
+    # the text of an entry is the label of the code list of the definitions (1.6.0 and later)
+    assert entries[0]["code"] == "W12" and entries[0]["text"]["fr"] == "Limiteur, départ ou retour au-dessus de 95 °C"
     counter = next(c for c in boiler["counters"] if c["number"] == 57)
     assert counter["count"] == 20 and counter["text"]["fr"]
     await settled(hass, entry)
@@ -45,7 +47,8 @@ async def test_fault_tables_read_once_on_demand(hass, fake, hass_ws_client):
     await wait_until(lambda: panel.fault_tables(hub)[0] is not None and {
         t["device"]: t for t in panel.fault_tables(hub)}["manager"]["log"]["entry"] is not None)
     entry_log = {t["device"]: t for t in panel.fault_tables(hub)}["manager"]["log"]["entry"]
-    assert set(entry_log) == {"id", "code", "type", "device", "time"}
+    assert set(entry_log) == {"id", "code", "type", "device", "time", "fault"}
+    assert entry_log["code"] == 0 and entry_log["fault"] is None  # 0: no fault, in no code list
 
 
 async def test_fault_tables_are_for_administrators(hass, fake, hass_ws_client, hass_read_only_access_token):

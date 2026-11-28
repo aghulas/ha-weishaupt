@@ -768,15 +768,15 @@ open, an `issues` list whose ids contain it: an opaque local id, no address, whi
 
 | Integration | Definitions shipped | Accepts definitions | ebusd | Home Assistant |
 |---|---|---|---|---|
-| 1.5 | 1.4.1 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
+| 1.5 | 1.6.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 1.2 – 1.4 | 1.3.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 1.0 – 1.1 | 1.0.0 | 0.6.0 to 1.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.13 | 0.8.0 | 0.6.0 to 0.8.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.10 – 0.12 | 0.6.0 | 0.6.0 and later 0.6.x | 26.1; writes need the build with the run-time checksum | 2026.10 and later |
 | 0.4 – 0.9 | 0.5.8 (a newer 0.5.x beside the configuration) | 0.5.3 and later 0.5.x | 26.1; writes as above | 2026.10 and later |
 
-The integration ships the metadata file of definitions 1.4.1 (`weishaupt-metadata-1.4.1.json`: 687 messages, of
-which 686 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
+The integration ships the metadata file of definitions 1.6.0 (`weishaupt-metadata-1.6.0.json`: 692 messages, of
+which 691 can be read) and builds everything from it. ebusd cannot tell which release it loaded, so at start-up the
 integration compares, message by message, what ebusd loaded with that file:
 
 - a device of the definitions that does not answer on the bus gets no device in Home Assistant;

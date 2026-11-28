@@ -2530,7 +2530,7 @@
         "name": "Room unit / module exchange – Boiler boost offset"
       },
       "module_hcmode_opmode": {
-        "name": "Operating mode"
+        "name": "Room unit / module exchange – Operating mode"
       },
       "module_hcmode_outsidetemp": {
         "name": "Outside temperature"
@@ -2552,6 +2552,18 @@
       },
       "module_mixerparameter": {
         "name": "Mixer parameter"
+      },
+      "module_operatingmode": {
+        "name": "Operating mode",
+        "state": {
+          "standby": "Standby",
+          "heating_operation": "Heating",
+          "setback_operation": "Setback",
+          "holiday_summer": "Holiday / summer",
+          "heating_program1": "Heating program 1",
+          "heating_program2": "Heating program 2",
+          "heating_program3": "Heating program 3"
+        }
       },
       "module_roomfrostprotectiontemp": {
         "name": "Frost protection room temperature",
@@ -3142,6 +3154,18 @@
           "vendor_scheme": {
             "name": "Vendor code scheme"
           }
+        }
+      },
+      "room_operatingmode": {
+        "name": "Operating mode",
+        "state": {
+          "standby": "Standby",
+          "heating_operation": "Heating",
+          "setback_operation": "Setback",
+          "holiday_summer": "Holiday / summer",
+          "heating_program1": "Heating program 1",
+          "heating_program2": "Heating program 2",
+          "heating_program3": "Heating program 3"
         }
       },
       "room_outsidemixedtemp": {

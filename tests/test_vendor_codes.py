@@ -23,7 +23,7 @@ def _without_codes(data: dict) -> dict:
 
 def test_codes_of_the_release():
     model = Model.load()
-    assert sorted(model.vendor_schemes) == ["wcm-fs-2", "wcm-ka-3", "wtc-gb"]
+    assert sorted(model.vendor_schemes) == ["wcm", "wcm-fs-2", "wcm-ka-3", "wtc-gb"]
     boiler = model.vendor_schemes["wtc-gb"]
     assert boiler.label == {"en": "WTC-GB boiler automat", "fr": "Automate de la chaudière WTC-GB"}
     assert boiler.document == "83251704"
@@ -42,9 +42,9 @@ def test_codes_of_the_release():
     on_fields = [(m, f) for m in model.messages.values() for f in m.fields if f.vendor_codes]
     assert (len(on_messages), len(on_fields)) == (197, 46)
     assert not any(m.vendor_codes and any(f.vendor_codes for f in m.fields) for m in model.messages.values())
-    # every code names a scheme of the release
+    # every code names a scheme of the release; from 1.6.0 `wcm` numbers the fault codes of a code list only
     assert {c.scheme for m in on_messages for c in m.vendor_codes} | {
-        c.scheme for _, f in on_fields for c in f.vendor_codes} == set(model.vendor_schemes)
+        c.scheme for _, f in on_fields for c in f.vendor_codes} == set(model.vendor_schemes) - {"wcm"}
 
 
 def test_many_values_may_share_one_code():

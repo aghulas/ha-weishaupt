@@ -1,9 +1,9 @@
 {
  "schema": 2,
  "definitions": {
-  "version": "1.4.1",
-  "commit": "2745822",
-  "messages": 687
+  "version": "1.6.0",
+  "commit": "cece980",
+  "messages": 692
  },
  "verified": {
   "by": "ebusd",
@@ -11,9 +11,9 @@
   "loaded": "lot files only, no scan"
  },
  "coverage": {
-  "messages": 687,
-  "covered": 686,
-  "readings": 1029,
+  "messages": 692,
+  "covered": 691,
+  "readings": 1034,
   "by_kind": {
    "live": {
     "messages": 62,
@@ -28,8 +28,8 @@
     "covered": 74
    },
    "setting": {
-    "messages": 163,
-    "covered": 162
+    "messages": 168,
+    "covered": 167
    },
    "state": {
     "messages": 11,
@@ -54,24 +54,24 @@
     "covered": 34
    },
    "room1": {
-    "messages": 156,
-    "covered": 156
+    "messages": 157,
+    "covered": 157
    },
    "module2": {
-    "messages": 19,
-    "covered": 19
+    "messages": 20,
+    "covered": 20
    },
    "module3": {
-    "messages": 17,
-    "covered": 17
+    "messages": 18,
+    "covered": 18
    },
    "room2": {
-    "messages": 154,
-    "covered": 154
+    "messages": 155,
+    "covered": 155
    },
    "room3": {
-    "messages": 154,
-    "covered": 154
+    "messages": 155,
+    "covered": 155
    },
    "system": {
     "messages": 2,
@@ -24431,6 +24431,111 @@
    "text": "off",
    "evidence": "register-survey-findings",
    "date": "2026-11-24"
+  },
+  {
+   "circuit": "fs1",
+   "message": "OperatingMode",
+   "type": "read",
+   "qq": "31",
+   "zz": "35",
+   "pbsb": "5022",
+   "master": "09 12 01",
+   "slave": "0b 00",
+   "telegram": "3135502203091201/020b00",
+   "device": "room1",
+   "expect": {
+    "value": "HeatingProgram1"
+   },
+   "decoded": {
+    "value": "HeatingProgram1"
+   },
+   "text": "HeatingProgram1",
+   "evidence": "operating-mode",
+   "date": "2026-11-17"
+  },
+  {
+   "circuit": "fs2",
+   "message": "OperatingMode",
+   "type": "read",
+   "qq": "31",
+   "zz": "75",
+   "pbsb": "5022",
+   "master": "09 12 01",
+   "slave": "0b 00",
+   "telegram": "3175502203091201/020b00",
+   "device": "room2",
+   "expect": {
+    "value": "HeatingProgram1"
+   },
+   "decoded": {
+    "value": "HeatingProgram1"
+   },
+   "text": "HeatingProgram1",
+   "evidence": "operating-mode",
+   "date": "2026-11-17"
+  },
+  {
+   "circuit": "fs3",
+   "message": "OperatingMode",
+   "type": "read",
+   "qq": "31",
+   "zz": "f5",
+   "pbsb": "5022",
+   "master": "09 12 01",
+   "slave": "0b 00",
+   "telegram": "31f5502203091201/020b00",
+   "device": "room3",
+   "expect": {
+    "value": "HeatingProgram1"
+   },
+   "decoded": {
+    "value": "HeatingProgram1"
+   },
+   "text": "HeatingProgram1",
+   "evidence": "operating-mode",
+   "date": "2026-11-17"
+  },
+  {
+   "circuit": "em2",
+   "message": "OperatingMode",
+   "type": "read",
+   "qq": "31",
+   "zz": "51",
+   "pbsb": "5022",
+   "master": "09 12 01",
+   "slave": "0c 00",
+   "telegram": "3151502203091201/020c00",
+   "device": "module2",
+   "expect": {
+    "value": "HeatingProgram2"
+   },
+   "decoded": {
+    "value": "HeatingProgram2"
+   },
+   "text": "HeatingProgram2",
+   "evidence": "operating-mode",
+   "date": "2026-11-17"
+  },
+  {
+   "circuit": "em3",
+   "message": "OperatingMode",
+   "type": "read",
+   "qq": "31",
+   "zz": "52",
+   "pbsb": "5022",
+   "master": "09 12 01",
+   "slave": "0c 00",
+   "telegram": "3152502203091201/020c00",
+   "device": "module3",
+   "expect": {
+    "value": "HeatingProgram2"
+   },
+   "decoded": {
+    "value": "HeatingProgram2"
+   },
+   "text": "HeatingProgram2",
+   "evidence": "operating-mode",
+   "date": "2026-11-17"
   }
  ]
 }

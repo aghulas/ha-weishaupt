@@ -237,7 +237,17 @@ export interface FaultTable {
     ordered: boolean;
   } | null;
   counters: { number: number; count: number | null; text: Labels | null }[] | null;
-  log: { entry: { id: number | null; code: number | null; type: number | null; device: number | null; time: string | null } | null } | null;
+  log: {
+    entry: {
+      id: number | null;
+      code: number | null;
+      type: number | null;
+      device: number | null;
+      time: string | null;
+      /** What a code list of the definitions says the code is (1.6.0 and later): `W15/F15`, label. */
+      fault?: { codes: string; label: Labels } | null;
+    } | null;
+  } | null;
   keys: string[];
   not_listened: number;
   to_read: number; // messages a "Read now" would really request

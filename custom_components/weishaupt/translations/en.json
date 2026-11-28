@@ -1231,6 +1231,9 @@
           },
           "ordered": {
             "name": "Most recent first"
+          },
+          "fault": {
+            "name": "Most recent fault"
           }
         }
       },
@@ -2024,6 +2027,12 @@
           },
           "vendor_scheme": {
             "name": "Vendor code scheme"
+          },
+          "fault_code": {
+            "name": "Fault code"
+          },
+          "fault": {
+            "name": "Fault"
           }
         }
       },
@@ -2100,7 +2109,15 @@
         }
       },
       "manager_errorstatus": {
-        "name": "Fault code"
+        "name": "Fault code",
+        "state_attributes": {
+          "fault_code": {
+            "name": "Fault code"
+          },
+          "fault": {
+            "name": "Fault"
+          }
+        }
       },
       "manager_errortype": {
         "name": "Fault type of the entry",
@@ -2925,6 +2942,12 @@
           },
           "vendor_scheme": {
             "name": "Vendor code scheme"
+          },
+          "fault_code": {
+            "name": "Fault code"
+          },
+          "fault": {
+            "name": "Fault"
           }
         }
       },

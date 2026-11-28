@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  addDragged, initialDraft, queuedText, dayTextEntities, writeSwitch, isoWeekday, isProgramSensor, weekFromAttributes, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
+  addDragged, faultCode, initialDraft, queuedText, dayTextEntities, writeSwitch, isoWeekday, isProgramSensor, weekFromAttributes, reportHtml, reportRows, toCsv, bars, formatAge, formatDay, parseDay, formatRange, formatValue, languageOf, menuTree, missingReason, notUsable, readingOf, redundant,
   STRINGS, t,
 } from "../src/format.ts";
 import type { Row, Tree } from "../src/types.ts";
@@ -316,4 +316,14 @@ test("vendor codes: search without case and spaces, sort, tooltip, report and CS
   assert.ok(page.includes("<th>Setting</th><th>Vendor code</th><th>Value</th>"));
   assert.ok(page.includes("<td>Max flow</td><td>P31</td>"));
   assert.ok(page.includes("Vendor codes: WTC-GB boiler automat, document 83251704."));
+});
+
+test("a fault number of the fault log with what the code list says it is", () => {
+  const known = { codes: "W15/F15", label: { en: "Flow/return difference too large", fr: "Écart départ/retour trop élevé" } };
+  assert.equal(faultCode(15, known, "fr"), "15 (W15/F15 – Écart départ/retour trop élevé)");
+  assert.equal(faultCode(15, known, "de"), "15 (W15/F15 – Flow/return difference too large)");
+  assert.equal(faultCode(181, { codes: "181", label: { en: "Communication fault" } }, "en"), "181 – Communication fault");
+  assert.equal(faultCode(99, null, "en"), "99"); // in no list, or a metadata before 1.6.0
+  assert.equal(faultCode(0, undefined, "en"), "0");
+  assert.equal(faultCode(null, null, "en"), "-");
 });

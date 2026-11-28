@@ -444,7 +444,12 @@
   },
   "attributes": {
     "entries": "Entrées",
-    "ordered": "Plus récente en premier"
+    "ordered": "Plus récente en premier",
+    "fault": "Dernier défaut"
+  },
+  "fault_attributes": {
+    "fault_code": "Code défaut",
+    "fault": "Défaut"
   },
   "code_attributes": {
     "vendor_code": "Code constructeur",

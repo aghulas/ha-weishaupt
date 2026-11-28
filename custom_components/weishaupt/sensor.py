@@ -15,7 +15,7 @@ from . import clock, faults
 from .ebusd import EbusdError
 from .entity import NOT_AVAILABLE, TEXT_TYPES, WeishauptEntity, code_attributes, parse_number
 from .hub import Hub, WeishauptConfigEntry
-from .model import WEEKDAYS, GroupEntity, ValueEntity
+from .model import NAME_SEPARATOR, WEEKDAYS, GroupEntity, ValueEntity
 
 PARALLEL_UPDATES = 0  # the entities never ask: the hub reads, one request at a time
 
@@ -64,6 +64,7 @@ class ValueSensor(WeishauptEntity, SensorEntity):
         # and later): that exact value reads unknown, never as a temperature; no rule for unmarked fields
         self._absent = fld.absent
         self._codes = code_attributes(hub, message, fld)
+        self._field = fld
         self._attr_entity_registry_enabled_default = description.enabled_default
         if description.diagnostic:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -101,8 +102,13 @@ class ValueSensor(WeishauptEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """The vendor code of the value and its scheme, when it has one; `no_sensor: true` while the device sends
-        the value the definitions give for a sensor not fitted."""
+        the value the definitions give for a sensor not fitted; for a fault number that a code list of the
+        definitions knows (1.6.0 and later), `fault_code` (`F36`) and `fault` (`F36 – System water pressure too
+        low`). The state stays the number."""
         attributes: dict[str, Any] = dict(self._codes)
+        if self._field.code_lists and (values := self.hub.reading(self._key)) is not None:
+            attributes |= self.hub.model.fault_attributes(self._field, parse_number(values[self._index]),
+                                                          self.hub.hass.config.language.split("-")[0])
         if self._absent is not None:
             values = self.hub.reading(self._key)
             value = parse_number(values[self._index]) if values is not None else None
@@ -168,7 +174,9 @@ class ProgramSensor(GroupSensor):
 
 class FaultHistorySensor(GroupSensor):
     """Fault memory of a boiler: state = the most recent entry (`W12`, `F11`), attribute `entries` = all of them,
-    most recent first, each with the values the automat stored with it."""
+    most recent first, each with the values the automat stored with it and, when the code list of the definitions
+    knows its number (1.6.0 and later), its `label`; attribute `fault` = the most recent one with its label
+    (`F36 – System water pressure too low`)."""
 
     def __init__(self, hub: Hub, description: GroupEntity) -> None:
         pointer_name = description.group.pointer.message if description.group.pointer else "FaultHistoryPointer"
@@ -180,7 +188,8 @@ class FaultHistorySensor(GroupSensor):
         entries = faults.history(self.hub.model, self.hub.reading, self._group, self._pointer)
         if entries is None:
             return None
-        return [{k: v for k, v in entry.items() if k != "number"} for entry in entries]
+        return [{k: self.hub.label(v) if k == "label" else v for k, v in entry.items() if k != "number"}
+                for entry in entries]
 
     @property
     def native_value(self) -> str | None:
@@ -192,7 +201,12 @@ class FaultHistorySensor(GroupSensor):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         entries = self._entries()
-        return {} if entries is None else {"entries": entries, "ordered": self._ordered()}
+        if entries is None:
+            return {}
+        attributes: dict[str, Any] = {"entries": entries, "ordered": self._ordered()}
+        if entries and "label" in entries[0]:
+            attributes["fault"] = f"{entries[0]['code']}{NAME_SEPARATOR}{entries[0]['label']}"
+        return attributes
 
     def _ordered(self) -> bool:
         """True when the pointer was read, so that the first entry is the most recent one."""

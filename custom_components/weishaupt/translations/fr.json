@@ -1231,6 +1231,9 @@
           },
           "ordered": {
             "name": "Plus récente en premier"
+          },
+          "fault": {
+            "name": "Dernier défaut"
           }
         }
       },
@@ -2024,6 +2027,12 @@
           },
           "vendor_scheme": {
             "name": "Numérotation du code constructeur"
+          },
+          "fault_code": {
+            "name": "Code défaut"
+          },
+          "fault": {
+            "name": "Défaut"
           }
         }
       },
@@ -2100,7 +2109,15 @@
         }
       },
       "manager_errorstatus": {
-        "name": "Code défaut"
+        "name": "Code défaut",
+        "state_attributes": {
+          "fault_code": {
+            "name": "Code défaut"
+          },
+          "fault": {
+            "name": "Défaut"
+          }
+        }
       },
       "manager_errortype": {
         "name": "Type de défaut de l'entrée",
@@ -2925,6 +2942,12 @@
           },
           "vendor_scheme": {
             "name": "Numérotation du code constructeur"
+          },
+          "fault_code": {
+            "name": "Code défaut"
+          },
+          "fault": {
+            "name": "Défaut"
           }
         }
       },

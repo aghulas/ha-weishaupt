@@ -23,6 +23,7 @@ import {
   matchesRow,
   codeText,
   codeTitle,
+  faultCode,
   sortByCode,
   queuedText,
   reportHtml,
@@ -387,7 +388,7 @@ export class WeishauptPanel extends LitElement {
               ${table.log.entry
                 ? t(lang, "fault_log_fields", {
                     id: value(table.log.entry.id),
-                    code: value(table.log.entry.code),
+                    code: faultCode(table.log.entry.code, table.log.entry.fault, lang),
                     type: value(table.log.entry.type),
                     device: value(table.log.entry.device),
                     time: value(table.log.entry.time),

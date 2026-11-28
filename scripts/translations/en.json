@@ -444,7 +444,12 @@
   },
   "attributes": {
     "entries": "Entries",
-    "ordered": "Most recent first"
+    "ordered": "Most recent first",
+    "fault": "Most recent fault"
+  },
+  "fault_attributes": {
+    "fault_code": "Fault code",
+    "fault": "Fault"
   },
   "code_attributes": {
     "vendor_code": "Vendor code",
